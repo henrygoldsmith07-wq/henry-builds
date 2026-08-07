@@ -77,11 +77,8 @@ export default defineConfig({
       '@convex-dev/auth/react',
     ],
   },
-  // Performance hints
+  // Keep the managed preview server from injecting HMR into production builds.
   server: {
-    // Keep HMR on, but disable full-screen error overlay
-    hmr: {
-      overlay: false,
-    },
+    hmr: false,
   },
 });

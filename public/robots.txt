@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Set VITE_SITE_URL or profile.siteUrl before publishing a production sitemap.
+Sitemap: /sitemap.xml

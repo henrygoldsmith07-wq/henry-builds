@@ -4,7 +4,7 @@ export type Project = {
   eyebrow: string;
   description: string;
   category: string;
-  status: string;
+  status: "Building" | "In progress" | "Experiment" | "Prototype" | "Ongoing" | "Paused";
   tags: string[];
   accent: string;
   preview: "revise" | "fitness" | "food" | "language" | "calendar" | "studio";
@@ -13,6 +13,13 @@ export type Project = {
   features: string[];
   technology: string[];
   improving: string;
+  githubUrl?: string;
+  liveUrl?: string;
+  screenshots?: {
+    src: string;
+    alt: string;
+  }[];
+  featured?: boolean;
 };
 
 export const projects: Project[] = [
@@ -31,6 +38,7 @@ export const projects: Project[] = [
     features: ["Active recall", "Spaced repetition", "Revision planning", "AI-powered learning"],
     technology: ["React", "TypeScript", "Product design"],
     improving: "Making the experience feel lighter while adding more useful context around each session.",
+    featured: true,
   },
   {
     slug: "arise-fitness",
@@ -38,7 +46,7 @@ export const projects: Project[] = [
     eyebrow: "Training, made easier to return to.",
     description: "A fitness application focused on workouts, progress tracking and exercise data that helps people improve their training over time.",
     category: "Fitness / Tracking",
-    status: "Exploring",
+    status: "Building",
     tags: ["Fitness", "Data", "Habits"],
     accent: "#dceadf",
     preview: "fitness",
@@ -47,6 +55,7 @@ export const projects: Project[] = [
     features: ["Workout logging", "Progress snapshots", "Exercise library", "Training history"],
     technology: ["React", "Data visualisation", "Interaction design"],
     improving: "Finding the right balance between detailed data and a motivating, low-friction routine.",
+    featured: true,
   },
   {
     slug: "food-shopping-os",
@@ -54,7 +63,7 @@ export const projects: Project[] = [
     eyebrow: "A calmer way to plan the week.",
     description: "A nutrition, meal-planning and food-shopping platform designed to make choosing meals and buying food feel more connected.",
     category: "Nutrition / Organisation",
-    status: "Exploring",
+    status: "Experiment",
     tags: ["Nutrition", "Planning", "Systems"],
     accent: "#f0e5cf",
     preview: "food",
@@ -63,6 +72,7 @@ export const projects: Project[] = [
     features: ["Meal planning", "Smart shopping lists", "Nutrition overview", "Reusable routines"],
     technology: ["Product systems", "UI/UX", "Rapid prototyping"],
     improving: "Making planning feel flexible enough for real weeks, not just ideal ones.",
+    featured: true,
   },
   {
     slug: "french-practice",

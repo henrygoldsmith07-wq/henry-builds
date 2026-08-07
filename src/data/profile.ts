@@ -1,11 +1,14 @@
 export const profile = {
-  siteName: "Portfolio website",
+  siteName: "Henry Goldsmith",
+  siteTitle: "Henry Goldsmith — Student, Developer & Builder",
+  siteDescription: "Personal website of Henry Goldsmith — a student exploring software development, AI, product design and useful digital products.",
+  siteUrl: "",
   name: "Henry Goldsmith",
   monogram: "HG",
   role: "Student · Developer · Builder",
   statement: "I like building things that make life better.",
   intro:
-    "This is my portfolio of software, AI, design and self-improvement experiments. I turn problems I actually encounter into useful apps and systems, then keep making them better.",
+    "I'm a student interested in software, AI and product design. I build apps around problems I actually encounter, then keep improving them.",
   philosophy: "Build → Test → Learn → Improve",
   currently: "Building software and experimenting with AI.",
   learning: "Development, product design and better systems.",
@@ -41,7 +44,7 @@ export const profile = {
     { label: "Now", description: "Continuing to build, learn and improve." },
   ],
   contact: {
-    github: "https://github.com/",
+    github: "https://github.com/henrygoldsmith07-wq",
     email: "",
   },
 } as const;
