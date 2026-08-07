@@ -1,0 +1,46 @@
+export const profile = {
+  name: "Henry Goldsmith",
+  monogram: "HG",
+  role: "Student · Developer · Builder",
+  statement: "I like building things that make life better.",
+  intro:
+    "I'm interested in software, AI, design and self-improvement. I enjoy turning problems I encounter into apps, systems and experiments that help solve them.",
+  philosophy: "Build → Test → Learn → Improve",
+  currently: "Building software and experimenting with AI.",
+  learning: "Development, product design and better systems.",
+  outsideCoding: "Fitness, cycling, football and learning.",
+  approach: "Start with a problem. Stay curious about the details.",
+  exploring: [
+    "Building better AI-powered software",
+    "Designing better study systems",
+    "Making UI feel simpler",
+    "Learning new development tools",
+    "Connecting personal software",
+    "Fitness and performance",
+  ],
+  interests: [
+    { title: "Development", description: "Building web applications and experimenting with new technologies.", icon: "code" },
+    { title: "Artificial intelligence", description: "Exploring how AI can improve products, learning and productivity.", icon: "spark" },
+    { title: "Product design", description: "Thinking about how applications should work, not just how they look.", icon: "design" },
+    { title: "Learning", description: "Improving how I study and understanding how people learn effectively.", icon: "learning" },
+    { title: "Fitness", description: "Strength training, progress tracking and finding better routines.", icon: "fitness" },
+    { title: "Cycling", description: "Training, riding and improving performance one session at a time.", icon: "cycling" },
+    { title: "Football", description: "Following European football and the stories around the game.", icon: "football" },
+    { title: "Self-improvement", description: "Experimenting with routines, systems and habits that stick.", icon: "improve" },
+  ],
+  tools: {
+    Development: ["React", "TypeScript", "JavaScript"],
+    Product: ["UI/UX", "Product thinking", "Rapid prototyping"],
+    Tools: ["GitHub", "Vercel", "AI coding tools"],
+  },
+  moments: [
+    { label: "Started experimenting", description: "Built early projects and began learning development." },
+    { label: "Started solving my own problems", description: "Created applications around studying, organisation and fitness." },
+    { label: "Started thinking more about products", description: "Focused increasingly on UI, UX and complete product experiences." },
+    { label: "Now", description: "Continuing to build, learn and improve." },
+  ],
+  contact: {
+    github: "https://github.com/",
+    email: "",
+  },
+} as const;
