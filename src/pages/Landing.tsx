@@ -118,7 +118,87 @@ export default function Landing() {
 
         <section id="interests" className="section-shell border-t border-border"><div className="section-grid"><div><SectionLabel number="04">Interests</SectionLabel><h2 className="section-title">Curious<br /><span className="text-muted-foreground">by default.</span></h2></div><div><p className="large-copy max-w-2xl">The things I care about sit somewhere between technology, learning and making everyday systems feel more human.</p><div className="interest-grid mt-14">{profile.interests.map((interest, index) => { const Icon = iconMap[interest.icon as keyof typeof iconMap]; return <motion.div key={interest.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={reveal} transition={{ delay: index * 0.03 }} className="interest-card"><Icon className="size-5 text-muted-foreground" strokeWidth={1.5} /><h3 className="mt-12 text-lg font-semibold tracking-tight">{interest.title}</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">{interest.description}</p></motion.div>; })}</div></div></div></section>
 
-        <section id="now" className="now-section border-y border-border"><div className="mx-auto max-w-[1380px] px-5 py-24 sm:px-8 lg:px-12 lg:py-32"><div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr]"><div><SectionLabel number="05">Now</SectionLabel><h2 className="section-title">What I&apos;m<br /><span className="text-muted-foreground">doing now.</span></h2><p className="mt-7 max-w-xs text-sm leading-6 text-muted-foreground">A small snapshot of where my attention is going. This section is intentionally easy to update.</p></div><div className="grid border-y border-border sm:grid-cols-2">{[{ title: "Building", text: "Improving my current apps and experimenting with new ideas.", icon: Laptop }, { title: "Learning", text: "Software development, AI and product design.", icon: BrainCircuit }, { title: "Training", text: "Strength training and cycling.", icon: Dumbbell }, { title: "Thinking about", text: "How software can remove friction from everyday tasks.", icon: Lightbulb }].map(({ title, text, icon: Icon }) => <div key={title} className="info-cell min-h-40"><Icon className="size-4 text-muted-foreground" /><span className="mt-5">{title}</span><strong>{text}</strong></div>)}</div></div><div className="mt-24 grid gap-12 lg:grid-cols-2"><div><p className="eyebrow">Things I&apos;m exploring</p><div className="mt-5 border-t border-border">{profile.exploring.map((item, index) => <div key={item} className="explore-row"><span className="text-xs text-muted-foreground">0{index + 1}</span><span>{item}</span><ArrowUpRight className="ml-auto size-3.5 text-muted-foreground" /></div>)}</div></div><div className="dashboard-tease"><div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-[9px] uppercase tracking-[0.16em] text-white/40"><span>Henry OS / Personal Dashboard</span><span className="flex items-center gap-1.5"><span className="size-1.5 rounded-full bg-[#bbd7bd]" /> Concept</span></div><div className="grid grid-cols-[0.6fr_1fr] gap-3 p-4 text-white"><div className="space-y-2">{["Overview", "Study", "Projects", "Fitness", "Goals"].map((item, index) => <div key={item} className={`rounded px-2 py-2 text-[9px] ${index === 0 ? "bg-white/10" : "text-white/35"}`}>{item}</div>)}</div><div><p className="text-[9px] text-white/40">Tuesday, 14 May</p><p className="mt-1 text-lg font-semibold">Good morning.</p><div className="mt-5 grid grid-cols-2 gap-2"><div className="rounded-lg bg-white/8 p-3"><p className="text-[8px] text-white/35">Focus</p><p className="mt-3 text-sm">Study</p></div><div className="rounded-lg bg-white/8 p-3"><p className="text-[8px] text-white/35">Movement</p><p className="mt-3 text-sm">42 min</p></div></div><div className="mt-2 h-16 rounded-lg bg-gradient-to-r from-white/5 via-[#bbd7bd]/25 to-white/5" /></div></div></div></div><p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">An experiment in connecting studying, projects, fitness and planning into one personal system.</p></div></section>
+        <section id="now" className="now-section border-y border-border">
+          <div className="mx-auto max-w-[1380px] px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
+            <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr]">
+              <div>
+                <SectionLabel number="05">Now</SectionLabel>
+                <h2 className="section-title">
+                  What I&apos;m<br />
+                  <span className="text-muted-foreground">doing now.</span>
+                </h2>
+                <p className="mt-7 max-w-xs text-sm leading-6 text-muted-foreground">
+                  A small snapshot of where my attention is going. This section is intentionally easy to update.
+                </p>
+              </div>
+              <div className="grid border-y border-border sm:grid-cols-2">
+                {[
+                  { title: "Building", text: "Improving my current apps and experimenting with new ideas.", icon: Laptop },
+                  { title: "Learning", text: "Software development, AI and product design.", icon: BrainCircuit },
+                  { title: "Training", text: "Strength training and cycling.", icon: Dumbbell },
+                  { title: "Thinking about", text: "How software can remove friction from everyday tasks.", icon: Lightbulb },
+                ].map(({ title, text, icon: Icon }) => (
+                  <div key={title} className="info-cell min-h-40">
+                    <Icon className="size-4 text-muted-foreground" />
+                    <span className="mt-5">{title}</span>
+                    <strong>{text}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-24 grid gap-12 lg:grid-cols-2">
+              <div>
+                <p className="eyebrow">Things I&apos;m exploring</p>
+                <div className="mt-5 border-t border-border">
+                  {profile.exploring.map((item, index) => (
+                    <div key={item} className="explore-row">
+                      <span className="text-xs text-muted-foreground">0{index + 1}</span>
+                      <span>{item}</span>
+                      <ArrowUpRight className="ml-auto size-3.5 text-muted-foreground" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="dashboard-tease">
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-[9px] uppercase tracking-[0.16em] text-white/40">
+                  <span>Henry OS / Personal Dashboard</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="size-1.5 rounded-full bg-[#bbd7bd]" /> Concept
+                  </span>
+                </div>
+                <div className="grid grid-cols-[0.6fr_1fr] gap-3 p-4 text-white">
+                  <div className="space-y-2">
+                    {["Overview", "Study", "Projects", "Fitness", "Goals"].map((item, index) => (
+                      <div key={item} className={`rounded px-2 py-2 text-[9px] ${index === 0 ? "bg-white/10" : "text-white/35"}`}>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-[9px] text-white/40">Tuesday, 14 May</p>
+                    <p className="mt-1 text-lg font-semibold">Good morning.</p>
+                    <div className="mt-5 grid grid-cols-2 gap-2">
+                      <div className="rounded-lg bg-white/8 p-3">
+                        <p className="text-[8px] text-white/35">Focus</p>
+                        <p className="mt-3 text-sm">Study</p>
+                      </div>
+                      <div className="rounded-lg bg-white/8 p-3">
+                        <p className="text-[8px] text-white/35">Movement</p>
+                        <p className="mt-3 text-sm">42 min</p>
+                      </div>
+                    </div>
+                    <div className="mt-2 h-16 rounded-lg bg-gradient-to-r from-white/5 via-[#bbd7bd]/25 to-white/5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
+              An experiment in connecting studying, projects, fitness and planning into one personal system.
+            </p>
+          </div>
+        </section>
 
         <section className="section-shell"><div className="grid gap-16 lg:grid-cols-[0.8fr_1.2fr]"><div><SectionLabel number="06">The path so far</SectionLabel><h2 className="section-title">Still early.<br /><span className="text-muted-foreground">Already moving.</span></h2></div><div className="timeline">{profile.moments.map((moment, index) => <div className="timeline-item" key={moment.label}><div className={`timeline-marker ${index === profile.moments.length - 1 ? "timeline-marker-active" : ""}`}><span>{String(index + 1).padStart(2, "0")}</span></div><div className="pb-12"><p className="text-xl font-semibold tracking-tight">{moment.label}</p><p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">{moment.description}</p></div></div>)}</div></div><div className="mt-20 grid gap-8 border-t border-border pt-8 sm:grid-cols-3">{Object.entries(profile.tools).map(([category, tools]) => <div key={category}><p className="eyebrow">{category}</p><div className="mt-4 flex flex-wrap gap-2">{tools.map((tool) => <span key={tool} className="pill">{tool}</span>)}</div></div>)}</div></section>
 
