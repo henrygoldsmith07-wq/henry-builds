@@ -1,7 +1,7 @@
 {
-  "name": "Henry Goldsmith — Student, Developer & Builder",
-  "short_name": "Henry Goldsmith",
-  "description": "Learning, building and improving useful digital products.",
+  "name": "Portfolio website — Henry Goldsmith",
+  "short_name": "Portfolio website",
+  "description": "Browse Henry Goldsmith's projects, experiments and ideas.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#171817",

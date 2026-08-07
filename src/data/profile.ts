@@ -1,10 +1,11 @@
 export const profile = {
+  siteName: "Portfolio website",
   name: "Henry Goldsmith",
   monogram: "HG",
   role: "Student · Developer · Builder",
   statement: "I like building things that make life better.",
   intro:
-    "I'm interested in software, AI, design and self-improvement. I enjoy turning problems I encounter into apps, systems and experiments that help solve them.",
+    "This is my portfolio of software, AI, design and self-improvement experiments. I turn problems I actually encounter into useful apps and systems, then keep making them better.",
   philosophy: "Build → Test → Learn → Improve",
   currently: "Building software and experimenting with AI.",
   learning: "Development, product design and better systems.",
