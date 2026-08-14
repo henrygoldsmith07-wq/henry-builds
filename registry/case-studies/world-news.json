@@ -1,0 +1,154 @@
+{
+  "slug": "world-news",
+  "upstreamId": "world-news",
+  "name": "World News Globe",
+  "tagline": "Where accounts differ, and who is reporting them.",
+  "summary": "An interactive 3D globe over world news, organised as story clusters rather than country summaries — with source-country mix, conflicting claims, agreed facts, uncertainty and coverage gaps made explicit.",
+  "stage": "beta",
+  "category": "Information design",
+  "tags": ["Provenance", "Clustering", "Three.js", "Grounded generation"],
+  "accent": "#dce9ec",
+  "featured": true,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — clustering, provenance panels and the globe interface.",
+    "built": [
+      "Story clustering across sources, and the source-mix and perspective panels built on top of it",
+      "The conflicting-claims, agreed-facts, uncertainty and coverage-gap sections of a country page",
+      "Multi-key rotation that fails over to the next API key on a daily quota error",
+      "Per-country/day caching with optional persistence for a historical timeline"
+    ],
+    "notBuilt": [
+      "react-globe.gl and three.js, which render the globe",
+      "Gemini with Google Search grounding, GDELT and OpenRouter, which supply and organise the underlying news data"
+    ]
+  },
+  "repo": {
+    "label": "apps/world-news",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/world-news",
+    "path": "apps/world-news"
+  },
+  "caseStudy": {
+    "problem": "News summarisers flatten a story into one authoritative-sounding paragraph, which is exactly the wrong output when the interesting information is that accounts disagree. A summary that reads cleanly has usually erased the disagreement, the uncertainty, and the fact that only three countries covered it at all.",
+    "approach": "Organise by story cluster rather than by country summary, so the same event reported five ways stays one object with five sources attached. Then surface the things a single summary destroys as first-class sections: which countries the sources come from, what claims conflict, what is widely agreed, what remains uncertain, what changed since yesterday, and where coverage is simply absent. Use search grounding so sources are real and citable rather than recalled.",
+    "architecture": {
+      "summary": "A cached generation layer between grounded news retrieval and a globe interface, with provenance carried through rather than summarised away.",
+      "invariant": "The model organises real retrieved articles rather than recalling news, so it cannot fabricate an event. Where OpenRouter is primary, it only structures GDELT data it was given.",
+      "layers": [
+        {
+          "name": "Retrieval",
+          "role": "Gemini with the google_search grounding tool, or GDELT articles organised by an OpenRouter model, with Gemini as fallback."
+        },
+        {
+          "name": "Clustering and provenance",
+          "role": "Story clusters, source-country mix, source perspective, primary sources, timeline, conflicting claims, agreed facts, uncertainty and coverage gaps."
+        },
+        {
+          "name": "Caching",
+          "role": "Per country and day via Next.js unstable_cache with a six-hour revalidate, optionally persisted for history and pre-caching."
+        },
+        {
+          "name": "Globe",
+          "role": "react-globe.gl over three.js. Hover highlights a country, click opens its news page."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "doc",
+          "label": "apps/world-news/README.md",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/world-news/README.md",
+          "path": "apps/world-news/README.md"
+        }
+      ]
+    },
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "world-news",
+        "alt": "Illustration of a globe with highlighted regions beside a panel of clustered stories and source mix",
+        "caption": "Illustration of the globe and story-cluster panel. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Cache revalidation",
+        "value": "6 hours per country/day",
+        "method": "Next.js unstable_cache revalidate window, chosen to keep free-tier API quota viable while keeping pages current.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — stack",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/world-news/README.md",
+            "path": "apps/world-news/README.md"
+          }
+        ]
+      },
+      {
+        "label": "API key rotation",
+        "value": "Up to 20 numbered keys, plus list form",
+        "method": "Keys are de-duplicated across both configuration forms; the app rotates to the next key when one returns a 429 daily-quota error.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — environment variables",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/world-news/README.md",
+            "path": "apps/world-news/README.md"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "Because the model only organises real retrieved articles, it cannot fabricate a news event — the README states this constraint explicitly for the OpenRouter path.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — OPENROUTER_MODEL",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/world-news/README.md",
+            "path": "apps/world-news/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "The globe remains usable with no API key configured; country pages degrade to a configuration message rather than failing.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — environment variables",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/world-news/README.md",
+            "path": "apps/world-news/README.md"
+          },
+          {
+            "kind": "ci",
+            "label": "world-news.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/world-news.yml",
+            "path": ".github/workflows/world-news.yml"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Story clusters instead of one summary per country",
+        "gained": "Disagreement between sources survives into the interface, which is the whole point of the product.",
+        "gaveUp": "A country page is denser and slower to read than a three-paragraph summary would be."
+      },
+      {
+        "choice": "Named credible institutions rather than live-fetched citations on the debate-style grounding path",
+        "gained": "The user gets real, well-known places to go and research, instead of plausible-looking fake links.",
+        "gaveUp": "Those are starting points, not live citations — and the README says so rather than implying the app fetched them."
+      },
+      {
+        "choice": "Aggressive caching on free API tiers",
+        "gained": "The app runs at near-zero cost and stays within daily quotas.",
+        "gaveUp": "Country pages can be up to six hours stale, which is a real limitation for fast-moving events."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": [
+      "The honest version of an AI news product is mostly plumbing for provenance. The generation step is the easy part; carrying source, conflict and absence through to the interface is the work."
+    ]
+  }
+}

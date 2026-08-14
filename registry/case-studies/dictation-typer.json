@@ -1,0 +1,69 @@
+{
+  "slug": "dictation-typer",
+  "upstreamId": "dictation-typer",
+  "name": "Dictation Typer",
+  "tagline": "Hold, speak, release — it types into whatever has focus.",
+  "summary": "A hold-to-talk speech-to-text utility. Audio is held in memory, transcribed on hosted Whisper with an optional offline fallback, and pasted straight into the focused window.",
+  "stage": "prototype",
+  "category": "Developer tooling",
+  "tags": ["Python", "Speech-to-text", "Privacy mode"],
+  "accent": "#dce9ec",
+  "featured": false,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — hotkey capture, transcription routing and privacy mode.",
+    "built": [
+      "The hold-hotkey capture loop with in-memory WAV streaming and no disk writes",
+      "Privacy mode, which requires confirmation before audio leaves the machine when no offline model is configured",
+      "Paste-into-focused-window handling, Windows-native with documented fallbacks"
+    ],
+    "notBuilt": [
+      "Whisper itself — hosted transcription and the optional local faster-whisper model are both existing implementations"
+    ]
+  },
+  "repo": {
+    "label": "apps/dictation-typer",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/dictation-typer",
+    "path": "apps/dictation-typer"
+  },
+  "caseStudy": {
+    "problem": "Dictation is built into most operating systems and is consistently worse than hosted Whisper. The gap is not the model, it is the plumbing: getting audio to a good model and the text back into whatever application currently has focus, fast enough that it beats typing.",
+    "approach": "Bind everything to one held hotkey, keep the audio in memory as a streamed WAV so nothing touches disk, and paste into the active window rather than requiring a dedicated interface. Make cloud transcription refusable: in privacy mode, audio is not sent unless the user confirms or an offline model is configured.",
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "generic",
+        "alt": "Illustration of a hotkey-driven dictation flow ending in text pasted into an editor",
+        "caption": "Illustration of the capture flow. Not a screenshot — no capture of the running tool has been published yet."
+      }
+    ],
+    "metrics": [],
+    "outcomes": [
+      {
+        "statement": "Nothing touches disk except opt-in crash logs — audio is streamed as an in-memory WAV.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — how it works",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/dictation-typer/README.md",
+            "path": "apps/dictation-typer/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Hosted transcription by default with an optional local model",
+        "gained": "Fast, accurate and near-free transcription without shipping a multi-gigabyte model.",
+        "gaveUp": "The default path sends audio off the machine, which is why privacy mode and the offline fallback both exist."
+      },
+      {
+        "choice": "Windows-native, with documented notes for macOS and Linux",
+        "gained": "The focused-window paste behaviour actually works properly on the primary platform.",
+        "gaveUp": "Cross-platform support is best-effort rather than first-class."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": []
+  }
+}

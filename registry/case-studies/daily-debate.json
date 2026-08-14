@@ -1,0 +1,92 @@
+{
+  "slug": "daily-debate",
+  "upstreamId": "daily-debate",
+  "name": "Daily Debate",
+  "tagline": "Scored on evidence and rebuttal, not on winning.",
+  "summary": "A daily critical-thinking app: argue a proposition against an AI opponent over at least five rounds, or head-to-head against another player with a neutral AI judge. Responses are scored on depth, evidence, logic, rebuttal and clarity.",
+  "stage": "beta",
+  "category": "Thinking tools",
+  "tags": ["Argument graph", "Realtime", "Scoring", "Grounding"],
+  "accent": "#e4dcf0",
+  "featured": false,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — debate loop, scoring rubric, argument graph and matchmaking.",
+    "built": [
+      "The five-dimension scoring rubric and per-round feedback loop",
+      "The argument graph and its grounded-evidence tests",
+      "Player-versus-player matchmaking with alternating turns over Supabase Realtime, and the neutral judge that scores the full transcript",
+      "Rate limiting and its regression tests"
+    ],
+    "notBuilt": [
+      "Gemini and Anthropic, which generate opponent arguments and judge transcripts",
+      "The browser Web Speech API used for dictation and read-aloud"
+    ]
+  },
+  "repo": {
+    "label": "apps/daily-debate",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/daily-debate",
+    "path": "apps/daily-debate"
+  },
+  "caseStudy": {
+    "problem": "Debate practice needs an opponent who argues back competently and a scorer who can say why an argument was weak. Both are easy to fake badly: an AI opponent that agrees too readily teaches nothing, and a score with no rubric behind it is just a number.",
+    "approach": "Force a minimum of five rounds so a position has to survive contact, and score every response on five named dimensions with short written feedback before the opponent replies. For head-to-head play, keep the judge neutral and score the whole transcript rather than round by round. Ground the daily topic in real, well-known institutions the user can go and research.",
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "generic",
+        "alt": "Illustration of a debate transcript with per-round score badges",
+        "caption": "Illustration of the debate room. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Automated tests",
+        "value": "22 core plus 24 in the scoring regression suite",
+        "method": "`npm test` (vitest) covering the argument graph's grounded evidence, benchmark invariance and grounding, rate limiting and gamification. Counts as stated in the project README.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — tests",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/daily-debate/README.md",
+            "path": "apps/daily-debate/README.md"
+          },
+          {
+            "kind": "ci",
+            "label": "daily-debate.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/daily-debate.yml",
+            "path": ".github/workflows/daily-debate.yml"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "The daily topic's cited institutions are presented as credible sources to go and research, not as live-fetched citations — the README states plainly that the model has no live web access in this app.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — daily topic",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/daily-debate/README.md",
+            "path": "apps/daily-debate/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Naming credible institutions instead of implying live citations",
+        "gained": "The app never presents a fabricated link as a source, which is the standard failure of AI-generated debate prompts.",
+        "gaveUp": "The user has to do the research themselves; the app cannot hand them the article."
+      },
+      {
+        "choice": "Voice input via the browser Web Speech API",
+        "gained": "Dictation and read-aloud with no service dependency and no cost.",
+        "gaveUp": "Chrome-family browsers only; everywhere else the composer silently falls back to typing."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": []
+  }
+}

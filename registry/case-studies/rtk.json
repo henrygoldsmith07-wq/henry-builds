@@ -1,0 +1,158 @@
+{
+  "slug": "rtk",
+  "upstreamId": "rtk",
+  "name": "rtk",
+  "tagline": "Cut tool-call tokens, keep every failure line.",
+  "summary": "A CLI that filters noisy command output down to what an agent or a human actually needs. Per-tool parsers collapse passing-test spam while preserving every critical line — and CI fails if a critical line is ever lost.",
+  "stage": "beta",
+  "category": "Developer tooling",
+  "tags": ["CLI", "Token efficiency", "Benchmarks", "Parsers"],
+  "accent": "#e9e7e2",
+  "featured": true,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — parsers, compression strategies, benchmark harness.",
+    "built": [
+      "Per-tool parsers for vitest, tsc, Next build and generic CI logs",
+      "Structural compression: JSON schema-aware collapsing, diff, stack and dedup passes",
+      "The benchmark harness and its committed evidence artifacts, plus the CI gate that fails on any lost critical line"
+    ],
+    "notBuilt": [
+      "The tokenizer used to report token counts and cost in the benchmark table"
+    ]
+  },
+  "repo": {
+    "label": "apps/rtk",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/rtk",
+    "path": "apps/rtk"
+  },
+  "caseStudy": {
+    "problem": "An agent reading raw tool output pays for thousands of lines confirming that nothing went wrong. A 200-test vitest run is roughly sixty thousand characters, almost all of which says 'passed'. Naive truncation is worse than the disease: it drops the failure that was the reason for running the command in the first place.",
+    "approach": "Treat every tool as its own parsing problem rather than compressing generic text. Each parser knows what a critical line looks like for that tool, so passing noise can be collapsed aggressively while failures survive intact. The guarantee is then made testable: a benchmark suite over deterministic fixtures measures both reduction and critical-line retention, and CI fails the build if retention ever drops.",
+    "architecture": {
+      "summary": "A parser registry in front of a structural compression stage, with preservation guarantees asserted by a committed benchmark rather than promised in the README.",
+      "invariant": "Reduction is never allowed to trade against critical-line retention — CI fails if any critical line is lost.",
+      "layers": [
+        {
+          "name": "Per-tool parsers",
+          "role": "vitest, tsc, Next build, truncate and a generic fallback. Each defines what must never be dropped."
+        },
+        {
+          "name": "Structural compression",
+          "role": "JSON schema-aware collapsing, diff, stack and dedup passes for output with no dedicated parser."
+        },
+        {
+          "name": "Benchmark harness",
+          "role": "Deterministic synthetic fixtures shaped like real tool output; emits the evidence table plus a committed results artifact.",
+          "path": "apps/rtk/benchmark"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "benchmark",
+          "label": "benchmark/fixtures.js and datasets.js",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/rtk/benchmark",
+          "path": "apps/rtk/benchmark"
+        }
+      ]
+    },
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "rtk",
+        "alt": "Illustration of a terminal showing a large raw log collapsing to a single summary line",
+        "caption": "Illustration of the before/after shape. Not a screenshot — no capture of the running CLI has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Vitest pass, 200 tests",
+        "value": "61,210 → 76 chars (99.9% reduction)",
+        "method": "Deterministic synthetic fixture run through the vitest parser. Reproduce with `npm run benchmark`; the table and results.json are committed as evidence artifacts.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "benchmark",
+            "label": "README — evidence table",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rtk/README.md",
+            "path": "apps/rtk/README.md"
+          }
+        ]
+      },
+      {
+        "label": "Vitest failure, 2 failing",
+        "value": "57,281 → 491 chars (99% reduction), 100% critical lines retained",
+        "method": "Same harness, failure fixture. Critical-line retention is asserted by the benchmark, and CI fails if any critical line is lost.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "benchmark",
+            "label": "README — evidence table",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rtk/README.md",
+            "path": "apps/rtk/README.md"
+          }
+        ]
+      },
+      {
+        "label": "Benchmark coverage",
+        "value": "34 cases",
+        "method": "`npm run benchmark` emits a 34-case table with tokenizer token counts, cost and latency; `npm run benchmark:write` commits results.md and results.json.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "benchmark",
+            "label": "README — reproduce",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rtk/README.md",
+            "path": "apps/rtk/README.md"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "Critical-line retention is 100% across every benchmarked parser case, and the build fails if that ever regresses.",
+        "evidence": [
+          {
+            "kind": "benchmark",
+            "label": "README — evidence table and CI gate",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rtk/README.md",
+            "path": "apps/rtk/README.md"
+          },
+          {
+            "kind": "ci",
+            "label": "rtk.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/rtk.yml",
+            "path": ".github/workflows/rtk.yml"
+          }
+        ]
+      },
+      {
+        "statement": "Cases where compression is not possible are reported as 0% reduction rather than being massaged — a tsc failure has no passing noise to strip, and the table says so.",
+        "evidence": [
+          {
+            "kind": "benchmark",
+            "label": "README — tsc failure row and footnote",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rtk/README.md",
+            "path": "apps/rtk/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Per-tool parsers instead of one general-purpose compressor",
+        "gained": "Reduction of 99% or better on the cases that dominate real agent transcripts, with a defensible guarantee about what survives.",
+        "gaveUp": "Every new tool needs its own parser. Unrecognised output falls back to generic structural compression and does noticeably less well."
+      },
+      {
+        "choice": "Deterministic synthetic fixtures rather than recorded real-world logs",
+        "gained": "The benchmark is reproducible by anyone, runs in CI, and its numbers can be regenerated on demand.",
+        "gaveUp": "Fixtures are shaped like real output but are not real output, so the numbers describe representative cases rather than a measured production workload."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": [
+      "Publishing a reduction percentage without a retention percentage next to it would have made the tool look better and be less trustworthy. Pairing the two is what makes the number worth anything."
+    ]
+  }
+}

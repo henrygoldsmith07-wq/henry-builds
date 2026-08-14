@@ -1,0 +1,175 @@
+{
+  "slug": "rapport",
+  "upstreamId": "rapport",
+  "name": "Rapport",
+  "tagline": "Success is needing the app less over time.",
+  "summary": "A training system for practical communication skills: assess, learn, rehearse, practise for real, reflect, adapt. Deterministic systems own every number; the model only ever writes sentences.",
+  "stage": "prototype",
+  "category": "Learning",
+  "tags": ["Skill graph", "Mastery model", "Local-first", "AI boundary"],
+  "accent": "#e4dcf0",
+  "featured": true,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — domain model, adaptive engine, simulator and evaluation.",
+    "built": [
+      "The skill graph and its acyclicity/behavioural-definition constraints",
+      "The Kalman-style mastery model that tracks mastery and confidence separately, each with its own uncertainty",
+      "The ten-factor recommender, the conversation simulator and the transcript-feature evaluator",
+      "The event-log projection with scoring-model version stamps and history recomputation"
+    ],
+    "notBuilt": [
+      "The language models used for character dialogue and feedback wording",
+      "Supabase, used only as an opaque store for the optional end-to-end encrypted sync blob"
+    ]
+  },
+  "repo": {
+    "label": "apps/rapport",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/rapport",
+    "path": "apps/rapport"
+  },
+  "caseStudy": {
+    "problem": "Social-skills apps tend to become either a chatbot you talk to forever or a personality test that hands you a label. Both fail the same way: they make the product the destination. If the tool is working, the user should need it less each month, which means it has to measure real-world behaviour rather than in-app engagement.",
+    "approach": "Model skills as observable behaviours rather than traits, and track belief about each one as a distribution rather than a score — mastery and confidence separately, each with uncertainty that shrinks with evidence and widens with time. Keep every number deterministic and local; let the model play characters and rephrase feedback, but never let it produce a score. Scores computed from too little material are marked unreliable and never move mastery at all.",
+    "architecture": {
+      "summary": "A pure-TypeScript domain core with no I/O, wrapped by a thin AI boundary and a UI that renders what the core computed.",
+      "invariant": "Deterministic systems own every number and every decision; the model only ever writes sentences. Skill states are a projection of an append-only event log, stamped with the scoring-model version that produced them.",
+      "layers": [
+        {
+          "name": "domain/",
+          "role": "Mastery model, recommender, evaluator, scheduler, safety gates, analytics and content. No I/O, no React, no model calls.",
+          "path": "apps/rapport/src/domain"
+        },
+        {
+          "name": "ai/",
+          "role": "Provider abstraction, versioned prompts, schema-validated responses, cache, rate limiter, benchmark set.",
+          "path": "apps/rapport/src/ai"
+        },
+        {
+          "name": "data/",
+          "role": "IndexedDB repository, append-only event log, export/wipe, end-to-end encrypted sync.",
+          "path": "apps/rapport/src/data"
+        },
+        {
+          "name": "state/",
+          "role": "One store. Every derived value recomputed from the event log rather than stored.",
+          "path": "apps/rapport/src/state"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "doc",
+          "label": "apps/rapport/README.md — architecture",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rapport/README.md",
+          "path": "apps/rapport/README.md"
+        },
+        {
+          "kind": "doc",
+          "label": "apps/rapport/docs/architecture.md",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rapport/docs/architecture.md",
+          "path": "apps/rapport/docs/architecture.md"
+        }
+      ]
+    },
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "rapport",
+        "alt": "Illustration of a skill graph with connected nodes and a confidence band beneath one selected skill",
+        "caption": "Illustration of the skill-graph model. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Skill graph",
+        "value": "75 skills · 10 domains · 51 dependency edges",
+        "method": "Content counted from the shipped skill graph. Graph integrity, acyclicity and behavioural definitions are asserted by the tests/skill-graph suite.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — what it does",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rapport/README.md",
+            "path": "apps/rapport/README.md"
+          }
+        ]
+      },
+      {
+        "label": "Test suites",
+        "value": "12 unit suites plus browser E2E",
+        "method": "Counted from the suite table in the README: skill-graph, mastery, evaluation, recommender, training-loop, analytics, safety, content, persistence, ai-eval, a11y, and an E2E suite. `npm run verify` runs lint, types, content validation, all unit suites and the production build.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — testing",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rapport/README.md",
+            "path": "apps/rapport/README.md"
+          },
+          {
+            "kind": "ci",
+            "label": "rapport.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/rapport.yml",
+            "path": ".github/workflows/rapport.yml"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "The product works fully with no AI provider configured — scoring, recommendations, scheduling, insights and reviews are computed on device, and practice conversations fall back to a built-in character engine.",
+        "evidence": [
+          {
+            "kind": "ci",
+            "label": "rapport.yml runs the whole verify suite and E2E with AI_PROVIDER=none",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/rapport.yml",
+            "path": ".github/workflows/rapport.yml"
+          }
+        ]
+      },
+      {
+        "statement": "When the scoring model changes, the version stamp on a skill state mismatches and history is recomputed rather than left stale.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — architecture",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rapport/README.md",
+            "path": "apps/rapport/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "Insights are suppressed below a minimum sample size, and behaviour scores computed from too little material are marked unreliable and never move mastery.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — analytics and evaluation",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/rapport/README.md",
+            "path": "apps/rapport/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Deterministic core owns every number; the model is confined to prose",
+        "gained": "Scores are reproducible and testable, the app degrades to full functionality with no provider, and a model outage cannot change anyone's mastery.",
+        "gaveUp": "Evaluation is limited to features that can be counted from a transcript, so it cannot judge the things a human coach would notice but cannot count."
+      },
+      {
+        "choice": "Onboarding produces priors with wide uncertainty instead of a score",
+        "gained": "The app never hands someone a label off seven questions, and confidence genuinely grows with evidence.",
+        "gaveUp": "A less satisfying first run. There is no number to show off on day one, which is exactly what most competing products lead with."
+      },
+      {
+        "choice": "Local-first with every permission off by default",
+        "gained": "Sensitive practice material stays on device; sync, when enabled, stores only an opaque encrypted blob.",
+        "gaveUp": "No cross-device continuity without deliberate setup, and no aggregate data to improve the model with."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": [
+      "Tracking mastery and confidence as one number collapses two different things — knowing how to do something and believing you can — and the product's whole reason to exist lives in the gap between them."
+    ]
+  }
+}

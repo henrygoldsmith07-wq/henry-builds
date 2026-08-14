@@ -1,0 +1,115 @@
+{
+  "slug": "arise",
+  "upstreamId": "arise",
+  "name": "Arise",
+  "tagline": "Attributes derived from history, never from labels.",
+  "summary": "An offline-first training companion with programs, sessions and levelled attributes. Strength, endurance, consistency and technique are computed from logged volume and loads — nothing derives from what a program is called.",
+  "stage": "beta",
+  "category": "Training",
+  "tags": ["Offline-first", "PWA", "Progression", "Accessibility"],
+  "accent": "#dceadf",
+  "featured": false,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — progression engine, attribute derivation and content validation.",
+    "built": [
+      "The progression engine: conservative double progression, plateau and deload detection, Epley 1RM as a single source of truth",
+      "Attribute derivation from logged history, and the level curve on top of it",
+      "Versioned export/restore with de-duplication by session id",
+      "Runnable content validation over the exercise and program data"
+    ],
+    "notBuilt": [
+      "The Epley 1RM formula and RPE/RIR scales, which are established training conventions"
+    ]
+  },
+  "repo": {
+    "label": "apps/arise",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/arise",
+    "path": "apps/arise"
+  },
+  "caseStudy": {
+    "problem": "Training apps hand out progress that is not earned — a level that goes up because you opened the app, or a 'strength' figure derived from which program you picked rather than what you lifted. The moment the number stops tracking reality, the whole motivational layer becomes noise.",
+    "approach": "Derive every attribute from logged history. Strength comes from estimated 1RM and session count, endurance from reps and cardio minutes, consistency from streak, technique from variety and logging discipline. Every progression adjustment explains why it happened, and the deload logic stays deliberately conservative.",
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "fitness",
+        "alt": "Illustration of a weekly training chart with a next-session card",
+        "caption": "Illustration of the weekly view. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Content",
+        "value": "38 exercises · 3 programs · 9 equipment types · 4 locations",
+        "method": "Counted by the app's own runnable content validator (`npm run lint:content`) and recorded in the monorepo improvement log.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "IMPROVEMENT_LOG.md — Arise wiring verification",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/IMPROVEMENT_LOG.md",
+            "path": "IMPROVEMENT_LOG.md"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "Every exercise declares its equipment and a substitution, so a bodyweight-only user is never shown a barbell lift as recommended.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — exercise browser",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/arise/README.md",
+            "path": "apps/arise/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "Installing the PWA and reloading in airplane mode keeps Today, Exercises and the schedule available from cache.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — PWA",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/arise/README.md",
+            "path": "apps/arise/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "Content validation, type-checking, tests and the production build all run as one `verify` step in CI, so broken exercise data cannot merge.",
+        "evidence": [
+          {
+            "kind": "ci",
+            "label": "arise.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/arise.yml",
+            "path": ".github/workflows/arise.yml"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "No cloud sync — versioned file export instead",
+        "gained": "No account, no backend, and the user owns the backup file outright.",
+        "gaveUp": "Moving between devices is a manual export and import."
+      },
+      {
+        "choice": "Deliberately no nutrition system",
+        "gained": "Arise stays a training product rather than becoming a second copy of Forq.",
+        "gaveUp": "The training/nutrition loop most competitors sell is out of scope by design."
+      }
+    ],
+    "failedApproaches": [
+      {
+        "approach": "Porting the predecessor's analytics Web Worker, which used `eval()` to evaluate derived metrics.",
+        "whyItFailed": "Evaluating strings at runtime in a worker was an unnecessary code-execution surface for something that only ever needed a fixed set of calculations.",
+        "whatItChanged": "The worker was not ported. Arise uses safe in-thread helpers instead, and the issue is documented in the archived predecessor's README as part of the porting log."
+      }
+    ],
+    "lessons": [
+      "Porting an old project is a chance to leave things behind. The predecessor is kept as a frozen, read-only mirror purely for provenance, which made it easy to be explicit about what was deliberately not carried forward."
+    ]
+  }
+}

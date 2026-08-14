@@ -1,0 +1,40 @@
+{
+  "slug": "agent-os-control-room",
+  "upstreamId": "agent-os-control-room",
+  "name": "Agent OS Control Room",
+  "tagline": "A dashboard for watching agent swarms work.",
+  "summary": "An orchestration dashboard for agent swarms running in the workspace — what is running, what it is doing, and what it produced.",
+  "stage": "prototype",
+  "category": "Developer tooling",
+  "tags": ["Orchestration", "Dashboard", "Next.js"],
+  "accent": "#e9e7e2",
+  "featured": false,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — dashboard implementation.",
+    "built": ["The orchestration dashboard over agent swarm state"],
+    "notBuilt": ["The agent runtime and coordination layer it observes"]
+  },
+  "repo": {
+    "label": "apps/agent-os-control-room",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/agent-os-control-room",
+    "path": "apps/agent-os-control-room"
+  },
+  "caseStudy": {
+    "problem": "Running several agents at once is hard to supervise from a terminal. Without a view of what is in flight, the failure mode is discovering an hour later that three agents did the same thing.",
+    "approach": "A dashboard over swarm state — what is running, what each agent is doing, and what came out of it.",
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "generic",
+        "alt": "Illustration of an orchestration dashboard listing running agents",
+        "caption": "Illustration of the control room. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [],
+    "outcomes": [],
+    "tradeoffs": [],
+    "failedApproaches": [],
+    "lessons": []
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "slug": "revise",
+  "upstreamId": "revise",
+  "name": "Revise",
+  "tagline": "Always knows the next highest-value thing to revise.",
+  "summary": "A revision-first study platform for UK A-level and GCSE. Every screen exists to raise a grade: open it, get one recommended task, complete it, get marked, watch progress move.",
+  "stage": "beta",
+  "category": "Learning",
+  "tags": ["Spaced repetition", "FSRS", "Exam marking", "Curriculum data"],
+  "accent": "#d8e5ff",
+  "featured": true,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — product, curriculum data model and implementation.",
+    "built": [
+      "The recommendation scorer that ranks due reviews, mistake repair, weak-topic practice, first-pass learning and timed papers on one scale",
+      "The board-agnostic curriculum module format, and the validator that enforces per-statement provenance on every spec point",
+      "Point-by-point marking against mark schemes, with mistakes automatically becoming flashcards",
+      "The adaptive timetable that rolls missed blocks forward"
+    ],
+    "notBuilt": [
+      "FSRS — the spaced-repetition scheduling algorithm is an existing published algorithm, not my work",
+      "Supabase (optional sync backend) and the model provider used for prose"
+    ]
+  },
+  "repo": {
+    "label": "apps/revise",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/revise",
+    "path": "apps/revise"
+  },
+  "caseStudy": {
+    "problem": "Revision tools are built as note-taking apps, so they optimise for capture. That leaves the one question that actually matters the week before an exam — what should I do right now? — entirely to the student, at exactly the moment they are least able to answer it.",
+    "approach": "Score every candidate activity on a single scale and show the winner with a plain-English reason. Because everything competes on one number, a due flashcard, an unrepaired mistake and an untouched weak topic can be compared directly instead of living in separate tabs. The curriculum is data, not code: adding a board means adding one module and changing nothing else.",
+    "architecture": {
+      "summary": "Curriculum is data with provenance; scheduling, marking and planning are pure functions over it; storage is local-first with sync as an opt-in.",
+      "invariant": "Every examinable statement carries its own verification metadata, so coverage figures describe checked content rather than merely present content.",
+      "layers": [
+        {
+          "name": "Curriculum modules",
+          "role": "One module per board/qualification. Topics, spec points and seed questions, each with source and verification stamps.",
+          "path": "apps/revise/src/domain/curriculum"
+        },
+        {
+          "name": "Scheduling",
+          "role": "FSRS intervals, confidence captured before reveal, failed cards reinserted within the session."
+        },
+        {
+          "name": "Marking",
+          "role": "Point-by-point comparison against the mark scheme; every dropped mark becomes a classified mistake and a flashcard."
+        },
+        {
+          "name": "Planning",
+          "role": "Adaptive timetable derived from exam dates, availability, mastery and outstanding mistakes."
+        },
+        {
+          "name": "Storage",
+          "role": "IndexedDB single local profile by default. Supabase sync and model-written prose are both optional."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "doc",
+          "label": "apps/revise/README.md",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
+          "path": "apps/revise/README.md"
+        }
+      ]
+    },
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "revise",
+        "alt": "Illustration of a revision dashboard showing a streak counter, cards due today and a revision plan progress bar",
+        "caption": "Illustration of the daily view. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Automated tests",
+        "value": "412 across 29 files",
+        "method": "`npm test` in apps/revise. Count as stated in the project README; the portfolio's CI importer replaces this with the live figure from the Revise workflow when a run is readable.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — running it",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
+            "path": "apps/revise/README.md"
+          },
+          {
+            "kind": "ci",
+            "label": "revise.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/revise.yml",
+            "path": ".github/workflows/revise.yml"
+          }
+        ]
+      },
+      {
+        "label": "Authored curriculum",
+        "value": "32 subjects · 440 topics · 142 seed questions",
+        "method": "Content counted by the repo's own curriculum validator, which also enforces per-subject statement-density floors.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — ships with",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
+            "path": "apps/revise/README.md"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "Adding a new exam board requires one new curriculum module and no changes elsewhere — the board-agnostic split is real, not aspirational.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — architecture is board-agnostic",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
+            "path": "apps/revise/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "The app is fully usable with no environment variables at all: cards, marking, planning, analytics and search all work against a local profile.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — no configuration is required",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
+            "path": "apps/revise/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Local-first IndexedDB as the default, sync as an opt-in",
+        "gained": "The app works with zero setup and no account, and a student's data never leaves their machine unless they ask for it.",
+        "gaveUp": "Cross-device revision is not available out of the box, which is a real cost for someone revising on both a laptop and a phone."
+      },
+      {
+        "choice": "Curriculum as validated data modules rather than hardcoded content",
+        "gained": "New boards and qualifications are additive, and a validator can enforce provenance and density floors across all of them.",
+        "gaveUp": "Considerably more up-front work than hardcoding one syllabus, and every content change now has to satisfy the validator."
+      }
+    ],
+    "failedApproaches": [
+      {
+        "approach": "Topic-level provenance on curriculum content, with statement-level coverage computed on top of it.",
+        "whyItFailed": "Coverage was reported per statement but provenance was only recorded per topic, so the claim that every examinable statement was individually mapped was not actually true of the data.",
+        "whatItChanged": "Every spec point across all four science and maths curriculum files was migrated to carry its own verification, source, reviewer, last-checked date and spec version, so the reported coverage now reflects verification rather than mere presence."
+      }
+    ],
+    "lessons": [
+      "A coverage number is only as honest as the granularity of the metadata underneath it. Reporting statement-level coverage from topic-level provenance quietly overstated what had been checked."
+    ]
+  }
+}

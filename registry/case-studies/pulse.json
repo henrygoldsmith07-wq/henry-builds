@@ -1,0 +1,182 @@
+{
+  "slug": "pulse",
+  "upstreamId": "pulse",
+  "name": "Pulse",
+  "tagline": "Correlation is never presented as causation.",
+  "summary": "A privacy-first personal analytics and experimentation engine. It connects data from the rest of the ecosystem and turns it into evidence-graded findings, registered experiments and recommended actions — or an explicit 'no action is justified yet'.",
+  "stage": "prototype",
+  "category": "Analytics",
+  "tags": ["Statistics", "Experiments", "Connectors", "Privacy"],
+  "accent": "#dceadf",
+  "featured": false,
+  "publish": false,
+  "publishGate": "Upstream lifecycle is `incubating`. This entry publishes automatically once apps/registry.json marks Pulse `active`; `bun run registry:validate` reports the gate on every run.",
+  "authorship": {
+    "role": "Sole author — event schema, statistics, discovery, experiments and connector SDK.",
+    "built": [
+      "The versioned universal event schema with DST-safe time maths, migrations and deduplication",
+      "The connector SDK and sync engine: consent enforcement, paging, cursors, backfill and health checks",
+      "The statistics and discovery layers — effect sizes, multiple-testing correction within families, confounder adjustment and confidence grading",
+      "Experiment design and analysis, and the synthetic benchmark users with planted true and null effects"
+    ],
+    "notBuilt": [
+      "The published statistical methods themselves — Theil-Sen, Mann-Kendall and Benjamini-Hochberg are existing methods, implemented here against reference values",
+      "The language models used for explanation and natural-language querying"
+    ]
+  },
+  "repo": {
+    "label": "apps/pulse",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/pulse",
+    "path": "apps/pulse"
+  },
+  "caseStudy": {
+    "problem": "Personal analytics fails in a specific, predictable way. With twenty metrics there are hundreds of pairwise comparisons, and at p < 0.05 a good handful will look significant on pure noise. Any tool will find something. A tool that only finds things is worse than no tool, because it dresses noise up as self-knowledge.",
+    "approach": "Make the honest answer a first-class output. Every finding must carry what was found, the supporting data, sample size, effect size, confidence, possible confounders, whether it is an observation, correlation, hypothesis or experimental result, and a recommended action — or an explicit statement that none is justified. That contract is a type with a validator, not a convention: a finding using causal language without experimental evidence is rejected before it reaches the UI.",
+    "architecture": {
+      "summary": "A framework-free analytics engine that runs in plain Node, with a thin React layer that only renders what the engine computed.",
+      "invariant": "AI is never used to produce a number. Any narrative a model returns is scanned for numeric tokens, and every one must appear in the fact set the deterministic engine computed — a single unverifiable number rejects the whole narrative.",
+      "layers": [
+        {
+          "name": "events/",
+          "role": "Versioned universal event schema, DST-safe time maths, migrations, dedup, storage.",
+          "path": "apps/pulse/src/events"
+        },
+        {
+          "name": "connectors/",
+          "role": "Connector SDK and sync engine — consent, paging, cursors, backfill, health — with one module per source.",
+          "path": "apps/pulse/src/connectors"
+        },
+        {
+          "name": "statistics/ + discovery/",
+          "role": "Distributions, effect sizes, multiple-testing correction, power, seeded resampling, confounder detection and adjustment.",
+          "path": "apps/pulse/src/statistics"
+        },
+        {
+          "name": "experiments/ + hypotheses/",
+          "role": "Crossover, A/B and before-after design and analysis, with predicted direction and size registered before the run.",
+          "path": "apps/pulse/src/experiments"
+        },
+        {
+          "name": "synthetic/",
+          "role": "Benchmark users carrying planted true effects, planted null effects and a deliberately confounded relationship.",
+          "path": "apps/pulse/src/synthetic"
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "doc",
+          "label": "apps/pulse/README.md — layout",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
+          "path": "apps/pulse/README.md"
+        }
+      ]
+    },
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "pulse",
+        "alt": "Illustration of a finding card showing effect size, sample size, confidence grade and a confounder warning",
+        "caption": "Illustration of the finding contract. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Automated tests",
+        "value": "370+",
+        "method": "`npm test` in apps/pulse. Count as stated in the project README; the portfolio's CI importer replaces this with the live figure from the Pulse workflow when a run is readable.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — testing",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
+            "path": "apps/pulse/README.md"
+          },
+          {
+            "kind": "ci",
+            "label": "pulse.yml — verify and E2E jobs",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/pulse.yml",
+            "path": ".github/workflows/pulse.yml"
+          }
+        ]
+      },
+      {
+        "label": "Independence floor",
+        "value": "14 distinct days minimum",
+        "method": "Group comparisons are computed on sitting-level cluster means, and nothing is published below 14 distinct days. Enforced in the discovery layer.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — how Pulse avoids fooling you",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
+            "path": "apps/pulse/README.md"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "The test suite asserts specificity as well as sensitivity: benchmark users carry planted null effects that must not be found, and a deliberately confounded relationship that must be flagged rather than endorsed.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — testing",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
+            "path": "apps/pulse/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "A connector cannot accidentally skip a safety step — paging, cursors, health checks, consent enforcement, normalisation, validation and deduplication all come from the SDK, and `checkContract` verifies at test time that a connector only emits metrics it declared, within the ranges it declared.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — adding a connector",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
+            "path": "apps/pulse/README.md"
+          },
+          {
+            "kind": "repo",
+            "label": "src/connectors",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/pulse/src/connectors",
+            "path": "apps/pulse/src/connectors"
+          }
+        ]
+      },
+      {
+        "statement": "A third-party connector's metrics start as `context` and never as outcomes, so an unvetted source cannot introduce something the discovery scan treats as a result.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — curated metrics",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
+            "path": "apps/pulse/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Benjamini-Hochberg applied within each outcome metric's family rather than across the whole scan",
+        "gained": "Related questions are corrected together, which is the comparison structure that actually exists in the data.",
+        "gaveUp": "A single global correction would be simpler to explain; pooling unrelated questions over-corrects, so both the family size and the total scan have to be shown to the user instead."
+      },
+      {
+        "choice": "Confounder adjustment rather than confounder disclaimers",
+        "gained": "Time of day, day of week, secular trend and session mix are each tested and effects re-estimated within strata, so an effect that survives means something.",
+        "gaveUp": "Substantially more machinery, and more findings get demoted — an effect losing more than a third of its size under adjustment is marked uncontrolled and never promoted to 'run an experiment'."
+      },
+      {
+        "choice": "Crossover as the default experiment design",
+        "gained": "It removes the biggest confounder in personal data: the person changing over time.",
+        "gaveUp": "Longer studies and unsuitability for anything with strong carry-over effects."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": [
+      "The load-bearing tests are the specificity ones. Proving the engine finds a planted effect is easy; proving it does not find the planted non-effect is the part that makes the output worth reading.",
+      "`inconclusive` has to be a first-class experiment outcome. Without it, an underpowered null quietly gets reported as evidence of no effect."
+    ]
+  }
+}
