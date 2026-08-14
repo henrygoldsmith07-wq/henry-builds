@@ -1,0 +1,64 @@
+{
+  "slug": "meeting-recorder",
+  "upstreamId": "meeting-recorder",
+  "name": "Meeting Recorder",
+  "tagline": "Desktop capture, hosted transcription, cheap storage.",
+  "summary": "A meeting recorder in two parts: an Electron desktop app that captures screen, system audio and microphone straight to object storage, and a web dashboard with a transcript synced to the recording.",
+  "stage": "prototype",
+  "category": "Developer tooling",
+  "tags": ["Electron", "Transcription", "Object storage"],
+  "accent": "#e9e7e2",
+  "featured": false,
+  "publish": true,
+  "authorship": {
+    "role": "Implementation, following a published build guide.",
+    "built": [
+      "The Electron capture path and direct upload to object storage",
+      "The dashboard: clickable transcript synced to playback, search, status filtering and public share links"
+    ],
+    "notBuilt": [
+      "The overall product shape, which follows an existing 'build it in an afternoon' guide",
+      "Whisper transcription, the chat model, MongoDB and Cloudflare R2"
+    ]
+  },
+  "repo": {
+    "label": "apps/meeting-recorder",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/meeting-recorder",
+    "path": "apps/meeting-recorder"
+  },
+  "caseStudy": {
+    "problem": "Meeting recorders are priced per seat and keep your recordings. The interesting question is how much of that product is actually irreducible once hosted transcription is cheap and object storage is nearly free.",
+    "approach": "Split capture from presentation. The desktop app does the one thing a web app cannot — capture system audio alongside screen and microphone — and uploads directly to object storage rather than through a server. Everything else is a thin dashboard over the resulting files.",
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "generic",
+        "alt": "Illustration of a meeting dashboard with a video player beside a transcript",
+        "caption": "Illustration of the dashboard. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [],
+    "outcomes": [
+      {
+        "statement": "Every service in the stack has a free or near-zero-cost tier, so the whole system runs at effectively no cost at personal scale.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — stack",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/meeting-recorder/README.md",
+            "path": "apps/meeting-recorder/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Electron desktop app alongside the web dashboard",
+        "gained": "System-audio capture, which a browser cannot do.",
+        "gaveUp": "A desktop install, a second codebase, and Windows-native audio handling that does not transfer to other platforms for free."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": []
+  }
+}

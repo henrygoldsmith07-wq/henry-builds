@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Test and audit output
+playwright-report/
+test-results/
+.lighthouseci/
+
+# Playwright writes these next to a failing snapshot; the baselines in
+# tests/*-snapshots/ are committed on purpose.
+**/*-actual.png
+**/*-diff.png

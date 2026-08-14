@@ -1,0 +1,155 @@
+{
+  "slug": "forq",
+  "upstreamId": "food-shopping-os",
+  "name": "Forq",
+  "tagline": "Every number comes from something you actually logged.",
+  "summary": "A food planning, shopping, cooking and budgeting app that starts completely empty — no demo user, no pretend pantry, no invented spending history. The recommender explains every suggestion in five concrete lines.",
+  "stage": "beta",
+  "category": "Everyday systems",
+  "tags": ["Local-first", "Recommender", "Explainability", "PWA"],
+  "accent": "#f0e5cf",
+  "featured": true,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — recommender, pantry model, and the progressive-disclosure information architecture.",
+    "built": [
+      "The multi-factor recipe recommender and the explanation renderer that turns each factor into a plain sentence",
+      "The pantry uncertainty model — approximate quantities, expiry buckets, running-low detection and fuzzy ingredient matching",
+      "Versioned export/restore, including recovery from invalid saved data instead of silent replacement",
+      "The Plan → Shop → Cook progressive disclosure, with hidden modules that keep their records visible"
+    ],
+    "notBuilt": [
+      "The reference data that ships with the app — recipe book, food and barcode nutrition catalogue, per-100g nutrient tables and UK reference intakes",
+      "Upstash Redis, Auth.js, Ably and the model provider used for optional server-backed AI actions"
+    ]
+  },
+  "repo": {
+    "label": "apps/food-shopping-os",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/food-shopping-os",
+    "path": "apps/food-shopping-os"
+  },
+  "caseStudy": {
+    "problem": "Meal-planning apps demo beautifully and die in week two. They ship with a pretend pantry and invented spending history, so the first thing a real user sees is numbers that are not about them — and the moment they clear the demo data, the app has nothing to say. The harder problem underneath is that a real pantry is approximate: nobody knows they have 340g of rice.",
+    "approach": "Start the app empty and derive every number from what the user actually logs, buys, cooks and plans. Build the pantry model around approximate quantities and expiry rather than exact inventory, and make the recommender explain itself in five specific lines — how much is already in your kitchen, what is about to expire, whether it fits the time you have, cost per person, and what leftovers it creates. Keep scoring factors within a bounded range so no single factor can hide a dish.",
+    "architecture": {
+      "summary": "A local-first Next.js app where the recommender is the product, and every optional backend is genuinely optional.",
+      "invariant": "Hiding a module never deletes its records — `hiddenModules()` and `keptRecords()` exist to prove progressive disclosure is non-destructive.",
+      "layers": [
+        {
+          "name": "Recommender",
+          "role": "Scores pantry coverage, expiry, time fit, cost, leftovers, taste and season. Every suggestion carries a generated explanation.",
+          "path": "apps/food-shopping-os/lib/recommend.js"
+        },
+        {
+          "name": "Pantry model",
+          "role": "Approximate quantities, cost, expiry buckets, running-low detection and fuzzy ingredient matching."
+        },
+        {
+          "name": "Progressive disclosure",
+          "role": "Plan → Shop → Cook is the default journey; pantry, budget, nutrition and analytics sit underneath and can be hidden without losing data."
+        },
+        {
+          "name": "Storage",
+          "role": "localStorage by default, versioned export/restore, recovery screen on invalid data. Sign-in is an opt-in to Redis household sync."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "doc",
+          "label": "apps/food-shopping-os/README.md",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/food-shopping-os/README.md",
+          "path": "apps/food-shopping-os/README.md"
+        }
+      ]
+    },
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "forq",
+        "alt": "Illustration of a weekly meal plan with a shopping list summary beneath it",
+        "caption": "Illustration of the weekly plan. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Recommendation factors",
+        "value": "7, each bounded to 0.7–1.6",
+        "method": "Pantry coverage, expiry, time fit, cost, leftovers, taste and season. The bound is deliberate — it stops any one factor from dominating and hiding a dish.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "Improvement log — Forq recommender audit",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/IMPROVEMENT_LOG.md",
+            "path": "IMPROVEMENT_LOG.md"
+          }
+        ]
+      },
+      {
+        "label": "Advanced-module tests",
+        "value": "41 passing",
+        "method": "Recorded in the monorepo improvement log's validation run for the Forq advanced modules.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "IMPROVEMENT_LOG.md — validation",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/IMPROVEMENT_LOG.md",
+            "path": "IMPROVEMENT_LOG.md"
+          },
+          {
+            "kind": "ci",
+            "label": "food-shopping-os.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/food-shopping-os.yml",
+            "path": ".github/workflows/food-shopping-os.yml"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "The app ships with no demo user, no pretend pantry, no invented spending history and no pre-earned achievements — every number shown is computed from what the user logged.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — the app starts empty",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/food-shopping-os/README.md",
+            "path": "apps/food-shopping-os/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "Invalid saved data opens a recovery screen rather than being silently replaced, and backups can be restored from first-run setup.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — the app starts empty",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/food-shopping-os/README.md",
+            "path": "apps/food-shopping-os/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Start empty rather than seed a demo",
+        "gained": "Every figure the user sees is about them, and there is no cliff when demo data is cleared.",
+        "gaveUp": "A much weaker first impression. The app has almost nothing to show until real data goes in, which is a genuine adoption cost."
+      },
+      {
+        "choice": "Model the pantry as approximate rather than exact",
+        "gained": "Coverage and expiry work with the way people actually track food, so the recommender stays useful on messy data.",
+        "gaveUp": "Precise inventory and exact cost accounting are out of reach — the numbers are ranges and estimates, and the UI has to say so."
+      },
+      {
+        "choice": "Deliberately not building a full nutrition system",
+        "gained": "Forq stays a planning and shopping product, and does not become a second copy of a tracking app.",
+        "gaveUp": "Nutrition remains an overview rather than a feature, which rules out a whole category of users."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": [
+      "Progressive disclosure is only honest if hiding a module provably keeps its records. Without that guarantee, 'simplify the interface' and 'lose your data' look identical from the outside."
+    ]
+  }
+}

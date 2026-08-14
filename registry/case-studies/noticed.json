@@ -1,0 +1,69 @@
+{
+  "slug": "noticed",
+  "upstreamId": "mental-load-tracker",
+  "name": "Noticed",
+  "tagline": "No score, no leaderboard, on purpose.",
+  "summary": "A shared board for the invisible labour of running a household. Log what you notice needs doing — no category, no assignee, no due date — and see it side by side once a week with what your partner noticed.",
+  "stage": "prototype",
+  "category": "Everyday systems",
+  "tags": ["Realtime", "Shared state", "Product constraints"],
+  "accent": "#f0e5cf",
+  "featured": false,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — product model, identity model and weekly comparison view.",
+    "built": [
+      "The single-field capture flow and the deliberately neutral weekly comparison",
+      "The join-code household model with no accounts and device-local identity",
+      "Realtime shared board state"
+    ],
+    "notBuilt": ["Supabase Realtime, which carries the shared board state"]
+  },
+  "repo": {
+    "label": "apps/mental-load-tracker",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/mental-load-tracker",
+    "path": "apps/mental-load-tracker"
+  },
+  "caseStudy": {
+    "problem": "The driver of household resentment is usually not unfinished chores but unequal noticing — remembering the appointment needs booking or the shoes no longer fit. Chore-split apps track completed tasks and miss the anticipatory work entirely. And every shared household app dies the same way: logging becomes more effort than just doing the thing.",
+    "approach": "Two constraints, both of which cost features. Capture is a single text field with no required category, assignee or due date, because anything slower than a few seconds defeats the purpose. And the weekly view shows noticed and resolved counts side by side, framed neutrally — no fairness percentage, no ranking — because a scoreboard turns the tool into ammunition in an argument.",
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "generic",
+        "alt": "Illustration of a shared board with two columns of noticed items",
+        "caption": "Illustration of the weekly side-by-side view. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [],
+    "outcomes": [
+      {
+        "statement": "There are no user accounts at all — a household is a short join code, and each person's name and colour are stored locally on their own device.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — how a household works",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/mental-load-tracker/README.md",
+            "path": "apps/mental-load-tracker/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "Join code as the entire identity model",
+        "gained": "A household is usable in under a minute, with no sign-up friction for the partner who did not choose the app.",
+        "gaveUp": "The join code is the only thing protecting the board, which the project's own README documents as a security limitation rather than glossing over."
+      },
+      {
+        "choice": "No score and no leaderboard",
+        "gained": "The tool makes invisible work visible without giving either person a number to win with.",
+        "gaveUp": "The engagement mechanics that would make it stickier are exactly the ones that would make it harmful here."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": [
+      "Some products are defined by what you refuse to add. A fairness percentage would have been trivial to compute and would have changed what the app is for."
+    ]
+  }
+}

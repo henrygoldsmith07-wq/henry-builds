@@ -1,0 +1,150 @@
+{
+  "slug": "reflect",
+  "upstreamId": "emotion-tracker",
+  "name": "Reflect",
+  "tagline": "Never \"you have catastrophizing bias\".",
+  "summary": "A structured reflection tool that challenges an interpretation rather than logging a mood. Its central engineering problem is language: a tentative reading of one account must never be presented as a diagnosis, and that rule is enforced in code.",
+  "stage": "beta",
+  "category": "Thinking tools",
+  "tags": ["Language contract", "Validation", "Local-first", "Hedging"],
+  "accent": "#dce9ec",
+  "featured": true,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — the reflection pipeline, the language contract and its validator.",
+    "built": [
+      "The eight-stage pipeline from event through observations, assumptions, emotion, alternatives, outcome and action to a dated follow-up",
+      "The hedged-language contract: every bias flag must carry evidence for, evidence against and a confidence, and is dropped entirely below 0.45",
+      "The validator that rejects a model response violating the contract, rather than trusting the prompt to hold"
+    ],
+    "notBuilt": [
+      "The language model that conducts the questioning and drafts the structured trace"
+    ]
+  },
+  "repo": {
+    "label": "apps/emotion-tracker",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/emotion-tracker",
+    "path": "apps/emotion-tracker"
+  },
+  "caseStudy": {
+    "problem": "Mood trackers record that you felt bad on Tuesday. They do not touch the interpretation that made Tuesday bad, which is the part that is actually available to change. But building something that challenges interpretations creates a much worse failure mode than breadth tracking ever had: presenting a tentative reading of a single account as a clinical diagnosis.",
+    "approach": "Separate what was observed from what was inferred, and make that separation the spine of the product — verifiable facts in one field, unchecked inferences in another, with motive attributions explicitly moved out of observations. Then treat the risk of false certainty as an engineering constraint rather than a copywriting preference: bias flags carry evidence on both sides and a confidence score, low-confidence flags are omitted rather than hedged, and a response that violates the contract is rejected in code.",
+    "architecture": {
+      "summary": "A fixed reflection pipeline with a validation layer between the model and the interface.",
+      "invariant": "A bias flag below 0.45 confidence is omitted entirely rather than hedged, and any flagged pattern requires a disclaimer that these are tentative readings of a single account.",
+      "layers": [
+        {
+          "name": "Pipeline",
+          "role": "event → observations → assumptions → emotion → alternatives → outcome → action → follow-up. At least three and at most five questions, one at a time."
+        },
+        {
+          "name": "Language contract",
+          "role": "Each bias flag carries a hedged description, evidence for, evidence against and a confidence between 0 and 1.",
+          "path": "apps/emotion-tracker/src/lib/validation.ts"
+        },
+        {
+          "name": "Storage",
+          "role": "localStorage only. No account and no backend beyond the reflection API."
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "doc",
+          "label": "apps/emotion-tracker/README.md — language contract",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/README.md",
+          "path": "apps/emotion-tracker/README.md"
+        },
+        {
+          "kind": "repo",
+          "label": "src/lib/validation.ts",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/src/lib/validation.ts",
+          "path": "apps/emotion-tracker/src/lib/validation.ts"
+        }
+      ]
+    },
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "reflect",
+        "alt": "Illustration of a reflection trace separating observations from assumptions, with an alternative reading beneath",
+        "caption": "Illustration of the observation/assumption split. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Confidence floor for a bias flag",
+        "value": "0.45",
+        "method": "Below this threshold the flag is omitted entirely rather than shown with softer wording. Enforced in src/lib/validation.ts.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — language contract",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/README.md",
+            "path": "apps/emotion-tracker/README.md"
+          }
+        ]
+      },
+      {
+        "label": "Pipeline stages",
+        "value": "8",
+        "method": "Counted from the fixed pipeline: event, observations, assumptions, emotion, alternatives, outcome, action, follow-up.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — specialization",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/README.md",
+            "path": "apps/emotion-tracker/README.md"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "The hedged-language rule is validated in code and the model response is rejected if it violates the contract — the prompt is not trusted to hold on its own.",
+        "evidence": [
+          {
+            "kind": "repo",
+            "label": "src/lib/validation.ts",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/src/lib/validation.ts",
+            "path": "apps/emotion-tracker/src/lib/validation.ts"
+          },
+          {
+            "kind": "ci",
+            "label": "emotion-tracker.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/emotion-tracker.yml",
+            "path": ".github/workflows/emotion-tracker.yml"
+          }
+        ]
+      },
+      {
+        "statement": "Every reflection ends with a dated follow-up checkpoint that can later record whether the intended action actually helped.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — how it works",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/README.md",
+            "path": "apps/emotion-tracker/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "One deep pipeline instead of a breadth tracker with dashboards",
+        "gained": "The product does one thing that other tools do not do at all: challenge the interpretation rather than record the mood.",
+        "gaveUp": "No correlations, no trends across symptoms, none of the breadth that makes a tracker feel comprehensive."
+      },
+      {
+        "choice": "Enforcing the language contract in a validator rather than in the prompt",
+        "gained": "A model that drifts cannot ship a diagnosis to the user — the response is rejected before it renders.",
+        "gaveUp": "Rejected responses mean occasional dead ends and retries, and the contract has to be maintained alongside every prompt change."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": [
+      "When the biggest product risk is a sentence, the sentence needs a type and a validator. Prompt instructions are a preference; a rejection is a guarantee."
+    ]
+  }
+}

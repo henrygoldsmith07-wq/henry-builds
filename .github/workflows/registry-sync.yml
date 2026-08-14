@@ -1,0 +1,85 @@
+name: Registry sync
+
+# Re-imports the monorepo registry and CI facts, then opens a PR if anything
+# changed. This is what makes the portfolio track the source of truth instead of
+# drifting from it: a project renamed, retired or promoted upstream shows up here
+# without anyone remembering to edit the site.
+
+on:
+  schedule:
+    # 06:20 UTC on Mondays. Off the hour so it does not queue behind the
+    # every-scheduler-runs-at-:00 crowd.
+    - cron: "20 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - name: Import registry and CI facts
+        env:
+          # A PAT with actions:read on the monorepo. Without it the import still
+          # succeeds — it records run metadata only and omits test counts rather
+          # than inventing them.
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: bun run registry:import:ci
+
+      - name: Regenerate OG cards and sitemap
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: bun run prebuild
+
+      - name: Validate before proposing anything
+        run: |
+          bun run registry:validate
+          bun run audit:claims
+
+      - name: Summarise what changed
+        id: diff
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No registry changes."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            {
+              echo 'summary<<EOF'
+              git diff --stat
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open a pull request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/registry-sync
+          title: "chore: sync project registry from monorepo"
+          commit-message: "chore: sync project registry from monorepo"
+          delete-branch: true
+          draft: true
+          body: |
+            Automated import from `henrygoldsmith07-wq/Claude-Code:apps/registry.json`.
+
+            ```
+            ${{ steps.diff.outputs.summary }}
+            ```
+
+            Check before merging:
+
+            - A project whose upstream lifecycle became `active` will now publish.
+              `registry:validate` reports any publish gate that has opened.
+            - Test counts marked "from CI" replace the authored figures in the
+              case studies. If a count moved a long way, confirm the workflow ran
+              the suite you expect.

@@ -194,3 +194,71 @@
 @media (max-width: 1023px) { .section-grid { grid-template-columns: 1fr; } .interest-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 639px) { .hero-title { font-size: clamp(3.7rem, 19vw, 7rem); } .section-shell { padding: 84px 20px; } .section-grid { gap: 36px; } .section-title { font-size: clamp(3.1rem, 17vw, 5rem); } .info-cell { min-height: 126px; } .info-cell:nth-child(even) { padding-left: 4px; } .interest-grid { grid-template-columns: 1fr; } .interest-card { min-height: 180px; } .button-primary, .button-secondary { padding: 0 14px; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
+
+/* ---------------------------------------------------------------------------
+   Case studies, evidence and stage labels
+   ------------------------------------------------------------------------- */
+
+.skip-link { position: absolute; left: -9999px; top: 0; z-index: 100; background: var(--foreground); color: var(--background); padding: 10px 16px; font-size: 12px; font-weight: 600; border-radius: 0 0 8px 0; }
+.skip-link:focus { left: 0; }
+
+/* Stage badges — the site's main honesty surface, so they read as data, not decoration. */
+.stage-badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.stage-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.stage-shipped { color: oklch(0.48 0.13 150); border-color: color-mix(in oklab, oklch(0.48 0.13 150) 35%, var(--border)); }
+.stage-beta { color: oklch(0.50 0.11 240); border-color: color-mix(in oklab, oklch(0.50 0.11 240) 35%, var(--border)); }
+.stage-prototype { color: oklch(0.52 0.12 65); border-color: color-mix(in oklab, oklch(0.52 0.12 65) 35%, var(--border)); }
+.stage-research { color: var(--muted-foreground); }
+/* No opacity here: fading muted-foreground to 0.75 dropped it to 3.44:1 against
+   the page background. Archived reads as archived through the dashed border. */
+.stage-archived { color: var(--muted-foreground); border-style: dashed; }
+.dark .stage-shipped { color: oklch(0.78 0.13 150); }
+.dark .stage-beta { color: oklch(0.76 0.10 240); }
+.dark .stage-prototype { color: oklch(0.80 0.11 65); }
+
+/* Evidence chips point at something checkable; they are deliberately quiet. */
+.evidence-chip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border); border-radius: 6px; padding: 3px 7px; font-size: 10px; line-height: 1.4; color: var(--muted-foreground); max-width: 100%; }
+.evidence-chip-link:hover { border-color: var(--foreground); color: var(--foreground); }
+.evidence-chip-link:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+.claim-item { background: var(--background); padding: 20px 24px; }
+.metric-card { background: var(--background); padding: 24px; }
+.metric-source { flex-shrink: 0; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-foreground); }
+
+/* Case-study section rhythm: label rail on the left, content on the right. */
+.case-section { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 40px; border-top: 1px solid var(--border); padding: 56px 0; }
+.case-section-head { display: flex; flex-direction: column; gap: 10px; }
+.case-section-body { min-width: 0; }
+
+.arch-stack { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.arch-layer { display: flex; gap: 18px; background: var(--background); padding: 18px 22px; }
+.arch-layer-index { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: color-mix(in oklab, var(--foreground) 35%, transparent); padding-top: 3px; }
+.arch-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; color: var(--muted-foreground); border-bottom: 1px dotted var(--border); word-break: break-all; }
+.arch-path:hover { color: var(--foreground); }
+.arch-invariant { display: flex; gap: 12px; border: 1px solid var(--border); border-left-width: 3px; border-left-color: var(--foreground); padding: 18px 20px; }
+
+.case-nav { display: flex; flex-direction: column; background: var(--background); padding: 32px 24px; transition: background-color 180ms ease; }
+a.case-nav:hover { background: var(--muted); }
+
+/* The badge sits over both light and dark previews, so its own surface has to
+   be near-opaque — at 0.86 alpha over the dark chrome it fell to 4.44:1. */
+.preview-badge { position: absolute; bottom: 28px; right: 28px; border-radius: 999px; background: rgba(255,255,255,0.95); padding: 6px 12px; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(0,0,0,0.72); backdrop-filter: blur(4px); }
+.preview-badge-real { background: rgba(16,24,16,0.95); color: rgba(255,255,255,0.95); }
+
+.filter-chip { border: 1px solid var(--border); border-radius: 999px; padding: 6px 13px; font-size: 11px; text-transform: capitalize; color: var(--muted-foreground); transition: color 160ms ease, border-color 160ms ease; }
+.filter-chip:hover { color: var(--foreground); }
+.filter-chip-active { border-color: var(--foreground); background: var(--foreground); color: var(--background); }
+.filter-chip:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+.project-row-link { display: flex; flex-direction: column; gap: 16px; padding: 24px; transition: background-color 180ms ease; }
+.project-row-link:hover { background: var(--muted); }
+
+@media (min-width: 768px) {
+  .project-row-link { flex-direction: row; align-items: center; gap: 32px; padding: 26px 28px; }
+  .project-row-link > :first-child { width: 210px; flex-shrink: 0; }
+}
+
+@media (max-width: 1023px) {
+  .case-section { grid-template-columns: 1fr; gap: 20px; padding: 44px 0; }
+  .case-section-head { flex-direction: row; align-items: baseline; gap: 14px; }
+}

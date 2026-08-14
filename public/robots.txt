@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 
-# Set VITE_SITE_URL or profile.siteUrl before publishing a production sitemap.
+# Auth and dashboard are behind a login and hold nothing worth indexing.
+Disallow: /auth
+Disallow: /dashboard
+
 Sitemap: /sitemap.xml

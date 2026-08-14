@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SITE_URL: ${{ vars.SITE_URL }}
+  VITE_SITE_URL: ${{ vars.SITE_URL }}
+
+jobs:
+  verify:
+    name: Types, lint, registry, claims, build, links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      # The registry gates everything else: if a claim has no evidence, or a
+      # stage label is not earned, nothing downstream is worth running.
+      - name: Validate registry
+        run: bun run registry:validate
+
+      - name: Audit public claims
+        run: bun run audit:claims
+
+      - name: Type-check
+        run: bunx tsc -b
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Build
+        run: bun run build
+
+      - name: Check internal links, assets and sitemap
+        run: bun run check:links
+
+      - name: Fail if generated files are stale
+        # The build regenerates OG cards and the sitemap. If either differs from
+        # what is committed, the repository is out of date with the registry.
+        run: |
+          if ! git diff --quiet -- public/og public/sitemap.xml public/robots.txt; then
+            echo "::error::Generated files are stale. Run 'bun run prebuild' and commit the result."
+            git diff --stat -- public/og public/sitemap.xml public/robots.txt
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dist
+          path: dist
+          retention-days: 3
+
+  accessibility:
+    name: Accessibility audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bunx playwright install --with-deps chromium
+
+      - name: Run axe over every published route, light and dark
+        run: bun run test:a11y
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: a11y-report
+          path: playwright-report
+          retention-days: 7
+
+  visual:
+    name: Visual regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bunx playwright install --with-deps chromium
+
+      - name: Compare against committed snapshots
+        run: bun run test:visual
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-diff
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  lighthouse:
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+
+      - name: Assert performance, a11y, best-practices and SEO budgets
+        run: bunx lhci autorun
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/reports
+          retention-days: 7

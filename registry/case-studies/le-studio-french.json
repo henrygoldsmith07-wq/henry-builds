@@ -1,0 +1,97 @@
+{
+  "slug": "le-studio-french",
+  "upstreamId": "french-practice",
+  "name": "Le Studio French",
+  "tagline": "English-first interface, French-only material.",
+  "summary": "A client-side French speaking PWA built around a placement test and a twelve-unit roadmap. Every practice activity — conversation, dictation, spaced cards, quick fire, grammar, reading and listening — sits on the same progress model.",
+  "stage": "beta",
+  "category": "Learning",
+  "tags": ["PWA", "Speech", "CEFR", "Client-side"],
+  "accent": "#e4dcf0",
+  "featured": false,
+  "publish": true,
+  "authorship": {
+    "role": "Sole author — learning path, activity types and progress model.",
+    "built": [
+      "The twelve-unit, sixty-lesson roadmap and the CEFR placement test that calibrates it",
+      "The Today / Speak / Review / Learn / Progress navigation and the redo loop",
+      "Mock mode, which makes the entire app explorable offline with no API key",
+      "Key validation against the provider's models endpoint before anything is stored"
+    ],
+    "notBuilt": [
+      "Groq's hosted speech-to-text and text-to-speech, used for the speaking arena"
+    ]
+  },
+  "repo": {
+    "label": "apps/french-practice",
+    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/french-practice",
+    "path": "apps/french-practice"
+  },
+  "caseStudy": {
+    "problem": "Language apps either drill vocabulary you never speak or drop you into conversation with no scaffolding. The gap is a path: something that knows roughly where you are, gives you a mixed diet of activities, and lets you redo the thing you just failed rather than moving on regardless.",
+    "approach": "Start with a twelve-question placement test across A1–C2 and generate a personal roadmap where every unit mixes speaking with at least one grammar, reading or listening lesson. Keep the interface English-first so the scaffolding is never itself an obstacle, and put translations permanently within reach. Run entirely client-side, with the API key held only in local storage.",
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "language",
+        "alt": "Illustration of a French practice prompt with a translation panel and lesson progress",
+        "caption": "Illustration of a practice session. Not a screenshot — no capture of the running app has been published yet."
+      }
+    ],
+    "metrics": [
+      {
+        "label": "Learning path",
+        "value": "12 units · 60 lessons · A1–C2 placement",
+        "method": "Counted from the shipped roadmap content; the placement test is 12 questions and calibrates AI complexity and scoring.",
+        "source": "authored",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — features",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/french-practice/README.md",
+            "path": "apps/french-practice/README.md"
+          }
+        ]
+      }
+    ],
+    "outcomes": [
+      {
+        "statement": "The whole app is explorable offline through mock mode, with no API key and no backend of any kind.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — run",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/french-practice/README.md",
+            "path": "apps/french-practice/README.md"
+          },
+          {
+            "kind": "ci",
+            "label": "french-practice.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/french-practice.yml",
+            "path": ".github/workflows/french-practice.yml"
+          }
+        ]
+      },
+      {
+        "statement": "An entered API key is validated against the provider's models endpoint before being stored, so a bad key fails at setup rather than mid-session.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — run",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/french-practice/README.md",
+            "path": "apps/french-practice/README.md"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "100% client-side with a user-supplied API key",
+        "gained": "No backend, no accounts, no cost to run, and the key never leaves the user's browser.",
+        "gaveUp": "The user has to obtain and paste their own key, which is a hard first step for a non-technical learner."
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": []
+  }
+}

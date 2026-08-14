@@ -1,0 +1,253 @@
+/**
+ * Portfolio registry types.
+ *
+ * The registry is the single source of truth for what appears on this site.
+ * It has three layers:
+ *
+ *   registry/upstream.json        imported from the monorepo's apps/registry.json (generated)
+ *   registry/ci-facts.json        test/benchmark counts pulled from CI (generated)
+ *   registry/case-studies/*.json  hand-authored narrative + evidence (edited by a human)
+ *
+ * Generated layers are never edited by hand; `bun run registry:import` rewrites them.
+ * `bun run registry:validate` enforces every rule described in these types, so a claim
+ * that cannot point at evidence fails CI rather than reaching the site.
+ */
+
+/** How far along a project actually is. Ordered weakest to strongest. */
+export type Stage = "research" | "prototype" | "beta" | "shipped" | "archived";
+
+export const stageOrder: Stage[] = ["research", "prototype", "beta", "shipped", "archived"];
+
+export const stageCopy: Record<Stage, { label: string; meaning: string }> = {
+  research: {
+    label: "Research",
+    meaning: "Exploring the problem. No product to use yet.",
+  },
+  prototype: {
+    label: "Prototype",
+    meaning: "Runs end to end, but not something anyone else depends on.",
+  },
+  beta: {
+    label: "Beta",
+    meaning: "Feature-complete and tested in CI. No public deployment yet.",
+  },
+  shipped: {
+    label: "Shipped",
+    meaning: "Publicly deployed and in regular use.",
+  },
+  archived: {
+    label: "Archived",
+    meaning: "Frozen. Kept for provenance, not developed further.",
+  },
+};
+
+/**
+ * Lifecycle values used by the upstream monorepo registry.
+ * Kept in sync with apps/registry.json -> lifecycleStates.
+ */
+export type UpstreamLifecycle =
+  | "active"
+  | "incubating"
+  | "maintenance"
+  | "archived"
+  | "superseded"
+  | "tooling"
+  | "external";
+
+/** A pointer to something a reader can go and check for themselves. */
+export type EvidenceKind =
+  | "repo" // source directory or repository
+  | "ci" // a workflow that runs on every push
+  | "benchmark" // a committed, reproducible benchmark artifact
+  | "doc" // a README or design doc in the repo
+  | "screenshot" // a real capture of the running app
+  | "video" // a screen recording of the running app
+  | "live"; // a public deployment
+
+export type Evidence = {
+  kind: EvidenceKind;
+  /** Human-readable name of the thing being pointed at. */
+  label: string;
+  /** External URL. Required for `live`; optional elsewhere. */
+  href?: string;
+  /** Repo-relative path, e.g. "apps/rtk/benchmark/results.md". */
+  path?: string;
+  /** Local asset served from /public, e.g. "/media/rtk/benchmark.png". */
+  src?: string;
+};
+
+/**
+ * A statement about a project that is only rendered if it carries evidence.
+ * The validator rejects any claim with an empty `evidence` array.
+ */
+export type Claim = {
+  statement: string;
+  evidence: Evidence[];
+};
+
+/**
+ * A number. Numbers are the easiest thing to overstate, so a metric must say
+ * how it was measured and point at something reproducible.
+ */
+export type Metric = {
+  label: string;
+  value: string;
+  /** How this number was produced. Free text, but must be specific. */
+  method: string;
+  evidence: Evidence[];
+  /**
+   * Set by the CI importer when the number comes from a workflow run rather
+   * than from the hand-authored file. Never edited by hand.
+   */
+  source?: "ci" | "authored";
+};
+
+export type Tradeoff = {
+  choice: string;
+  gained: string;
+  gaveUp: string;
+};
+
+export type FailedApproach = {
+  approach: string;
+  whyItFailed: string;
+  whatItChanged: string;
+};
+
+/**
+ * A visual. `kind` is load-bearing: the UI labels illustrations as illustrations
+ * so a drawn mockup is never mistaken for a screenshot of working software.
+ */
+export type Visual =
+  | { kind: "screenshot"; src: string; alt: string; caption?: string }
+  | { kind: "illustration"; preview: PreviewKind; alt: string; caption?: string };
+
+export type PreviewKind =
+  | "revise"
+  | "rapport"
+  | "pulse"
+  | "rtk"
+  | "forq"
+  | "reflect"
+  | "world-news"
+  | "fitness"
+  | "language"
+  | "calendar"
+  | "studio"
+  | "generic";
+
+export type ArchitectureLayer = {
+  name: string;
+  /** What lives in this layer. */
+  role: string;
+  /** Repo-relative path this layer maps to, when there is one. */
+  path?: string;
+};
+
+export type Architecture = {
+  /** One sentence describing the organising idea, not a list of technologies. */
+  summary: string;
+  layers: ArchitectureLayer[];
+  /** The constraint the layering exists to enforce. */
+  invariant?: string;
+  evidence: Evidence[];
+};
+
+export type CaseStudy = {
+  problem: string;
+  approach: string;
+  architecture?: Architecture;
+  visuals: Visual[];
+  video?: { src: string; poster?: string; caption: string };
+  metrics: Metric[];
+  outcomes: Claim[];
+  tradeoffs: Tradeoff[];
+  failedApproaches: FailedApproach[];
+  lessons: string[];
+};
+
+/** What the author personally built, stated plainly. */
+export type Authorship = {
+  /** e.g. "Sole author" or "Design and implementation, on top of X". */
+  role: string;
+  /** Specific things built. */
+  built: string[];
+  /** Specific things NOT built — libraries, services, borrowed designs. */
+  notBuilt: string[];
+};
+
+export type Project = {
+  slug: string;
+  /** Matches an `id` in the upstream monorepo registry. */
+  upstreamId: string;
+  name: string;
+  tagline: string;
+  summary: string;
+  stage: Stage;
+  category: string;
+  tags: string[];
+  accent: string;
+  /** Shown on the landing page. The validator caps this at 6. */
+  featured: boolean;
+  /**
+   * Whether the project appears on the public site at all.
+   * A project with `publish: false` is carried in the registry but rendered
+   * nowhere — used for work that is not yet canonical upstream.
+   */
+  publish: boolean;
+  /** Why publish is false, and what would flip it. Required when publish is false. */
+  publishGate?: string;
+  authorship: Authorship;
+  repo?: { label: string; href: string; path?: string };
+  liveUrl?: string;
+  caseStudy: CaseStudy;
+};
+
+/** One entry of the generated upstream snapshot. */
+export type UpstreamEntry = {
+  id: string;
+  name: string;
+  path?: string;
+  repo?: string;
+  lifecycle: UpstreamLifecycle;
+  kind: string;
+  stack?: string;
+  description: string;
+  workflow?: string;
+  site?: string | null;
+};
+
+export type UpstreamSnapshot = {
+  /** Where this was imported from. */
+  source: { repo: string; path: string; ref: string };
+  importedAt: string;
+  entries: UpstreamEntry[];
+};
+
+/** Test and benchmark counts pulled from CI, keyed by upstream id. */
+export type CiFacts = Record<
+  string,
+  {
+    workflow: string;
+    workflowUrl?: string;
+    runUrl?: string;
+    conclusion?: string;
+    completedAt?: string;
+    tests?: { total: number; files?: number };
+    benchmarks?: { cases: number; artifact?: string };
+    /** Where the number came from when CI did not report one directly. */
+    derivedFrom?: string;
+  }
+>;
+
+/**
+ * Stage is not a free choice. These are the conditions the validator enforces,
+ * so the label on the site always means the same thing.
+ */
+export const stageRequirements: Record<Stage, string> = {
+  shipped: "requires a liveUrl and at least one `live` evidence item",
+  beta: "requires at least one `ci` evidence item",
+  prototype: "requires at least one `repo` evidence item",
+  research: "requires at least one evidence item of any kind",
+  archived: "requires the upstream lifecycle to be archived or superseded",
+};
