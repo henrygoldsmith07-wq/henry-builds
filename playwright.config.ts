@@ -62,7 +62,12 @@ export default defineConfig({
   webServer: process.env.BASE_URL
     ? undefined
     : {
-        command: "bun run preview --port 4173 --strictPort",
+        /*
+         * --host 127.0.0.1 is load-bearing. Without it vite preview binds to
+         * "localhost", which resolves to ::1 first on GitHub runners, so nothing
+         * listens on 127.0.0.1 and Playwright waits out its full timeout.
+         */
+        command: "bun run preview --port 4173 --strictPort --host 127.0.0.1",
         url: "http://127.0.0.1:4173",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
