@@ -42,6 +42,38 @@ async function get(url, init) {
   return response;
 }
 
+/**
+ * A protected deployment answers 401/403 to everything, which would otherwise
+ * surface as one failure per route and read like a total outage. Detect it once
+ * and stop, so the report says what is actually wrong.
+ */
+async function assertReachable() {
+  let response;
+  try {
+    response = await get(`${origin}/`);
+  } catch (error) {
+    console.error(`✗ ${origin} is unreachable — ${error.message}`);
+    process.exit(1);
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    const protectedBy =
+      response.headers.get("x-vercel-protection-bypass") ??
+      response.headers.get("set-cookie")?.includes("_vercel_sso_nonce");
+
+    console.error(
+      `✗ ${origin} returned ${response.status} for the root route.\n` +
+        (protectedBy
+          ? "  This looks like Vercel deployment protection. Point SITE_URL at the\n" +
+            "  production domain, or set a protection-bypass token for the probe.\n"
+          : "  Every route will fail while the origin refuses unauthenticated requests.\n"),
+    );
+    process.exit(1);
+  }
+}
+
+await assertReachable();
+
 // --- routes ---------------------------------------------------------------
 const routes = ["/", "/projects", ...published.map((p) => `/projects/${p.slug}`)];
 
