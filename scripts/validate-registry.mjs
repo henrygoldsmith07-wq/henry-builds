@@ -251,8 +251,38 @@ for (const file of files) {
     if (!visual.alt) fail(`${at}: missing alt text`);
   });
 
-  // --- trade-offs must name a cost ---------------------------------------
-  (cs.tradeoffs ?? []).forEach((t, i) => {
+// --- insight lifecycle states must be checkable ------------------------
+if (cs.insightLifecycle) {
+  const il = cs.insightLifecycle;
+  const at = `${id}.insightLifecycle`;
+  if (!il.summary) fail(`${at}: missing summary`);
+  if (!Array.isArray(il.states) || il.states.length < 2) {
+    fail(`${at}: states needs at least two states to be worth drawing`);
+  } else {
+    const names = new Set(il.states.map((s) => s.state));
+    il.states.forEach((s, i) => {
+      const sat = `${at}.states[${i}]`;
+      if (!s.state) fail(`${sat}: missing state name`);
+      if (!s.meaning) fail(`${sat}: missing meaning`);
+      if (!s.entry) fail(`${sat}: missing entry`);
+      if (!Array.isArray(s.next)) {
+        fail(`${sat}: next must be an array`);
+      } else {
+        s.next.forEach((to) => {
+          if (!names.has(to)) {
+            fail(`${sat}: next '${to}' does not name a state in states`);
+          }
+        });
+      }
+    });
+  }
+  if (!Array.isArray(il.rules) || il.rules.length === 0) {
+    fail(`${at}: rules must list at least one rule`);
+  }
+  checkEvidenceList(il.evidence, at);
+}
+// --- trade-offs must name a cost ---------------------------------------
+(cs.tradeoffs ?? []).forEach((t, i) => {
     const at = `${id}.tradeoffs[${i}]`;
     if (!t.choice) fail(`${at}: missing choice`);
     if (!t.gained) fail(`${at}: missing gained`);

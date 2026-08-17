@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, ExternalLink, Github, Minus, Plus } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { ArchitectureDiagram } from "@/components/portfolio/ArchitectureDiagram";
-import { ClaimItem, MetricCard } from "@/components/portfolio/Evidence";
+import { ClaimItem, EvidenceRow, MetricCard } from "@/components/portfolio/Evidence";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
@@ -176,16 +176,71 @@ export default function CaseStudy() {
               </p>
             </Section>
 
+            {/* ---- insight lifecycle states -------------------------------- */}
+            {study.insightLifecycle && (
+              <Section
+                number="04"
+                title="Insight Lifecycle States"
+                id="insight-lifecycle"
+              >
+                <p className="max-w-3xl text-base leading-7 text-muted-foreground">
+                  {study.insightLifecycle.summary}
+                </p>
+                <div className="mt-8 space-y-px overflow-hidden border border-border bg-border">
+                  {study.insightLifecycle.states.map((state, i) => (
+                    <div key={state.state} className="bg-background p-6">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <span className="text-[11px] font-semibold tracking-[0.14em] text-foreground/35">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <p className="text-sm font-semibold tracking-tight">{state.state}</p>
+                        {state.next.length > 0 && (
+                          <span className="ml-auto flex flex-wrap gap-1.5">
+                            {state.next.map((to) => (
+                              <span key={to} className="pill">
+                                → {to}
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-4 max-w-3xl text-sm leading-6 text-muted-foreground">
+                        {state.meaning}
+                      </p>
+                      <p className="eyebrow mt-5">Entry to this state</p>
+                      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                        {state.entry}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <p className="eyebrow mt-8">Rules that gate the moves</p>
+                <ul className="mt-4 space-y-5">
+                  {study.insightLifecycle.rules.map((rule, i) => (
+                    <li key={rule} className="flex gap-5">
+                      <span className="text-[11px] font-semibold tracking-[0.14em] text-foreground/35">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <p className="max-w-2xl text-sm leading-6 text-foreground/85">{rule}</p>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-8 flex flex-wrap gap-1.5">
+                  <EvidenceRow items={study.insightLifecycle.evidence} />
+                </div>
+              </Section>
+            )}
+
             {/* ---- architecture -------------------------------------------- */}
             {study.architecture && (
-              <Section number="04" title="Architecture" id="architecture">
+              <Section number="05" title="Architecture" id="architecture">
                 <ArchitectureDiagram architecture={study.architecture} />
               </Section>
             )}
 
             {/* ---- demo video ---------------------------------------------- */}
             {study.video && (
-              <Section number="05" title="Demo" id="demo">
+              <Section number="06" title="Demo" id="demo">
                 <video
                   className="w-full rounded-[1.25rem] border border-border"
                   src={study.video.src}
@@ -199,7 +254,7 @@ export default function CaseStudy() {
 
             {/* ---- measurements -------------------------------------------- */}
             {study.metrics.length > 0 && (
-              <Section number="06" title="Measurements" id="measurements">
+              <Section number="07" title="Measurements" id="measurements">
                 <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
                   {study.metrics.map((metric) => (
                     <MetricCard key={metric.label} metric={metric} />
@@ -210,7 +265,7 @@ export default function CaseStudy() {
 
             {/* ---- outcomes ------------------------------------------------ */}
             {study.outcomes.length > 0 && (
-              <Section number="07" title="What holds up" id="outcomes">
+              <Section number="08" title="What holds up" id="outcomes">
                 <p className="mb-7 max-w-2xl text-sm leading-6 text-muted-foreground">
                   Each statement links to the thing that backs it. Nothing appears here without one.
                 </p>
@@ -224,7 +279,7 @@ export default function CaseStudy() {
 
             {/* ---- trade-offs ---------------------------------------------- */}
             {study.tradeoffs.length > 0 && (
-              <Section number="08" title="Trade-offs" id="tradeoffs">
+              <Section number="09" title="Trade-offs" id="tradeoffs">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
                   {study.tradeoffs.map((tradeoff) => (
                     <div key={tradeoff.choice} className="bg-background p-6">
@@ -251,7 +306,7 @@ export default function CaseStudy() {
 
             {/* ---- failed approaches --------------------------------------- */}
             {study.failedApproaches.length > 0 && (
-              <Section number="09" title="What did not work" id="failed">
+              <Section number="10" title="What did not work" id="failed">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
                   {study.failedApproaches.map((failure) => (
                     <div key={failure.approach} className="bg-background p-6">
@@ -278,7 +333,7 @@ export default function CaseStudy() {
 
             {/* ---- lessons -------------------------------------------------- */}
             {study.lessons.length > 0 && (
-              <Section number="10" title="What I took from it" id="lessons">
+              <Section number="11" title="What I took from it" id="lessons">
                 <ul className="space-y-6">
                   {study.lessons.map((lesson, i) => (
                     <li key={lesson} className="flex gap-5">

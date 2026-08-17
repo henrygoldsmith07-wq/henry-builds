@@ -153,10 +153,37 @@ export type Architecture = {
   evidence: Evidence[];
 };
 
+/**
+ * A project's own answer to "how does a claim move from first notice to
+ * established knowledge?". Rendered as its own numbered section when present.
+ * The state names must match the machine in the code, so a reader can go and
+ * check them; `next` entries must name states that exist in `states`.
+ */
+export type InsightLifecycle = {
+  /** One sentence describing the organising idea. */
+  summary: string;
+  /** The states a claim passes through, in order. */
+  states: {
+    /** Machine state name, e.g. "replicated". */
+    state: string;
+    /** What being in this state means. */
+    meaning: string;
+    /** What has to be true to enter it. */
+    entry: string;
+    /** Which states can follow from here — must name states in `states`. */
+    next: string[];
+  }[];
+  /** The rules that gate movement between states. */
+  rules: string[];
+  /** Links to the code that owns the machine. */
+  evidence: Evidence[];
+};
+
 export type CaseStudy = {
   problem: string;
   approach: string;
   architecture?: Architecture;
+  insightLifecycle?: InsightLifecycle;
   visuals: Visual[];
   video?: { src: string; poster?: string; caption: string };
   metrics: Metric[];

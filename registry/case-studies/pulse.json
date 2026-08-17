@@ -32,6 +32,98 @@
   "caseStudy": {
     "problem": "Personal analytics fails in a specific, predictable way. With twenty metrics there are hundreds of pairwise comparisons, and at p < 0.05 a good handful will look significant on pure noise. Any tool will find something. A tool that only finds things is worse than no tool, because it dresses noise up as self-knowledge.",
     "approach": "Make the honest answer a first-class output. Every finding must carry what was found, the supporting data, sample size, effect size, confidence, possible confounders, whether it is an observation, correlation, hypothesis or experimental result, and a recommended action — or an explicit statement that none is justified. That contract is a type with a validator, not a convention: a finding using causal language without experimental evidence is rejected before it reaches the UI.",
+    "insightLifecycle": {
+      "summary": "A claim in Pulse moves through a small number of auditable states, from first notice to established knowledge about this person. Two machines own the progression — the replication ledger for the claim's standing and the hypothesis tracker for the experiment it earns — and every transition is recorded with a reason and a timestamp. Nothing here changes a statistic; only the claim's standing.",
+      "states": [
+        {
+          "state": "new",
+          "meaning": "An association noticed once, not yet confirmed. The discovery scan found it, but the claim has not yet survived contact with fresh data.",
+          "entry": "A candidate clears the independence floor (14 distinct days), the effect-size floor and the confounder screens.",
+          "next": ["replicated"]
+        },
+        {
+          "state": "replicated",
+          "meaning": "The same outcome–driver–direction signature surfaced again in fresh data, which confirms the earlier sighting too. Effect magnitude is deliberately absent from the signature — a replication that comes back at half the size is still a replication, just a weaker one.",
+          "entry": "A later discovery run independently matches the earlier finding's signature.",
+          "next": ["proposed", "failed-to-replicate"]
+        },
+        {
+          "state": "proposed",
+          "meaning": "The claim earns a registered prediction: predicted direction and size are fixed before the run, which is what stops a result being reinterpreted after the fact to match whatever happened.",
+          "entry": "The finding's recommended next action is run an experiment — only claims whose effect survived confounder adjustment are eligible.",
+          "next": ["testing", "abandoned"]
+        },
+        {
+          "state": "testing",
+          "meaning": "A crossover, A/B or before-after experiment is running against the registered prediction. Crossover is the default because it removes the biggest confounder in personal data: the person changing over time.",
+          "entry": "A design with a target metric, a minimum sample derived from the predicted effect, a duration, likely confounders and success criteria.",
+          "next": ["supported", "refuted", "inconclusive", "abandoned"]
+        },
+        {
+          "state": "supported",
+          "meaning": "The experiment supported the claim, which moves to experimentally-supported: effect in the predicted direction, confidence interval excludes zero, and the effect is at least half the size predicted. The claim's standing changes; the statistics do not.",
+          "entry": "An experiment verdict of supported.",
+          "next": ["testing", "abandoned"]
+        },
+        {
+          "state": "refuted",
+          "meaning": "The experiment did not reproduce the claim. The claim is demoted to failed-to-replicate and stops being presented as a result.",
+          "entry": "An experiment verdict of refuted.",
+          "next": ["testing", "abandoned"]
+        },
+        {
+          "state": "inconclusive",
+          "meaning": "Underpowered, under-adhered or genuinely ambiguous. This is a first-class terminal state: an inconclusive run is never reported as evidence of no effect, and the claim's standing is unchanged — the experiment was run but did not settle it.",
+          "entry": "An experiment verdict of inconclusive.",
+          "next": ["testing", "abandoned"]
+        },
+        {
+          "state": "abandoned",
+          "meaning": "The claim is no longer pursued — a concluded hypothesis can also be retested, which is how a personal finding survives contact with a new term, a new job, a new sleep schedule.",
+          "entry": "A deliberate decision, recorded with its reason.",
+          "next": []
+        },
+        {
+          "state": "failed-to-replicate",
+          "meaning": "The standing of a claim whose experiment did not reproduce it — the exit a refuted claim takes, rather than a state a live claim occupies.",
+          "entry": "An experiment verdict of refuted.",
+          "next": []
+        }
+      ],
+      "rules": [
+        "Every transition is recorded with a reason and a timestamp, so the standing of a claim is a single auditable state rather than a free-form label scattered across the UI.",
+        "An effect that loses more than a third of its size under confounder adjustment is marked uncontrolled and is never promoted to 'run an experiment'.",
+        "Observational evidence is capped below 'high' confidence however good the data looks — correlation is never presented as causation.",
+        "No group comparison publishes below 14 distinct days, computed on sitting-level cluster means.",
+        "An invalid experiment — the run did not happen as designed, for example below 40% adherence — never updates the claim."
+      ],
+      "evidence": [
+        {
+          "kind": "repo",
+          "label": "src/discovery/replication.ts — the replication ledger",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/src/discovery/replication.ts",
+          "path": "apps/pulse/src/discovery/replication.ts"
+        },
+        {
+          "kind": "repo",
+          "label": "src/hypotheses/tracker.ts — the hypothesis status machine",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/src/hypotheses/tracker.ts",
+          "path": "apps/pulse/src/hypotheses/tracker.ts"
+        },
+        {
+          "kind": "repo",
+          "label": "src/experiments/analysis.ts — the four verdicts",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/src/experiments/analysis.ts",
+          "path": "apps/pulse/src/experiments/analysis.ts"
+        },
+        {
+          "kind": "doc",
+          "label": "README — how Pulse avoids fooling you",
+          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
+          "path": "apps/pulse/README.md"
+        }
+      ]
+    },
     "architecture": {
       "summary": "A framework-free analytics engine that runs in plain Node, with a thin React layer that only renders what the engine computed.",
       "invariant": "AI is never used to produce a number. Any narrative a model returns is scanned for numeric tokens, and every one must appear in the fact set the deterministic engine computed — a single unverifiable number rejects the whole narrative.",
