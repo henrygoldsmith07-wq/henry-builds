@@ -22,7 +22,11 @@ function absoluteOgImages(origin: string): Plugin {
   };
 }
 
-const siteUrl = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
+// Same resolution as generate-sitemap: env override, else the stable
+// production origin, so Vercel builds without variables stay correct.
+const siteUrl =
+  (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "") ||
+  "https://henry-builds.vercel.app";
 
 // https://vite.dev/config/
 export default defineConfig({

@@ -3,10 +3,11 @@
  * Writes public/sitemap.xml and public/robots.txt from the registry, so a new
  * project is in the sitemap the moment its case study exists.
  *
- * Absolute URLs need an origin. Set SITE_URL (or VITE_SITE_URL) in the build
- * environment. Without it the script fails closed — a sitemap of relative URLs
- * is ignored by search engines wholesale, which is worse than no deploy.
- * Set ALLOW_RELATIVE_SITEMAP=1 to opt into relative URLs for local work.
+ * Absolute URLs need an origin. Resolution order:
+ *   1. SITE_URL / VITE_SITE_URL from the environment
+ *   2. the production origin below — this site's stable alias, so a deploy
+ *      environment without variables still builds and stays correct
+ *   3. ALLOW_RELATIVE_SITEMAP=1 opts into relative URLs for local work
  */
 
 import fs from "node:fs";
@@ -17,18 +18,23 @@ const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
 const publicDir = path.join(root, "public");
 
-const origin = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
+/** The production deployment. Update here if the site ever moves. */
+export const PRODUCTION_ORIGIN = "https://henry-builds.vercel.app";
+
+const origin =
+  (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "") ||
+  (process.env.ALLOW_RELATIVE_SITEMAP ? "" : PRODUCTION_ORIGIN);
 
 if (!origin && !process.env.ALLOW_RELATIVE_SITEMAP) {
   console.error(
-    "generate-sitemap: SITE_URL is not set. Refusing to write a sitemap of relative\n" +
+    "generate-sitemap: no origin available. Refusing to write a sitemap of relative\n" +
       "URLs (search engines ignore them). Set SITE_URL, or ALLOW_RELATIVE_SITEMAP=1\n" +
       "for local development.",
   );
   process.exit(1);
 }
 if (!origin) {
-  console.warn("generate-sitemap: SITE_URL not set — writing relative URLs (ALLOW_RELATIVE_SITEMAP).");
+  console.warn("generate-sitemap: writing relative URLs (ALLOW_RELATIVE_SITEMAP).");
 }
 
 const projects = fs.existsSync(caseStudyDir)
