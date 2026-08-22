@@ -155,8 +155,8 @@ of spamming comments every run.
 
 | Variable | Where | Purpose |
 |---|---|---|
-| `SITE_URL` / `VITE_SITE_URL` | repo variable, deploy env | Absolute URLs in the sitemap, canonical tags and OG cards. The sitemap generator **fails closed** without it. |
-| `REGISTRY_TOKEN` | repo secret | Optional PAT with `actions:read`, for private upstream repos or higher rate limits. Falls back to the built-in `GITHUB_TOKEN`, which covers everything public this site cites. |
+| `SITE_URL` / `VITE_SITE_URL` | repo variable, deploy env | Absolute URLs in the sitemap, canonical tags and OG images. The sitemap generator **fails closed** without it. |
+| `REGISTRY_TOKEN` | repo secret | PAT with read access to the sibling repos (`public_repo` is enough). Without it every cross-repo gate — source verification, GitHub path link checks, CI-facts refresh — **skips loudly** instead of enforcing, because the built-in `GITHUB_TOKEN` cannot read repositories other than its own and anonymous runner calls are rate-limited. |
 | `VITE_CONVEX_URL` | deploy env | Optional. Enables `/auth` and `/dashboard`. The public site does not use it. |
 
 The public portfolio has no backend. `VITE_CONVEX_URL` being absent switches
