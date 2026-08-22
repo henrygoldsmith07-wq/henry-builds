@@ -155,7 +155,7 @@ of spamming comments every run.
 
 | Variable | Where | Purpose |
 |---|---|---|
-| `SITE_URL` / `VITE_SITE_URL` | repo variable, deploy env | Absolute URLs in the sitemap, canonical tags and OG images. The sitemap generator **fails closed** without it. |
+| `SITE_URL` / `VITE_SITE_URL` | optional env | Overrides the build-time origin for sitemap URLs and OG images. Defaults to the production alias (`https://henry-builds.vercel.app`, see `PRODUCTION_ORIGIN` in `generate-sitemap.mjs`) so deploys without variables stay correct; `ALLOW_RELATIVE_SITEMAP=1` opts out locally. |
 | `REGISTRY_TOKEN` | repo secret | PAT with read access to the sibling repos (`public_repo` is enough). Without it every cross-repo gate — source verification, GitHub path link checks, CI-facts refresh — **skips loudly** instead of enforcing, because the built-in `GITHUB_TOKEN` cannot read repositories other than its own and anonymous runner calls are rate-limited. |
 | `VITE_CONVEX_URL` | deploy env | Optional. Enables `/auth` and `/dashboard`. The public site does not use it. |
 
@@ -169,5 +169,6 @@ PNG rather than SVG on purpose — most crawlers will not render an SVG OG image
 
 ## Deployment
 
-Vercel, config in `vercel.json`. Set `SITE_URL` as a repository variable so CI
-and the deploy agree on the origin.
+Vercel, config in `vercel.json`. The build origin defaults to the production
+alias; set `SITE_URL` in the Vercel project (and/or repo variables) only if the
+domain moves.
