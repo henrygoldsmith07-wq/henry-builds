@@ -1,0 +1,50 @@
+name: Visual baselines
+
+# Regenerates the Linux-rendered Playwright snapshots and commits them.
+#
+# UI changes are supposed to be reviewed as diffs in PRs, but the snapshots
+# themselves can only be produced on Linux (CI renders them; Windows locals
+# rely on pixel tolerance). Run this after merging intentional visual changes;
+# CI's visual job then compares against fresh truth.
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [refresh-baselines]
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bunx playwright install --with-deps chromium
+
+      - name: Accept current rendering as the new baseline
+        run: bun run test:visual:update
+
+      - name: Commit refreshed baselines if any changed
+        run: |
+          if git diff --quiet -- tests; then
+            echo "Baselines unchanged."
+            exit 0
+          fi
+          git config user.name "henry-builds-sync"
+          git config user.email "actions@users.noreply.github.com"
+          git add tests
+          git commit -m "chore: refresh visual baselines
+
+          Linux-rendered snapshots regenerated after intentional UI changes."
+          git push origin HEAD:main

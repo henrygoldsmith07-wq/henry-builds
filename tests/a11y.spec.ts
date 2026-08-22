@@ -15,6 +15,11 @@ for (const route of allRoutes) {
   for (const theme of ["light", "dark"] as const) {
     test(`${route.name} has no serious accessibility violations (${theme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme });
+      // The site honours prefers-reduced-motion by rendering final states
+      // immediately (see the reveal variants). Emulating it here keeps axe
+      // from sampling elements mid-entrance, where a fading overlay reads as
+      // a contrast violation that no user ever sees.
+      await page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
       await page.addInitScript((mode) => {
         window.localStorage.setItem("henry-theme", mode);
       }, theme);
