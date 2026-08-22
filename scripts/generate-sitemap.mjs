@@ -60,9 +60,18 @@ function lastmodFor(file) {
 
 let fallbackLastmod;
 try {
-  fallbackLastmod = JSON.parse(
+  const upstream = JSON.parse(
     fs.readFileSync(path.join(root, "registry/upstream.json"), "utf8"),
-  ).importedAt.slice(0, 10);
+  );
+  // Newest case-study commit wins; a registry re-import alone does not make
+  // the pages newer, and churning lastmod trains crawlers to ignore it.
+  const dates = fs
+    .readdirSync(caseStudyDir)
+    .filter((file) => file.endsWith(".json"))
+    .map((file) => lastmodFor(file))
+    .filter(Boolean)
+    .sort();
+  fallbackLastmod = dates[dates.length - 1] ?? upstream.importedAt.slice(0, 10);
 } catch {
   fallbackLastmod = new Date().toISOString().slice(0, 10);
 }

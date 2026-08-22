@@ -107,6 +107,23 @@ export async function pathExistsIn(repo, ref, claimedPath) {
   return false;
 }
 
+/**
+ * Can this process actually read repositories other than its own?
+ *
+ * Inside Actions, the built-in GITHUB_TOKEN is scoped to the calling repo and
+ * gets 404 for every other repository, while anonymous retries from shared
+ * runner IPs usually die on rate limits. Probing one known-public repo tells
+ * the callers whether to enforce or to degrade loudly.
+ */
+export async function crossRepoReadable(probe = `${MONOREPO}/commits/main`) {
+  try {
+    await api(probe);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** Parse owner/repo, ref and path out of a github.com blob/tree URL. */
 export function parseGitHubUrl(url) {
   const match = url.match(

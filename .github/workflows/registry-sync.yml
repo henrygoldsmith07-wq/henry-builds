@@ -41,12 +41,12 @@ jobs:
           # token covers everything public, which is all this site cites today.
           # The import fails loudly rather than writing empty facts when the
           # token cannot see what it should.
-          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: bun run registry:import:ci
 
       - name: Verify every cited source path still exists
         env:
-          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: bun run verify:sources
 
       - name: Regenerate OG cards and sitemap
@@ -57,7 +57,7 @@ jobs:
       - name: Validate before proposing anything
         env:
           SITE_URL: ${{ vars.SITE_URL }}
-          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: |
           bun run registry:validate
           bun run audit:claims

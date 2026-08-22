@@ -27,6 +27,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { crossRepoReadable } from "./lib/github-paths.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -518,19 +519,36 @@ async function main() {
   }
 
   // --- source status --------------------------------------------------------
-  const statuses = await deriveSourceStatuses(entries);
-  fs.writeFileSync(path.join(outDir, "source-status.json"), `${JSON.stringify({
-    _generated: "Written by scripts/import-registry.mjs. Do not edit by hand.",
-    ...statuses,
-  }, null, 2)}\n`);
+  // Deriving status needs cross-repo REST reads. A repo-scoped Actions token
+  // cannot do them at all, and guessing would mark every project archived —
+  // so in degraded mode the existing snapshot is kept, loudly.
+  const statusPath = path.join(outDir, "source-status.json");
+  let statuses;
+  if (await crossRepoReadable()) {
+    statuses = await deriveSourceStatuses(entries);
+    fs.writeFileSync(statusPath, `${JSON.stringify({
+      _generated: "Written by scripts/import-registry.mjs. Do not edit by hand.",
+      ...statuses,
+    }, null, 2)}\n`);
 
-  const archived = Object.entries(statuses.projects).filter(([, s]) => s.derived !== "current");
-  log(
-    `wrote registry/source-status.json (${Object.keys(statuses.projects).length} projects, ` +
-      `${archived.length} not-current)`,
-  );
-  for (const [slug, status] of archived) {
-    log(`  ${slug}: ${status.derived} — ${status.reason}`);
+    const archived = Object.entries(statuses.projects).filter(([, s]) => s.derived !== "current");
+    log(
+      `wrote registry/source-status.json (${Object.keys(statuses.projects).length} projects, ` +
+        `${archived.length} not-current)`,
+    );
+    for (const [slug, status] of archived) {
+      log(`  ${slug}: ${status.derived} — ${status.reason}`);
+    }
+  } else {
+    if (fs.existsSync(statusPath)) {
+      log("cross-repo reads unavailable — keeping the existing source-status.json");
+      if (process.env.CI) {
+        console.log("::warning::source-status not refreshed — no usable GitHub token (set REGISTRY_TOKEN)");
+      }
+    } else {
+      fail("cannot derive source status and none exists yet — set GITHUB_TOKEN to a PAT with repo read access");
+      return;
+    }
   }
 
   // --- CI facts -------------------------------------------------------------
@@ -539,8 +557,20 @@ async function main() {
     return;
   }
 
-  log(mode === "authenticated" ? "collecting CI facts (authenticated)" : "collecting CI facts (anonymous)");
-  const { facts, populated } = await collectCiFacts(entries, statuses.projects);
+  if (!token) {
+    // Reading Actions runs/logs for sibling repos needs a real token; the
+    // repo-scoped default cannot, and anonymous runner calls are rate-limited
+    // into uselessness. Keep the existing facts rather than degrading them.
+    const msg =
+      "registry:import:ci ran without a usable GITHUB_TOKEN — keeping the existing " +
+      "ci-facts.json. Set the REGISTRY_TOKEN secret (PAT with public-repo read) to refresh them.";
+    log(`WARNING: ${msg}`);
+    if (process.env.CI) console.log(`::warning::${msg}`);
+    return;
+  }
+
+  log("collecting CI facts (authenticated)");
+  const { facts, populated } = await collectCiFacts(entries, statuses?.projects ?? {});
 
   if (populated === 0 && !allowEmpty) {
     fail(

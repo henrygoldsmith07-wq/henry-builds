@@ -56,7 +56,7 @@ jobs:
         if: always()
         id: links
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: |
           set +e
           node scripts/check-links.mjs --external > links.log 2>&1

@@ -46,7 +46,7 @@ jobs:
 
       - name: Verify every cited source path exists
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: bun run verify:sources
 
       - name: Audit public claims
@@ -64,7 +64,7 @@ jobs:
       - name: Check internal links, assets and sitemap
         run: bun run check:links --github
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
 
       - name: Fail if generated files are stale
         # The build regenerates OG cards and the sitemap. If either differs from

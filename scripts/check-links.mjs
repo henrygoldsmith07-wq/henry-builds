@@ -205,6 +205,20 @@ async function checkExternalLinks() {
  * for the page, not for API-level verification of what a reader will find).
  */
 async function checkGithubPaths() {
+  // Same degraded-mode rule as verify-sources: a repo-scoped token cannot read
+  // sibling repos, and enforcing would produce pure noise. Say so, skip.
+  const { crossRepoReadable } = await import("./lib/github-paths.mjs");
+  if (!(await crossRepoReadable())) {
+    console.warn(
+      "check-links: cross-repo GitHub reads unavailable — skipping github path checks. " +
+        "Set REGISTRY_TOKEN to enforce.",
+    );
+    if (process.env.CI) {
+      console.log("::warning::check:links --github skipped — no usable GitHub token");
+    }
+    return;
+  }
+
   const urls = new Set();
   const statusesRaw = fs.existsSync(path.join(root, "registry/source-status.json"))
     ? JSON.parse(fs.readFileSync(path.join(root, "registry/source-status.json"), "utf8"))

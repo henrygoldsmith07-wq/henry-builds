@@ -20,13 +20,14 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { pathExistsIn, resolveLocation } from "./lib/github-paths.mjs";
+import { crossRepoReadable, pathExistsIn, resolveLocation } from "./lib/github-paths.mjs";
 
 const root = process.cwd();
 const checkAll = process.argv.includes("--all");
 
 let errors = 0;
 let checked = 0;
+let skippedByAccess = 0;
 
 function fail(msg) {
   console.error(`✗ ${msg}`);
@@ -42,6 +43,22 @@ const files = fs
   .readdirSync(path.join(root, "registry/case-studies"))
   .filter((f) => f.endsWith(".json"))
   .sort();
+
+// Degraded mode: a repo-scoped CI token cannot read the sibling repos at all.
+// Enforcing here would fail on every path for reasons that have nothing to do
+// with the evidence — so verify nothing and say exactly what was skipped.
+const canRead = await crossRepoReadable();
+if (!canRead) {
+  console.warn(
+    "verify-sources: cross-repo GitHub reads are unavailable in this environment " +
+      "(repo-scoped token / rate-limited anonymous). Skipping verification.\n" +
+      "Set the REGISTRY_TOKEN secret to a PAT with public-repo read access to enforce this gate.",
+  );
+  if (process.env.CI) {
+    console.log("::warning::verify:sources skipped — no usable GitHub token (set REGISTRY_TOKEN)");
+  }
+  process.exit(0);
+}
 
 for (const file of files) {
   const project = JSON.parse(fs.readFileSync(path.join(root, "registry/case-studies", file), "utf8"));
