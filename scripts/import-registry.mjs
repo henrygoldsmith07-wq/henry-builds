@@ -62,8 +62,14 @@ async function githubFetch(url, { raw = false, auth = true } = {}) {
   if (!raw) headers.accept = "application/vnd.github+json";
 
   const res = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
-  if (res.status === 401 && auth && token) {
-    log("token rejected (401) — retrying anonymously");
+  // 401: bad/expired token. 404 with a token attached is subtler — a repo-
+  // scoped GITHUB_TOKEN gets "not found" for every repository outside its
+  // scope, even public ones. Both recover by retrying anonymously, which can
+  // read anything public.
+  const retriable =
+    res.status === 401 || ((res.status === 404 || res.status === 403) && !raw);
+  if (retriable && auth && token) {
+    log(`token rejected (${res.status}) — retrying anonymously`);
     return githubFetch(url, { raw, auth: false });
   }
   if (!res.ok) {

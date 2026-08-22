@@ -1,6 +1,6 @@
 {
   "_generated": "Written by scripts/import-registry.mjs. Do not edit by hand.",
-  "checkedAt": "2026-08-21T19:19:39.401Z",
+  "checkedAt": "2026-08-22T05:53:55.829Z",
   "projects": {
     "agent-os-control-room": {
       "derived": "archived-source",
@@ -11,16 +11,16 @@
       "reason": "Source lives at henrygoldsmith07-wq/arise@main.",
       "repo": "henrygoldsmith07-wq/arise",
       "ref": "main",
-      "sha": "532d5a1fd6986c2c57b134a29d9d4a6ce0779354",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/arise/commit/532d5a1fd6986c2c57b134a29d9d4a6ce0779354"
+      "sha": "ff798b7d4221d381b32d714a422d396aec980fa7",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/arise/commit/ff798b7d4221d381b32d714a422d396aec980fa7"
     },
     "daily-debate": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/daily-debate@main.",
       "repo": "henrygoldsmith07-wq/daily-debate",
       "ref": "main",
-      "sha": "ba9a494d97142de32cce8d5c286fda04fb4de8a1",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/commit/ba9a494d97142de32cce8d5c286fda04fb4de8a1"
+      "sha": "ac71121a0c9c5a8f9aa48a93c90a64761f9c925e",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/commit/ac71121a0c9c5a8f9aa48a93c90a64761f9c925e"
     },
     "dictation-typer": {
       "derived": "archived-source",
@@ -39,8 +39,8 @@
       "reason": "Source lives at henrygoldsmith07-wq/french-practice@main.",
       "repo": "henrygoldsmith07-wq/french-practice",
       "ref": "main",
-      "sha": "95f46d379810d2aa8e20493884fb3332e2899d4f",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/french-practice/commit/95f46d379810d2aa8e20493884fb3332e2899d4f"
+      "sha": "afcd86ccf05cd16a9c293e17f3e3f08fb260a638",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/french-practice/commit/afcd86ccf05cd16a9c293e17f3e3f08fb260a638"
     },
     "meeting-recorder": {
       "derived": "archived-source",
@@ -75,8 +75,8 @@
       "reason": "Source lives at henrygoldsmith07-wq/emotion-tracker@main.",
       "repo": "henrygoldsmith07-wq/emotion-tracker",
       "ref": "main",
-      "sha": "ac8b0b7b60b67df9980ac78156f99b87add9441e",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/commit/ac8b0b7b60b67df9980ac78156f99b87add9441e"
+      "sha": "b348d8320b2d2dc6d9c20bddb67a0f03be3b57d5",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/commit/b348d8320b2d2dc6d9c20bddb67a0f03be3b57d5"
     },
     "revise": {
       "derived": "current",
@@ -91,8 +91,8 @@
       "reason": "Source lives at henrygoldsmith07-wq/rtk@main.",
       "repo": "henrygoldsmith07-wq/rtk",
       "ref": "main",
-      "sha": "aa7975b44a757192a25c0b9ec6b189ef8b1e5946",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/rtk/commit/aa7975b44a757192a25c0b9ec6b189ef8b1e5946"
+      "sha": "7d8c43e340c1a4357aea4ad75ecdb9a1b682f128",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/rtk/commit/7d8c43e340c1a4357aea4ad75ecdb9a1b682f128"
     },
     "world-news": {
       "derived": "archived-source",

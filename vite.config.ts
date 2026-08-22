@@ -2,11 +2,31 @@ import { vlyPlugin } from "@vly-ai/integrations";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
+
+/**
+ * The static shell ships root-relative og:image/twitter:image so local dev
+ * works without an origin. Crawlers need absolute URLs and do not run the JS
+ * that rewrites them — bake SITE_URL in at build time.
+ */
+function absoluteOgImages(origin: string): Plugin {
+  return {
+    name: "absolute-og-images",
+    transformIndexHtml(html) {
+      if (!origin) return html;
+      return html.replaceAll(
+        /content="(\/(?:og|media)\/[^"]+)"/g,
+        (_match, url: string) => `content="${origin}${url}"`,
+      );
+    },
+  };
+}
+
+const siteUrl = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vlyPlugin(), react(), tailwindcss()],
+  plugins: [vlyPlugin(), react(), tailwindcss(), absoluteOgImages(siteUrl)],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

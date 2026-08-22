@@ -13,16 +13,30 @@ const API = "https://api.github.com";
 
 const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "";
 
-function headers() {
+function headers(withAuth = true) {
   const h = { "user-agent": "henry-builds-evidence-check" };
-  if (token) h.authorization = `Bearer ${token}`;
+  if (token && withAuth) h.authorization = `Bearer ${token}`;
   return h;
 }
 
 async function api(url) {
-  const res = await fetch(url, { headers: headers(), signal: AbortSignal.timeout(30_000) });
+  let res = await fetch(url, { headers: headers(), signal: AbortSignal.timeout(30_000) });
+  // A repo-scoped GITHUB_TOKEN gets 404 (not 401) for repositories outside
+  // its scope, even public ones. Retry anonymously — public data is readable.
+  if ((res.status === 404 || res.status === 403) && token) {
+    res = await fetch(url, { headers: headers(false), signal: AbortSignal.timeout(30_000) });
+  }
   if (!res.ok) throw new Error(`${res.status} ${res.statusText} for ${url}`);
   return res.json();
+}
+
+async function rawFetch(url, timeoutMs = 60_000) {
+  let res = await fetch(url, { headers: headers(), signal: AbortSignal.timeout(timeoutMs) });
+  if ((res.status === 404 || res.status === 403) && token) {
+    res = await fetch(url, { headers: headers(false), signal: AbortSignal.timeout(timeoutMs) });
+  }
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText} fetching ${url}`);
+  return res;
 }
 
 /** Paths that genuinely still live at the monorepo root, even post-migration. */
@@ -66,16 +80,12 @@ export async function treeOf(repo, ref) {
   const files = new Set();
   let url = `${API}/repos/${repo}/git/trees/${sha}?recursive=1`;
   while (url) {
-    const page = await fetch(url, {
-      headers: headers(),
-      signal: AbortSignal.timeout(60_000),
-    });
-    if (!page.ok) throw new Error(`${page.status} fetching tree of ${key}`);
+    const page = await rawFetch(url);
     const data = await page.json();
     for (const entry of data.tree ?? []) {
       if (entry.type === "blob") files.add(entry.path);
     }
-    url = data.truncated ? null : null; // one page is enough below 100k entries
+    url = null; // one page is enough below 100k entries
     if (data.truncated) {
       process.stderr.write(`warning: tree of ${key} truncated — results may miss deep paths\n`);
     }
