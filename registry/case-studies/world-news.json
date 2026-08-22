@@ -4,11 +4,16 @@
   "name": "World News Globe",
   "tagline": "Where accounts differ, and who is reporting them.",
   "summary": "An interactive 3D globe over world news, organised as story clusters rather than country summaries — with source-country mix, conflicting claims, agreed facts, uncertainty and coverage gaps made explicit.",
-  "stage": "beta",
+  "stage": "archived",
   "category": "Information design",
-  "tags": ["Provenance", "Clustering", "Three.js", "Grounded generation"],
+  "tags": [
+    "Provenance",
+    "Clustering",
+    "Three.js",
+    "Grounded generation"
+  ],
   "accent": "#dce9ec",
-  "featured": true,
+  "featured": false,
   "publish": true,
   "authorship": {
     "role": "Sole author — clustering, provenance panels and the globe interface.",
@@ -146,9 +151,27 @@
         "gaveUp": "Country pages can be up to six hours stale, which is a real limitation for fast-moving events."
       }
     ],
-    "failedApproaches": [],
+    "failedApproaches": [
+      {
+        "approach": "Locking the whole app down with a strict Content-Security-Policy",
+        "whyItFailed": "The globe renders through a three.js WebGL canvas, which cannot run under a strict CSP — every lockdown attempt broke the map that is the product. The monorepo improvement log records the outcome directly: \"CSP deferred — globe `three`/`canvas` breaks on strict CSP.\"",
+        "whatItChanged": "Security headers shipped without a CSP and the absence was recorded as an explicit known limitation, rather than shipping a policy that looked enforced while the app silently bypassed it.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "Monorepo improvement log — security headers run",
+            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/IMPROVEMENT_LOG.md"
+          }
+        ]
+      }
+    ],
     "lessons": [
       "The honest version of an AI news product is mostly plumbing for provenance. The generation step is the easy part; carrying source, conflict and absence through to the interface is the work."
+    ],
+    "limitations": [
+      "Free-tier API quotas capped freshness — country pages could be six hours stale by design.",
+      "A strict Content-Security-Policy was abandoned because three.js cannot run under one.",
+      "The source was removed during the 2026-08 ecosystem migration; no further verification of these claims is possible."
     ]
   }
 }

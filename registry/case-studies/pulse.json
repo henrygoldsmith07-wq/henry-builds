@@ -6,7 +6,12 @@
   "summary": "A privacy-first personal analytics and experimentation engine. It connects data from the rest of the ecosystem and turns it into evidence-graded findings, registered experiments and recommended actions — or an explicit 'no action is justified yet'.",
   "stage": "prototype",
   "category": "Analytics",
-  "tags": ["Statistics", "Experiments", "Connectors", "Privacy"],
+  "tags": [
+    "Statistics",
+    "Experiments",
+    "Connectors",
+    "Privacy"
+  ],
   "accent": "#dceadf",
   "featured": false,
   "publish": false,
@@ -25,9 +30,9 @@
     ]
   },
   "repo": {
-    "label": "apps/pulse",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/pulse",
-    "path": "apps/pulse"
+    "label": "pulse",
+    "href": "https://github.com/henrygoldsmith07-wq/pulse",
+    "path": "."
   },
   "caseStudy": {
     "problem": "Personal analytics fails in a specific, predictable way. With twenty metrics there are hundreds of pairwise comparisons, and at p < 0.05 a good handful will look significant on pure noise. Any tool will find something. A tool that only finds things is worse than no tool, because it dresses noise up as self-knowledge.",
@@ -39,43 +44,65 @@
           "state": "new",
           "meaning": "An association noticed once, not yet confirmed. The discovery scan found it, but the claim has not yet survived contact with fresh data.",
           "entry": "A candidate clears the independence floor (14 distinct days), the effect-size floor and the confounder screens.",
-          "next": ["replicated"]
+          "next": [
+            "replicated"
+          ]
         },
         {
           "state": "replicated",
           "meaning": "The same outcome–driver–direction signature surfaced again in fresh data, which confirms the earlier sighting too. Effect magnitude is deliberately absent from the signature — a replication that comes back at half the size is still a replication, just a weaker one.",
           "entry": "A later discovery run independently matches the earlier finding's signature.",
-          "next": ["proposed", "failed-to-replicate"]
+          "next": [
+            "proposed",
+            "failed-to-replicate"
+          ]
         },
         {
           "state": "proposed",
           "meaning": "The claim earns a registered prediction: predicted direction and size are fixed before the run, which is what stops a result being reinterpreted after the fact to match whatever happened.",
           "entry": "The finding's recommended next action is run an experiment — only claims whose effect survived confounder adjustment are eligible.",
-          "next": ["testing", "abandoned"]
+          "next": [
+            "testing",
+            "abandoned"
+          ]
         },
         {
           "state": "testing",
           "meaning": "A crossover, A/B or before-after experiment is running against the registered prediction. Crossover is the default because it removes the biggest confounder in personal data: the person changing over time.",
           "entry": "A design with a target metric, a minimum sample derived from the predicted effect, a duration, likely confounders and success criteria.",
-          "next": ["supported", "refuted", "inconclusive", "abandoned"]
+          "next": [
+            "supported",
+            "refuted",
+            "inconclusive",
+            "abandoned"
+          ]
         },
         {
           "state": "supported",
           "meaning": "The experiment supported the claim, which moves to experimentally-supported: effect in the predicted direction, confidence interval excludes zero, and the effect is at least half the size predicted. The claim's standing changes; the statistics do not.",
           "entry": "An experiment verdict of supported.",
-          "next": ["testing", "abandoned"]
+          "next": [
+            "testing",
+            "abandoned"
+          ]
         },
         {
           "state": "refuted",
           "meaning": "The experiment did not reproduce the claim. The claim is demoted to failed-to-replicate and stops being presented as a result.",
           "entry": "An experiment verdict of refuted.",
-          "next": ["testing", "abandoned"]
+          "next": [
+            "testing",
+            "abandoned"
+          ]
         },
         {
           "state": "inconclusive",
           "meaning": "Underpowered, under-adhered or genuinely ambiguous. This is a first-class terminal state: an inconclusive run is never reported as evidence of no effect, and the claim's standing is unchanged — the experiment was run but did not settle it.",
           "entry": "An experiment verdict of inconclusive.",
-          "next": ["testing", "abandoned"]
+          "next": [
+            "testing",
+            "abandoned"
+          ]
         },
         {
           "state": "abandoned",
@@ -101,26 +128,26 @@
         {
           "kind": "repo",
           "label": "src/discovery/replication.ts — the replication ledger",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/src/discovery/replication.ts",
-          "path": "apps/pulse/src/discovery/replication.ts"
+          "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/src/discovery/replication.ts",
+          "path": "src/discovery/replication.ts"
         },
         {
           "kind": "repo",
           "label": "src/hypotheses/tracker.ts — the hypothesis status machine",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/src/hypotheses/tracker.ts",
-          "path": "apps/pulse/src/hypotheses/tracker.ts"
+          "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/src/hypotheses/tracker.ts",
+          "path": "src/hypotheses/tracker.ts"
         },
         {
           "kind": "repo",
           "label": "src/experiments/analysis.ts — the four verdicts",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/src/experiments/analysis.ts",
-          "path": "apps/pulse/src/experiments/analysis.ts"
+          "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/src/experiments/analysis.ts",
+          "path": "src/experiments/analysis.ts"
         },
         {
           "kind": "doc",
           "label": "README — how Pulse avoids fooling you",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
-          "path": "apps/pulse/README.md"
+          "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/README.md",
+          "path": "README.md"
         }
       ]
     },
@@ -131,35 +158,35 @@
         {
           "name": "events/",
           "role": "Versioned universal event schema, DST-safe time maths, migrations, dedup, storage.",
-          "path": "apps/pulse/src/events"
+          "path": "src/events"
         },
         {
           "name": "connectors/",
           "role": "Connector SDK and sync engine — consent, paging, cursors, backfill, health — with one module per source.",
-          "path": "apps/pulse/src/connectors"
+          "path": "src/connectors"
         },
         {
           "name": "statistics/ + discovery/",
           "role": "Distributions, effect sizes, multiple-testing correction, power, seeded resampling, confounder detection and adjustment.",
-          "path": "apps/pulse/src/statistics"
+          "path": "src/statistics"
         },
         {
           "name": "experiments/ + hypotheses/",
           "role": "Crossover, A/B and before-after design and analysis, with predicted direction and size registered before the run.",
-          "path": "apps/pulse/src/experiments"
+          "path": "src/experiments"
         },
         {
           "name": "synthetic/",
           "role": "Benchmark users carrying planted true effects, planted null effects and a deliberately confounded relationship.",
-          "path": "apps/pulse/src/synthetic"
+          "path": "src/synthetic"
         }
       ],
       "evidence": [
         {
           "kind": "doc",
           "label": "apps/pulse/README.md — layout",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
-          "path": "apps/pulse/README.md"
+          "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/README.md",
+          "path": "README.md"
         }
       ]
     },
@@ -181,13 +208,13 @@
           {
             "kind": "doc",
             "label": "README — testing",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
-            "path": "apps/pulse/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/README.md",
+            "path": "README.md"
           },
           {
             "kind": "ci",
             "label": "pulse.yml — verify and E2E jobs",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/pulse.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/.github/workflows/pulse.yml",
             "path": ".github/workflows/pulse.yml"
           }
         ]
@@ -201,8 +228,8 @@
           {
             "kind": "doc",
             "label": "README — how Pulse avoids fooling you",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
-            "path": "apps/pulse/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -214,8 +241,8 @@
           {
             "kind": "doc",
             "label": "README — testing",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
-            "path": "apps/pulse/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       },
@@ -225,14 +252,14 @@
           {
             "kind": "doc",
             "label": "README — adding a connector",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
-            "path": "apps/pulse/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/README.md",
+            "path": "README.md"
           },
           {
             "kind": "repo",
             "label": "src/connectors",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/pulse/src/connectors",
-            "path": "apps/pulse/src/connectors"
+            "href": "https://github.com/henrygoldsmith07-wq/pulse/tree/main/src/connectors",
+            "path": "src/connectors"
           }
         ]
       },
@@ -242,8 +269,8 @@
           {
             "kind": "doc",
             "label": "README — curated metrics",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/pulse/README.md",
-            "path": "apps/pulse/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -269,6 +296,12 @@
     "lessons": [
       "The load-bearing tests are the specificity ones. Proving the engine finds a planted effect is easy; proving it does not find the planted non-effect is the part that makes the output worth reading.",
       "`inconclusive` has to be a first-class experiment outcome. Without it, an underpowered null quietly gets reported as evidence of no effect."
-    ]
+    ],
+    "limitations": [
+      "Discovery is validated on synthetic planted-effect data; real-user datasets do not exist yet.",
+      "The validation ledger is empty by design until months of real use accrue.",
+      "Confounder control is proven against synthetic ground truth only."
+    ],
+    "lastVerifiedAt": "2026-08-09"
   }
 }

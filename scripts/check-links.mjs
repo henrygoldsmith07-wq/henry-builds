@@ -4,18 +4,21 @@
  *
  *   node scripts/check-links.mjs              internal only (fast, offline)
  *   node scripts/check-links.mjs --external   also HEAD every external URL
+ *   node scripts/check-links.mjs --github     also verify GitHub blob/tree paths
+ *                                             exist in their repos (API, cached)
  *
  * Internal checks are always run and always fatal: a case study pointing at a
  * missing asset, or an evidence chip pointing at a route that does not exist,
  * is a bug in the site itself.
  *
- * External checks are opt-in because they depend on the network and on GitHub
- * rate limits. In CI they run on a schedule rather than on every push, so a
- * third party's outage cannot block a merge.
+ * External checks are opt-in because they depend on the network. In CI they
+ * run on a schedule rather than on every push, so a third party's outage
+ * cannot block a merge.
  */
 
 import fs from "node:fs";
 import path from "node:path";
+import { parseGitHubUrl, pathExistsIn } from "./lib/github-paths.mjs";
 
 const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
@@ -23,6 +26,10 @@ const publicDir = path.join(root, "public");
 const distDir = path.join(root, "dist");
 
 const checkExternal = process.argv.includes("--external");
+const checkGithub = process.argv.includes("--github");
+const checkAllSources = process.argv.includes("--all");
+
+const SITE_URL = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
 
 let errors = 0;
 let checked = 0;
@@ -94,6 +101,17 @@ if (!fs.existsSync(sitemapPath)) {
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   const paths = new Set(locs.map((loc) => loc.replace(/^https?:\/\/[^/]+/, "") || "/"));
 
+  // When the origin is known, every loc must be on it — a stray domain in the
+  // sitemap is how a staging URL ends up indexed.
+  if (SITE_URL) {
+    for (const [i, loc] of locs.entries()) {
+      checked++;
+      if (!loc.startsWith(SITE_URL)) {
+        fail(`sitemap.xml url ${i + 1} is not on ${SITE_URL}: ${loc}`);
+      }
+    }
+  }
+
   const shouldBeListed = ["/", "/projects", ...published.map((p) => `/projects/${p.data.slug}`)];
   for (const route of shouldBeListed) {
     checked++;
@@ -126,41 +144,112 @@ if (fs.existsSync(distDir)) {
 }
 
 // --- 5. external evidence links -------------------------------------------
-async function checkExternalLinks() {
+async function collectEvidenceUrls() {
   const urls = new Set();
 
   for (const { data } of projects) {
     const study = data.caseStudy ?? {};
     const evidence = [
       ...(study.architecture?.evidence ?? []),
+      ...(study.failedApproaches ?? []).flatMap((f) => f.evidence ?? []),
       ...(study.metrics ?? []).flatMap((m) => m.evidence ?? []),
       ...(study.outcomes ?? []).flatMap((o) => o.evidence ?? []),
+      ...(study.insightLifecycle?.evidence ?? []),
     ];
     for (const item of evidence) if (item.href) urls.add(item.href);
     if (data.repo?.href) urls.add(data.repo.href);
     if (data.liveUrl) urls.add(data.liveUrl);
   }
+  return urls;
+}
 
+async function checkExternalLinks() {
+  const urls = await collectEvidenceUrls();
   console.log(`check-links: HEAD-checking ${urls.size} external URLs`);
 
+  // Bounded concurrency: slow hosts must not serialise the whole run, and a
+  // hung request must not hang the job.
+  const queue = [...urls];
+  const worker = async () => {
+    for (;;) {
+      const url = queue.shift();
+      if (!url) return;
+      checked++;
+      try {
+        let response = await fetch(url, {
+          method: "HEAD",
+          redirect: "follow",
+          signal: AbortSignal.timeout(20_000),
+        });
+        // Some hosts refuse HEAD but answer GET.
+        if (response.status === 403 || response.status === 405 || response.status === 429) {
+          response = await fetch(url, {
+            method: "GET",
+            redirect: "follow",
+            signal: AbortSignal.timeout(20_000),
+          });
+        }
+        if (!response.ok) fail(`${response.status} ${response.statusText} — ${url}`);
+      } catch (error) {
+        fail(`unreachable — ${url} (${error.message})`);
+      }
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+}
+
+/**
+ * GitHub path checking: every blob/tree URL in evidence must resolve to a real
+ * file in that repo at that ref. Catches renamed files and moved repos that a
+ * plain HTTP check misses (GitHub returns 404 HTML with status 404 — but only
+ * for the page, not for API-level verification of what a reader will find).
+ */
+async function checkGithubPaths() {
+  const urls = new Set();
+  const statusesRaw = fs.existsSync(path.join(root, "registry/source-status.json"))
+    ? JSON.parse(fs.readFileSync(path.join(root, "registry/source-status.json"), "utf8"))
+    : { projects: {} };
+  const statusBySlug = statusesRaw.projects ?? {};
+
+  // Archived-source studies keep historical pointers that legitimately rot;
+  // they are labelled as archived on the page itself.
+  for (const { data } of projects) {
+    if (!checkAllSources && statusBySlug[data.slug]?.derived !== "current") continue;
+    const study = data.caseStudy ?? {};
+    const evidence = [
+      ...(study.architecture?.evidence ?? []),
+      ...(study.failedApproaches ?? []).flatMap((f) => f.evidence ?? []),
+      ...(study.metrics ?? []).flatMap((m) => m.evidence ?? []),
+      ...(study.outcomes ?? []).flatMap((o) => o.evidence ?? []),
+      ...(study.insightLifecycle?.evidence ?? []),
+    ];
+    for (const item of evidence) if (item.href) urls.add(item.href);
+    if (data.repo?.href) urls.add(data.repo.href);
+  }
+
+  const targets = new Map();
   for (const url of urls) {
+    const parsed = parseGitHubUrl(url);
+    if (parsed) targets.set(url, parsed);
+  }
+  console.log(`check-links: verifying ${targets.size} GitHub paths exist`);
+
+  for (const [url, { repo, ref, path: filePath }] of targets) {
     checked++;
     try {
-      let response = await fetch(url, { method: "HEAD", redirect: "follow" });
-      // Some hosts refuse HEAD but answer GET.
-      if (response.status === 403 || response.status === 405) {
-        response = await fetch(url, { method: "GET", redirect: "follow" });
-      }
-      if (!response.ok) fail(`${response.status} ${response.statusText} — ${url}`);
+      const exists = await pathExistsIn(repo, ref, decodeURIComponent(filePath));
+      if (!exists) fail(`github path missing — ${url}`);
     } catch (error) {
-      fail(`unreachable — ${url} (${error.message})`);
+      fail(`could not verify github path — ${url} (${error.message})`);
     }
   }
 }
 
-const done = checkExternal ? checkExternalLinks() : Promise.resolve();
-
-done.then(() => {
-  console.log(`check-links: ${checked} checks, ${errors} broken`);
-  process.exit(errors > 0 ? 1 : 0);
-});
+try {
+  if (checkExternal) await checkExternalLinks();
+  if (checkGithub) await checkGithubPaths();
+} catch (error) {
+  fail(`checker crashed — ${error.stack ?? error}`);
+}
+console.log(`check-links: ${checked} checks, ${errors} broken`);
+process.exit(errors > 0 ? 1 : 0);

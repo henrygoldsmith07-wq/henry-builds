@@ -6,7 +6,11 @@
   "summary": "A shared board for the invisible labour of running a household. Log what you notice needs doing — no category, no assignee, no due date — and see it side by side once a week with what your partner noticed.",
   "stage": "prototype",
   "category": "Everyday systems",
-  "tags": ["Realtime", "Shared state", "Product constraints"],
+  "tags": [
+    "Realtime",
+    "Shared state",
+    "Product constraints"
+  ],
   "accent": "#f0e5cf",
   "featured": false,
   "publish": true,
@@ -17,12 +21,14 @@
       "The join-code household model with no accounts and device-local identity",
       "Realtime shared board state"
     ],
-    "notBuilt": ["Supabase Realtime, which carries the shared board state"]
+    "notBuilt": [
+      "Supabase Realtime, which carries the shared board state"
+    ]
   },
   "repo": {
-    "label": "apps/mental-load-tracker",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/mental-load-tracker",
-    "path": "apps/mental-load-tracker"
+    "label": "mental-load-tracker",
+    "href": "https://github.com/henrygoldsmith07-wq/mental-load-tracker",
+    "path": "."
   },
   "caseStudy": {
     "problem": "The driver of household resentment is usually not unfinished chores but unequal noticing — remembering the appointment needs booking or the shoes no longer fit. Chore-split apps track completed tasks and miss the anticipatory work entirely. And every shared household app dies the same way: logging becomes more effort than just doing the thing.",
@@ -43,8 +49,8 @@
           {
             "kind": "doc",
             "label": "README — how a household works",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/mental-load-tracker/README.md",
-            "path": "apps/mental-load-tracker/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -64,6 +70,12 @@
     "failedApproaches": [],
     "lessons": [
       "Some products are defined by what you refuse to add. A fairness percentage would have been trivial to compute and would have changed what the app is for."
-    ]
+    ],
+    "limitations": [
+      "No external pentest; RLS isolation is exercised by the integration suite only.",
+      "Invitation tokens are hashed but brute-force resistance is not load-tested.",
+      "Two-person scope is a product decision, not an enforced guarantee — any household member sees everything."
+    ],
+    "lastVerifiedAt": "2026-08-09"
   }
 }

@@ -4,9 +4,13 @@
   "name": "Dictation Typer",
   "tagline": "Hold, speak, release — it types into whatever has focus.",
   "summary": "A hold-to-talk speech-to-text utility. Audio is held in memory, transcribed on hosted Whisper with an optional offline fallback, and pasted straight into the focused window.",
-  "stage": "prototype",
+  "stage": "archived",
   "category": "Developer tooling",
-  "tags": ["Python", "Speech-to-text", "Privacy mode"],
+  "tags": [
+    "Python",
+    "Speech-to-text",
+    "Privacy mode"
+  ],
   "accent": "#dce9ec",
   "featured": false,
   "publish": true,
@@ -64,6 +68,9 @@
       }
     ],
     "failedApproaches": [],
-    "lessons": []
+    "lessons": [],
+    "limitations": [
+      "A personal utility, never hardened for distribution; its source was removed during the 2026-08 ecosystem migration."
+    ]
   }
 }

@@ -4,12 +4,14 @@
  * project is in the sitemap the moment its case study exists.
  *
  * Absolute URLs need an origin. Set SITE_URL (or VITE_SITE_URL) in the build
- * environment; without it the script writes root-relative paths and warns,
- * because a sitemap of relative URLs is accepted but weaker.
+ * environment. Without it the script fails closed — a sitemap of relative URLs
+ * is ignored by search engines wholesale, which is worse than no deploy.
+ * Set ALLOW_RELATIVE_SITEMAP=1 to opt into relative URLs for local work.
  */
 
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 
 const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
@@ -17,11 +19,16 @@ const publicDir = path.join(root, "public");
 
 const origin = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
 
-if (!origin) {
-  console.warn(
-    "generate-sitemap: SITE_URL is not set — writing relative URLs. " +
-      "Set SITE_URL in the deploy environment for absolute ones.",
+if (!origin && !process.env.ALLOW_RELATIVE_SITEMAP) {
+  console.error(
+    "generate-sitemap: SITE_URL is not set. Refusing to write a sitemap of relative\n" +
+      "URLs (search engines ignore them). Set SITE_URL, or ALLOW_RELATIVE_SITEMAP=1\n" +
+      "for local development.",
   );
+  process.exit(1);
+}
+if (!origin) {
+  console.warn("generate-sitemap: SITE_URL not set — writing relative URLs (ALLOW_RELATIVE_SITEMAP).");
 }
 
 const projects = fs.existsSync(caseStudyDir)
@@ -32,17 +39,45 @@ const projects = fs.existsSync(caseStudyDir)
       .filter((project) => project.publish !== false)
   : [];
 
-const today = new Date().toISOString().slice(0, 10);
+/**
+ * A lastmod that changes on every build trains crawlers to distrust it.
+ * Prefer the case-study file's last commit date (stable until the content
+ * actually changes); fall back to the upstream import date.
+ */
+function lastmodFor(file) {
+  try {
+    const date = execFileSync(
+      "git",
+      ["log", "-1", "--format=%cs", "--", `registry/case-studies/${file}`],
+      { encoding: "utf8" },
+    ).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+  } catch {
+    // not a git checkout or git missing — fall through
+  }
+  return undefined;
+}
+
+let fallbackLastmod;
+try {
+  fallbackLastmod = JSON.parse(
+    fs.readFileSync(path.join(root, "registry/upstream.json"), "utf8"),
+  ).importedAt.slice(0, 10);
+} catch {
+  fallbackLastmod = new Date().toISOString().slice(0, 10);
+}
 
 const routes = [
-  { path: "/", changefreq: "monthly", priority: "1.0" },
-  { path: "/projects", changefreq: "monthly", priority: "0.8" },
+  { path: "/", changefreq: "monthly", priority: "1.0", lastmod: fallbackLastmod },
+  { path: "/projects", changefreq: "monthly", priority: "0.8", lastmod: fallbackLastmod },
   ...projects
     .sort((a, b) => a.slug.localeCompare(b.slug))
     .map((project) => ({
       path: `/projects/${project.slug}`,
       changefreq: "monthly",
       priority: project.featured ? "0.7" : "0.5",
+      lastmod:
+        lastmodFor(`${project.slug}.json`) ?? fallbackLastmod,
     })),
 ];
 
@@ -50,7 +85,7 @@ const urls = routes
   .map(
     (route) => `  <url>
     <loc>${origin}${route.path}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${route.lastmod}</lastmod>
     <changefreq>${route.changefreq}</changefreq>
     <priority>${route.priority}</priority>
   </url>`,

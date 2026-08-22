@@ -1,20 +1,28 @@
 name: Registry sync
 
-# Re-imports the monorepo registry and CI facts, then opens a PR if anything
-# changed. This is what makes the portfolio track the source of truth instead of
-# drifting from it: a project renamed, retired or promoted upstream shows up here
-# without anyone remembering to edit the site.
+# Re-imports the monorepo registry, the evidence ledger, CI facts and source
+# statuses, then opens an auto-merged PR if anything changed. This is what makes
+# the portfolio track the ecosystem instead of drifting from it: a project
+# renamed, retired, archived or promoted upstream shows up here without anyone
+# remembering to edit the site.
 
 on:
   schedule:
-    # 06:20 UTC on Mondays. Off the hour so it does not queue behind the
-    # every-scheduler-runs-at-:00 crowd.
+    # 06:20 UTC Mondays, plus every push to main so facts stay fresh between
+    # weekly sweeps. Both paths are cheap when nothing changed.
     - cron: "20 6 * * 1"
+  push:
+    branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
   pull-requests: write
+  actions: read # workflow runs/logs of this repo; public repos elsewhere
 
 jobs:
   sync:
@@ -27,13 +35,19 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Import registry and CI facts
+      - name: Import registry, evidence ledger, source status and CI facts
         env:
-          # A PAT with actions:read on the monorepo. Without it the import still
-          # succeeds — it records run metadata only and omits test counts rather
-          # than inventing them.
-          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+          # A PAT with actions:read widens private-repo coverage; the built-in
+          # token covers everything public, which is all this site cites today.
+          # The import fails loudly rather than writing empty facts when the
+          # token cannot see what it should.
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN || github.token }}
         run: bun run registry:import:ci
+
+      - name: Verify every cited source path still exists
+        env:
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN || github.token }}
+        run: bun run verify:sources
 
       - name: Regenerate OG cards and sitemap
         env:
@@ -41,9 +55,13 @@ jobs:
         run: bun run prebuild
 
       - name: Validate before proposing anything
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN || github.token }}
         run: |
           bun run registry:validate
           bun run audit:claims
+          bun run check:links --github
 
       - name: Summarise what changed
         id: diff
@@ -60,17 +78,18 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Open a pull request
+      - name: Open or update a pull request
         if: steps.diff.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
+        id: cpr
         with:
           branch: chore/registry-sync
           title: "chore: sync project registry from monorepo"
           commit-message: "chore: sync project registry from monorepo"
           delete-branch: true
-          draft: true
           body: |
-            Automated import from `henrygoldsmith07-wq/Claude-Code:apps/registry.json`.
+            Automated import from `henrygoldsmith07-wq/Claude-Code:apps/registry.json`,
+            `evidence/registry.json`, live CI facts and source-path verification.
 
             ```
             ${{ steps.diff.outputs.summary }}
@@ -83,3 +102,13 @@ jobs:
             - Test counts marked "from CI" replace the authored figures in the
               case studies. If a count moved a long way, confirm the workflow ran
               the suite you expect.
+            - Projects whose source disappeared are archived automatically
+              (`stage: archived`); featured slots freed this way must be refilled.
+
+      - name: Enable auto-merge so facts never sit stale for days
+        if: steps.cpr.outputs.pull-request-number
+        continue-on-error: true # repos without auto-merge enabled still get their PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.cpr.outputs.pull-request-number }}
+        run: gh pr merge "$PR_NUMBER" --auto --squash --repo "$GITHUB_REPOSITORY"

@@ -7,7 +7,10 @@ import {
   Image as ImageIcon,
   Video,
 } from "lucide-react";
-import type { Claim, Evidence, Metric } from "@/data/registry/schema";
+import type { Claim, Evidence, LedgerClaim, Metric } from "@/data/registry/schema";
+import { FreshnessChip, LedgerBadge } from "@/components/portfolio/EvidenceMeta";
+
+const FRESH_KINDS = new Set(["screenshot", "video", "benchmark"]);
 
 const REPO_BASE = "https://github.com/henrygoldsmith07-wq/Claude-Code";
 
@@ -73,6 +76,15 @@ export function EvidenceRow({ items }: { items: Evidence[] }) {
       {items.map((item, index) => (
         <EvidenceChip key={`${item.kind}-${item.label}-${index}`} item={item} />
       ))}
+      {items.some((item) => FRESH_KINDS.has(item.kind) && item.capturedAt) && (
+        <div className="flex w-full flex-wrap gap-1.5">
+          {items
+            .filter((item) => FRESH_KINDS.has(item.kind) && item.capturedAt)
+            .map((item, index) => (
+              <FreshnessChip key={index} item={item} />
+            ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -80,12 +92,21 @@ export function EvidenceRow({ items }: { items: Evidence[] }) {
 /**
  * A claim is only ever rendered with its evidence attached. The registry
  * validator guarantees the array is non-empty, so there is no unevidenced path.
+ * When the claim links into the ecosystem's evidence ledger, its grade, sample
+ * size and last-validated date render straight from that ledger.
  */
-export function ClaimItem({ claim }: { claim: Claim }) {
+export function ClaimItem({
+  claim,
+  ledgerClaim,
+}: {
+  claim: Claim;
+  ledgerClaim?: LedgerClaim;
+}) {
   return (
     <li className="claim-item">
       <p className="text-sm leading-6 text-foreground/85">{claim.statement}</p>
       <EvidenceRow items={claim.evidence} />
+      {ledgerClaim && <LedgerBadge claim={ledgerClaim} />}
     </li>
   );
 }

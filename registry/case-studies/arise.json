@@ -6,7 +6,12 @@
   "summary": "An offline-first training companion with programs, sessions and levelled attributes. Strength, endurance, consistency and technique are computed from logged volume and loads — nothing derives from what a program is called.",
   "stage": "beta",
   "category": "Training",
-  "tags": ["Offline-first", "PWA", "Progression", "Accessibility"],
+  "tags": [
+    "Offline-first",
+    "PWA",
+    "Progression",
+    "Accessibility"
+  ],
   "accent": "#dceadf",
   "featured": false,
   "publish": true,
@@ -23,9 +28,9 @@
     ]
   },
   "repo": {
-    "label": "apps/arise",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/arise",
-    "path": "apps/arise"
+    "label": "arise",
+    "href": "https://github.com/henrygoldsmith07-wq/arise",
+    "path": "."
   },
   "caseStudy": {
     "problem": "Training apps hand out progress that is not earned — a level that goes up because you opened the app, or a 'strength' figure derived from which program you picked rather than what you lifted. The moment the number stops tracking reality, the whole motivational layer becomes noise.",
@@ -61,8 +66,8 @@
           {
             "kind": "doc",
             "label": "README — exercise browser",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/arise/README.md",
-            "path": "apps/arise/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/arise/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       },
@@ -72,8 +77,8 @@
           {
             "kind": "doc",
             "label": "README — PWA",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/arise/README.md",
-            "path": "apps/arise/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/arise/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       },
@@ -83,7 +88,7 @@
           {
             "kind": "ci",
             "label": "arise.yml",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/arise.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/arise/blob/main/.github/workflows/arise.yml",
             "path": ".github/workflows/arise.yml"
           }
         ]
@@ -110,6 +115,12 @@
     ],
     "lessons": [
       "Porting an old project is a chance to leave things behind. The predecessor is kept as a frozen, read-only mirror purely for provenance, which made it easy to be explicit about what was deliberately not carried forward."
-    ]
+    ],
+    "limitations": [
+      "Progression prescriptions are backtested internally; they have never been compared against coach-written programmes.",
+      "No training-outcome data exists — 'works' currently means the tests pass and loads compute, not that users got stronger.",
+      "The 1–20 attribute curve is authored judgement, not fitted to data."
+    ],
+    "lastVerifiedAt": "2026-08-21"
   }
 }

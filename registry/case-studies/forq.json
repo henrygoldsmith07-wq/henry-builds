@@ -6,7 +6,12 @@
   "summary": "A food planning, shopping, cooking and budgeting app that starts completely empty — no demo user, no pretend pantry, no invented spending history. The recommender explains every suggestion in five concrete lines.",
   "stage": "beta",
   "category": "Everyday systems",
-  "tags": ["Local-first", "Recommender", "Explainability", "PWA"],
+  "tags": [
+    "Local-first",
+    "Recommender",
+    "Explainability",
+    "PWA"
+  ],
   "accent": "#f0e5cf",
   "featured": true,
   "publish": true,
@@ -24,9 +29,9 @@
     ]
   },
   "repo": {
-    "label": "apps/food-shopping-os",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/food-shopping-os",
-    "path": "apps/food-shopping-os"
+    "label": "food-shopping-os",
+    "href": "https://github.com/henrygoldsmith07-wq/food-shopping-os",
+    "path": "."
   },
   "caseStudy": {
     "problem": "Meal-planning apps demo beautifully and die in week two. They ship with a pretend pantry and invented spending history, so the first thing a real user sees is numbers that are not about them — and the moment they clear the demo data, the app has nothing to say. The harder problem underneath is that a real pantry is approximate: nobody knows they have 340g of rice.",
@@ -38,7 +43,7 @@
         {
           "name": "Recommender",
           "role": "Scores pantry coverage, expiry, time fit, cost, leftovers, taste and season. Every suggestion carries a generated explanation.",
-          "path": "apps/food-shopping-os/lib/recommend.js"
+          "path": "src/lib/recommend.js"
         },
         {
           "name": "Pantry model",
@@ -57,8 +62,8 @@
         {
           "kind": "doc",
           "label": "apps/food-shopping-os/README.md",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/food-shopping-os/README.md",
-          "path": "apps/food-shopping-os/README.md"
+          "href": "https://github.com/henrygoldsmith07-wq/food-shopping-os/blob/main/README.md",
+          "path": "README.md"
         }
       ]
     },
@@ -100,7 +105,7 @@
           {
             "kind": "ci",
             "label": "food-shopping-os.yml",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/food-shopping-os.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/food-shopping-os/blob/main/.github/workflows/food-shopping-os.yml",
             "path": ".github/workflows/food-shopping-os.yml"
           }
         ]
@@ -113,8 +118,8 @@
           {
             "kind": "doc",
             "label": "README — the app starts empty",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/food-shopping-os/README.md",
-            "path": "apps/food-shopping-os/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/food-shopping-os/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       },
@@ -124,8 +129,8 @@
           {
             "kind": "doc",
             "label": "README — the app starts empty",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/food-shopping-os/README.md",
-            "path": "apps/food-shopping-os/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/food-shopping-os/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -150,6 +155,12 @@
     "failedApproaches": [],
     "lessons": [
       "Progressive disclosure is only honest if hiding a module provably keeps its records. Without that guarantee, 'simplify the interface' and 'lose your data' look identical from the outside."
-    ]
+    ],
+    "limitations": [
+      "Pantry confidence is user-entered, so recommendations inherit guessing rather than correcting it.",
+      "Cost and nutrition figures come from authored recipe data, not retailer APIs — prices drift from reality.",
+      "Single-household model; local-first storage means no multi-user conflict handling."
+    ],
+    "lastVerifiedAt": "2026-08-09"
   }
 }

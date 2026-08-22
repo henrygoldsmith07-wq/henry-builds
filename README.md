@@ -9,19 +9,58 @@ and the rules are enforced in CI rather than by discipline.
 
 ## How project data gets here
 
-Three layers, two of them generated:
+Five layers, four of them generated:
 
 | Path | Written by | Contents |
 |---|---|---|
 | `registry/upstream.json` | `registry:import` | Snapshot of `henrygoldsmith07-wq/Claude-Code:apps/registry.json` |
-| `registry/ci-facts.json` | `registry:import:ci` | Latest workflow conclusion and test counts per app |
+| `registry/evidence-ledger.json` | `registry:import` | Graded claims from the monorepo's `evidence/registry.json` — status, sample size, last-validated date and limitations per capability |
+| `registry/source-status.json` | `registry:import` | Per project: current vs archived-source, why, and the commit SHA the source sits at right now |
+| `registry/ci-facts.json` | `registry:import:ci` | Latest workflow conclusion per app, the last green run, and test counts pulled from Actions artifacts or job logs |
 | `registry/case-studies/*.json` | a human | Narrative, architecture, trade-offs, evidence |
 
-`src/data/registry/index.ts` merges the three and exports typed projects. Adding a
+`src/data/registry/index.ts` merges all five and exports typed projects. Adding a
 project is adding one file to `registry/case-studies/`; the archive page, sitemap,
 OG card, accessibility suite and link check all pick it up automatically.
 
 Generated files are never edited by hand — the importer overwrites them.
+
+### The evidence layer
+
+The portfolio is the reading surface for the ecosystem's
+[evidence registry](https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/evidence/registry.json),
+which grades every capability claim from `insufficient-evidence` to
+`externally-validated`. That grading is enforced here, not just displayed:
+
+- An outcome linked with `ledgerClaimId` renders its **grade, sample size and
+  last-validated date** straight from the ledger.
+- A case study that claims a capability whose grade is `insufficient-evidence`
+  **fails validation** — link a passing claim or rewrite the copy.
+- Every case study must state its `limitations` (rendered as "What this does not
+  prove", next to the claims they bound) and a `lastVerifiedAt` date.
+- Evidence that rots (screenshots, videos, benchmarks) carries `capturedAt`;
+  captures older than 90 days fail validation, and `expiresAt` sets an explicit
+  shelf life.
+- Citing CI evidence when the importer found no workflow **fails** in
+  authenticated mode — empty facts are treated as a broken promise, not shrunk
+  from.
+
+### Source truth and automatic archiving
+
+Every case study is checked against what actually exists on each import:
+
+- **current** — the upstream entry exists and its repo/path resolves; the page
+  shows the exact commit SHA checked.
+- **archived-source** — the entry was removed upstream or its source is gone.
+  The study is kept as provenance, auto-labelled `Archived source`, demoted from
+  featured, forced to `stage: archived`, and excluded from publish gates.
+- **concept / historical** — human declarations (`sourceStatus` in the case
+  study) the derivation never overwrites.
+
+`verify:sources` additionally resolves **every** cited path — evidence `path`
+fields, architecture layers, GitHub blob/tree hrefs — against the repository
+that owns it today (standalone repos after the 2026-08 migration), and fails if
+anything is missing.
 
 ### Publish gating
 
@@ -55,13 +94,15 @@ code change.
 bun run dev                    # dev server
 bun run build                  # regenerates OG cards + sitemap, then builds
 
-bun run registry:import        # re-import the upstream registry
-bun run registry:import:ci     # ...and pull test counts from CI (needs a token)
+bun run registry:import        # re-import upstream registry + evidence ledger + source status
+bun run registry:import:ci     # ...and pull CI facts (needs a token for counts)
+bun run verify:sources         # every cited repo path must exist, before publishing
 bun run registry:validate      # enforce every rule above
 
 bun run audit:claims           # ban self-ratings and unfalsifiable superlatives
 bun run check:links            # internal assets, sitemap, built output
 bun run check:links:external   # also HEAD every external evidence link
+bun run check:links:github     # also verify GitHub blob/tree paths exist in their repos
 
 bun run test:a11y              # axe over every published route, light and dark
 bun run test:visual            # visual regression
@@ -70,6 +111,19 @@ bun run lighthouse             # performance/a11y/best-practices/SEO budgets
 
 bun run verify                 # everything CI runs, in order
 ```
+
+### Capturing real product evidence
+
+When an app deployment is publicly reachable:
+
+```bash
+node scripts/capture-evidence.mjs <slug> <url>   # screenshot + ~8s demo.webm into public/media/<slug>/
+```
+
+The script refuses auth walls (a protected Vercel deployment serves its login
+page with a 200 — capturing that would be evidence of nothing). Then set the
+`capturedAt` stamp and swap the illustration for the real capture in the case
+study.
 
 ## What CI enforces
 
@@ -91,16 +145,18 @@ bun run verify                 # everything CI runs, in order
 - **visual regression** — desktop and mobile, both colour schemes.
 - **Lighthouse budgets** — see `lighthouserc.json`.
 
-`registry-sync.yml` re-imports weekly and opens a draft PR when anything changed.
-`deploy-monitor.yml` probes the live site every six hours and opens an issue when
-it breaks.
+`registry-sync.yml` re-imports on every push to main and weekly (auto-merged PR),
+so CI facts, lifecycle states, commit SHAs and archive decisions stay current
+without anyone remembering. `deploy-monitor.yml` probes the live site every six
+hours; one issue per failure signature — an unchanged outage stays quiet instead
+of spamming comments every run.
 
 ## Configuration
 
 | Variable | Where | Purpose |
 |---|---|---|
-| `SITE_URL` / `VITE_SITE_URL` | repo variable, deploy env | Absolute URLs in the sitemap, canonical tags and OG cards. Without it these fall back to the runtime origin, which crawlers handle less well. |
-| `REGISTRY_TOKEN` | repo secret | PAT with `actions:read` on the monorepo, so the importer can read test counts. Without it the import still succeeds and simply records no counts. |
+| `SITE_URL` / `VITE_SITE_URL` | repo variable, deploy env | Absolute URLs in the sitemap, canonical tags and OG cards. The sitemap generator **fails closed** without it. |
+| `REGISTRY_TOKEN` | repo secret | Optional PAT with `actions:read`, for private upstream repos or higher rate limits. Falls back to the built-in `GITHUB_TOKEN`, which covers everything public this site cites. |
 | `VITE_CONVEX_URL` | deploy env | Optional. Enables `/auth` and `/dashboard`. The public site does not use it. |
 
 The public portfolio has no backend. `VITE_CONVEX_URL` being absent switches

@@ -5,203 +5,17 @@
     "path": "apps/registry.json",
     "ref": "main"
   },
-  "importedAt": "2026-08-14T08:31:37.545Z",
+  "importedAt": "2026-08-21T19:19:32.304Z",
   "lifecycleStates": {
-    "active": "Shipped product; listed on the family hub and in README; has CI and an owner.",
+    "active": "Shipped product; has CI and an owner.",
     "incubating": "In development behind a branch or feature flag; not yet listed as active.",
     "maintenance": "Shipped but not under active feature work; security/bug fixes only.",
     "archived": "Frozen reference; not developed further (e.g. scraped build kept for provenance).",
     "superseded": "Replaced by another entry; kept only to document the migration.",
     "tooling": "Internal skill/helper/daemon — not a user-facing app but part of delivery.",
-    "external": "Standalone repo outside this monorepo; referenced for ecosystem completeness."
+    "external": "Standalone repo outside this workspace; referenced for ecosystem completeness."
   },
   "entries": [
-    {
-      "id": "agent-os-control-room",
-      "name": "Agent OS Control Room",
-      "path": "apps/agent-os-control-room",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Next.js",
-      "description": "Control-room dashboard for agent OS orchestration.",
-      "site": null,
-      "section": "apps"
-    },
-    {
-      "id": "arise",
-      "name": "Arise",
-      "path": "apps/arise",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Vite + React + Tailwind",
-      "description": "Offline-first training companion with programs, sessions, and levelled attributes.",
-      "workflow": ".github/workflows/arise.yml",
-      "site": "apps/arise-site",
-      "section": "apps"
-    },
-    {
-      "id": "daily-debate",
-      "name": "Daily Debate",
-      "path": "apps/daily-debate",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Next.js + Supabase + Anthropic",
-      "description": "Daily critical-thinking debates (solo vs AI and PvP) with an argument graph.",
-      "workflow": ".github/workflows/daily-debate.yml",
-      "site": "apps/daily-debate-site",
-      "section": "apps"
-    },
-    {
-      "id": "dictation-typer",
-      "name": "Dictation Typer",
-      "path": "apps/dictation-typer",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Python (Groq Whisper) — Windows-native, cross-platform fallback",
-      "description": "Hold-hotkey speech-to-text typer that pastes the transcript into the focused window.",
-      "site": "apps/dictation-typer-site",
-      "section": "apps"
-    },
-    {
-      "id": "emotion-tracker",
-      "name": "Reflect",
-      "path": "apps/emotion-tracker",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Next.js + Anthropic (Reflect pipeline)",
-      "description": "Structured reflection (event→assumptions→alternatives→action→follow-up) with hedged bias language and longitudinal calibration.",
-      "workflow": ".github/workflows/emotion-tracker.yml",
-      "site": "apps/reflect-site",
-      "section": "apps"
-    },
-    {
-      "id": "food-shopping-os",
-      "name": "Forq",
-      "path": "apps/food-shopping-os",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Next.js — local-first, optional cloud",
-      "description": "Meal/shopping planning OS with pantry, retailer and nutrition flows (Forq).",
-      "workflow": ".github/workflows/food-shopping-os.yml",
-      "site": "apps/forq-site",
-      "section": "apps"
-    },
-    {
-      "id": "french-practice",
-      "name": "Le Studio French",
-      "path": "apps/french-practice",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Vite + React + Tailwind — local-first",
-      "description": "French speaking/study PWA (Today/Speak/Review/Learn/Progress, Groq STT/TTS arena).",
-      "workflow": ".github/workflows/french-practice.yml",
-      "site": "apps/le-studio-site",
-      "section": "apps"
-    },
-    {
-      "id": "le-studio-site",
-      "name": "Le Studio (family hub)",
-      "path": "apps/le-studio-site",
-      "lifecycle": "active",
-      "kind": "site",
-      "stack": "Static HTML",
-      "description": "Marketing hub for the Le Studio family (French, Forq, Chrono). Not an app itself — see french-practice for the product.",
-      "site": null,
-      "section": "apps"
-    },
-    {
-      "id": "meeting-recorder",
-      "name": "Meeting Recorder",
-      "path": "apps/meeting-recorder",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Electron (desktop) + Next.js (web) + R2 + Groq + Anthropic",
-      "description": "Fathom-style recorder (screen+audio capture, R2 upload, Whisper transcript, Claude chat).",
-      "site": "apps/meeting-recorder-site",
-      "section": "apps"
-    },
-    {
-      "id": "mental-load-tracker",
-      "name": "Noticed",
-      "path": "apps/mental-load-tracker",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Next.js + Supabase Realtime",
-      "description": "Shared board for the invisible labor of running a household — capture what you notice, compare side-by-side weekly.",
-      "site": null,
-      "section": "apps"
-    },
-    {
-      "id": "pulse",
-      "name": "Pulse",
-      "path": "apps/pulse",
-      "lifecycle": "incubating",
-      "kind": "product",
-      "stack": "Vite + React + TypeScript (framework-free analytics core)",
-      "description": "Privacy-first personal analytics and experimentation engine: universal event schema, connector SDK, evidence-graded relationship discovery, personal experiments and recommendations across the ecosystem.",
-      "workflow": ".github/workflows/pulse.yml",
-      "site": null,
-      "section": "apps"
-    },
-    {
-      "id": "rapport",
-      "name": "Rapport",
-      "path": "apps/rapport",
-      "lifecycle": "incubating",
-      "kind": "product",
-      "stack": "Next.js + React + Tailwind (local-first, optional Supabase sync)",
-      "description": "Adaptive social-skills training: skill graph, mastery model, conversation simulator, real-world challenges and reflection. Works fully offline with no AI provider.",
-      "workflow": ".github/workflows/rapport.yml",
-      "site": null,
-      "section": "apps"
-    },
-    {
-      "id": "revise",
-      "name": "Revise",
-      "path": "apps/revise",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Next.js + Supabase + FSRS",
-      "description": "WJEC A-level revision platform (277 specPoints, statement-level coverage & validator).",
-      "workflow": ".github/workflows/revise.yml",
-      "site": "apps/revise-site",
-      "section": "apps"
-    },
-    {
-      "id": "rtk",
-      "name": "rtk",
-      "path": "apps/rtk",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Node CLI",
-      "description": "Token-saving CLI that filters noisy tool output to what an LLM/human actually needs.",
-      "workflow": ".github/workflows/rtk.yml",
-      "site": "apps/rtk-site",
-      "section": "apps"
-    },
-    {
-      "id": "world-news",
-      "name": "World News Globe",
-      "path": "apps/world-news",
-      "lifecycle": "active",
-      "kind": "product",
-      "stack": "Next.js + Gemini/GDELT + react-globe.gl",
-      "description": "Globe-based world news with story clustering and source-mix provenance panels.",
-      "workflow": ".github/workflows/world-news.yml",
-      "site": "apps/world-news-site",
-      "section": "apps"
-    },
-    {
-      "id": "genetic-health",
-      "name": "Genetic Health",
-      "path": "apps/genetic-health",
-      "lifecycle": "active",
-      "kind": "workspace",
-      "stack": "Python (23andMe + ClinVar/PharmGKB pipeline)",
-      "description": "Offline genetic health analysis workspace (docs/pipeline, no hosted app).",
-      "site": null,
-      "section": "auxiliary"
-    },
     {
       "id": "le-studio-tokens",
       "name": "Le Studio Tokens",
@@ -252,6 +66,136 @@
       "lifecycle": "external",
       "kind": "product",
       "description": "Calendar companion (standalone repo) — interop with Le Studio/Forq via ICS/JSON.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "arise",
+      "name": "Arise",
+      "repo": "henrygoldsmith07-wq/arise",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Offline-first training companion with programs, sessions, and levelled attributes.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "daily-debate",
+      "name": "Daily Debate",
+      "repo": "henrygoldsmith07-wq/daily-debate",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Daily critical-thinking debates (solo vs AI and PvP) with an argument graph.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "ecosystem-shell",
+      "name": "Ecosystem Shell",
+      "repo": "henrygoldsmith07-wq/ecosystem-shell",
+      "lifecycle": "external",
+      "kind": "infrastructure",
+      "description": "Serves every app from one origin so Pulse can read the localStorage they write; routes each path prefix to that app's own Vercel project.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "emotion-tracker",
+      "name": "Reflect",
+      "repo": "henrygoldsmith07-wq/emotion-tracker",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Structured reflection (event→assumptions→alternatives→action→follow-up) with hedged bias language and longitudinal calibration.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "food-shopping-os",
+      "name": "Forq",
+      "repo": "henrygoldsmith07-wq/food-shopping-os",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Meal/shopping planning OS with pantry, retailer and nutrition flows (Forq).",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "french-practice",
+      "name": "Le Studio French",
+      "repo": "henrygoldsmith07-wq/french-practice",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "French speaking/study PWA (Today/Speak/Review/Learn/Progress, Groq STT/TTS arena). Marketing hub lives in the separate le-studio-site repo.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "habit-tracker",
+      "name": "Habit",
+      "repo": "henrygoldsmith07-wq/habit-tracker",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Quiet habit tracker — daily check-ins, weekly targets, streaks and an 8-week history. The @ruflo/env-validation package is vendored at packages/env-validation inside the repo.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "le-studio-site",
+      "name": "Le Studio (family hub)",
+      "repo": "henrygoldsmith07-wq/le-studio-site",
+      "lifecycle": "external",
+      "kind": "site",
+      "description": "Marketing hub for the Le Studio family (French, Forq, Chrono). Shared by french-practice and food-shopping-os, so it is its own repo rather than merged into either app.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "mental-load-tracker",
+      "name": "Noticed",
+      "repo": "henrygoldsmith07-wq/mental-load-tracker",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Shared board for the invisible labor of running a household — capture what you notice, compare side-by-side weekly.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "pulse",
+      "name": "Pulse",
+      "repo": "henrygoldsmith07-wq/pulse",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Privacy-first personal analytics and experimentation engine: universal event schema, connector SDK, evidence-graded relationship discovery, personal experiments and recommendations across the ecosystem.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "rapport",
+      "name": "Rapport",
+      "repo": "henrygoldsmith07-wq/rapport",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Adaptive social-skills training: skill graph, mastery model, conversation simulator, real-world challenges and reflection. Works fully offline with no AI provider.",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "revise",
+      "name": "Revise",
+      "repo": "henrygoldsmith07-wq/revise",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "GCSE and A-level revision platform across WJEC, AQA, Edexcel and OCR (2,216 specPoints, statement-level coverage & validator).",
+      "site": null,
+      "section": "external"
+    },
+    {
+      "id": "rtk",
+      "name": "rtk",
+      "repo": "henrygoldsmith07-wq/rtk",
+      "lifecycle": "external",
+      "kind": "product",
+      "description": "Token-saving CLI that filters noisy tool output to what an LLM/human actually needs.",
       "site": null,
       "section": "external"
     }

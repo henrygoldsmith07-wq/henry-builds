@@ -174,7 +174,7 @@ export default function Landing() {
             <div>
               <SectionLabel number="03">Selected work</SectionLabel>
               <h2 className="section-title">
-                Six projects,
+                {featuredProjects.length} projects,
                 <br />
                 <span className="text-muted-foreground">honestly labelled.</span>
               </h2>

@@ -13,22 +13,41 @@ env:
   SITE_URL: ${{ vars.SITE_URL }}
   VITE_SITE_URL: ${{ vars.SITE_URL }}
 
+permissions:
+  contents: read
+
 jobs:
   verify:
-    name: Types, lint, registry, claims, build, links
+    name: Types, lint, registry, sources, claims, build, links
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Sitemap lastmod derives from per-file commit history.
+          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
+      - name: Cache bun install
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
       - run: bun install --frozen-lockfile
 
-      # The registry gates everything else: if a claim has no evidence, or a
-      # stage label is not earned, nothing downstream is worth running.
-      - name: Validate registry
+      # The registry gates everything else: if a claim has no evidence, a stage
+      # label is not earned, or a cited source path is gone, nothing downstream
+      # is worth running.
+      - name: Validate registry against the evidence layer
         run: bun run registry:validate
+
+      - name: Verify every cited source path exists
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bun run verify:sources
 
       - name: Audit public claims
         run: bun run audit:claims
@@ -43,7 +62,9 @@ jobs:
         run: bun run build
 
       - name: Check internal links, assets and sitemap
-        run: bun run check:links
+        run: bun run check:links --github
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       - name: Fail if generated files are stale
         # The build regenerates OG cards and the sitemap. If either differs from
@@ -64,6 +85,7 @@ jobs:
 
   accessibility:
     name: Accessibility audit
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -71,8 +93,25 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache bun install
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
-      - run: bun run build
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
       - run: bunx playwright install --with-deps chromium
 
       - name: Run axe over every published route, light and dark
@@ -87,6 +126,7 @@ jobs:
 
   visual:
     name: Visual regression
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -94,8 +134,25 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache bun install
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
-      - run: bun run build
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
       - run: bunx playwright install --with-deps chromium
 
       - name: Compare against committed snapshots
@@ -112,6 +169,7 @@ jobs:
 
   lighthouse:
     name: Lighthouse budgets
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -119,8 +177,18 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache bun install
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
-      - run: bun run build
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
 
       - name: Assert performance, a11y, best-practices and SEO budgets
         run: bunx lhci autorun

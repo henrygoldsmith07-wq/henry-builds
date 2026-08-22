@@ -6,7 +6,12 @@
   "summary": "A daily critical-thinking app: argue a proposition against an AI opponent over at least five rounds, or head-to-head against another player with a neutral AI judge. Responses are scored on depth, evidence, logic, rebuttal and clarity.",
   "stage": "beta",
   "category": "Thinking tools",
-  "tags": ["Argument graph", "Realtime", "Scoring", "Grounding"],
+  "tags": [
+    "Argument graph",
+    "Realtime",
+    "Scoring",
+    "Grounding"
+  ],
   "accent": "#e4dcf0",
   "featured": false,
   "publish": true,
@@ -24,9 +29,9 @@
     ]
   },
   "repo": {
-    "label": "apps/daily-debate",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/daily-debate",
-    "path": "apps/daily-debate"
+    "label": "daily-debate",
+    "href": "https://github.com/henrygoldsmith07-wq/daily-debate",
+    "path": "."
   },
   "caseStudy": {
     "problem": "Debate practice needs an opponent who argues back competently and a scorer who can say why an argument was weak. Both are easy to fake badly: an AI opponent that agrees too readily teaches nothing, and a score with no rubric behind it is just a number.",
@@ -49,13 +54,13 @@
           {
             "kind": "doc",
             "label": "README — tests",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/daily-debate/README.md",
-            "path": "apps/daily-debate/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/README.md",
+            "path": "README.md"
           },
           {
             "kind": "ci",
             "label": "daily-debate.yml",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/daily-debate.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/daily-debate.yml",
             "path": ".github/workflows/daily-debate.yml"
           }
         ]
@@ -68,8 +73,8 @@
           {
             "kind": "doc",
             "label": "README — daily topic",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/daily-debate/README.md",
-            "path": "apps/daily-debate/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -87,6 +92,12 @@
       }
     ],
     "failedApproaches": [],
-    "lessons": []
+    "lessons": [],
+    "limitations": [
+      "Judge-scoring invariance is validated on synthetic transcripts; there is no inter-rater agreement study against human judges yet.",
+      "Rate limiting is process-local; running multiple instances would need shared state the current design does not have.",
+      "PvP assumes small trusted cohorts; anti-abuse beyond rate limits is thin."
+    ],
+    "lastVerifiedAt": "2026-08-21"
   }
 }

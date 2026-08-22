@@ -6,7 +6,12 @@
   "summary": "A structured reflection tool that challenges an interpretation rather than logging a mood. Its central engineering problem is language: a tentative reading of one account must never be presented as a diagnosis, and that rule is enforced in code.",
   "stage": "beta",
   "category": "Thinking tools",
-  "tags": ["Language contract", "Validation", "Local-first", "Hedging"],
+  "tags": [
+    "Language contract",
+    "Validation",
+    "Local-first",
+    "Hedging"
+  ],
   "accent": "#dce9ec",
   "featured": true,
   "publish": true,
@@ -22,9 +27,9 @@
     ]
   },
   "repo": {
-    "label": "apps/emotion-tracker",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/emotion-tracker",
-    "path": "apps/emotion-tracker"
+    "label": "emotion-tracker",
+    "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker",
+    "path": "."
   },
   "caseStudy": {
     "problem": "Mood trackers record that you felt bad on Tuesday. They do not touch the interpretation that made Tuesday bad, which is the part that is actually available to change. But building something that challenges interpretations creates a much worse failure mode than breadth tracking ever had: presenting a tentative reading of a single account as a clinical diagnosis.",
@@ -40,7 +45,7 @@
         {
           "name": "Language contract",
           "role": "Each bias flag carries a hedged description, evidence for, evidence against and a confidence between 0 and 1.",
-          "path": "apps/emotion-tracker/src/lib/validation.ts"
+          "path": "src/lib/validation.ts"
         },
         {
           "name": "Storage",
@@ -51,14 +56,14 @@
         {
           "kind": "doc",
           "label": "apps/emotion-tracker/README.md — language contract",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/README.md",
-          "path": "apps/emotion-tracker/README.md"
+          "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/README.md",
+          "path": "README.md"
         },
         {
           "kind": "repo",
           "label": "src/lib/validation.ts",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/src/lib/validation.ts",
-          "path": "apps/emotion-tracker/src/lib/validation.ts"
+          "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/src/lib/validation.ts",
+          "path": "src/lib/validation.ts"
         }
       ]
     },
@@ -80,8 +85,8 @@
           {
             "kind": "doc",
             "label": "README — language contract",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/README.md",
-            "path": "apps/emotion-tracker/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       },
@@ -94,8 +99,8 @@
           {
             "kind": "doc",
             "label": "README — specialization",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/README.md",
-            "path": "apps/emotion-tracker/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -107,16 +112,17 @@
           {
             "kind": "repo",
             "label": "src/lib/validation.ts",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/src/lib/validation.ts",
-            "path": "apps/emotion-tracker/src/lib/validation.ts"
+            "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/src/lib/validation.ts",
+            "path": "src/lib/validation.ts"
           },
           {
             "kind": "ci",
             "label": "emotion-tracker.yml",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/emotion-tracker.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/.github/workflows/emotion-tracker.yml",
             "path": ".github/workflows/emotion-tracker.yml"
           }
-        ]
+        ],
+        "ledgerClaimId": "emotion-tracker-reflection-quality"
       },
       {
         "statement": "Every reflection ends with a dated follow-up checkpoint that can later record whether the intended action actually helped.",
@@ -124,8 +130,8 @@
           {
             "kind": "doc",
             "label": "README — how it works",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/emotion-tracker/README.md",
-            "path": "apps/emotion-tracker/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -145,6 +151,12 @@
     "failedApproaches": [],
     "lessons": [
       "When the biggest product risk is a sentence, the sentence needs a type and a validator. Prompt instructions are a preference; a rejection is a guarantee."
-    ]
+    ],
+    "limitations": [
+      "No user study and no clinician review of the hedged language the pipeline produces.",
+      "Bias-flag thresholds (confidence ≥ 0.45) are engineering choices, not clinically validated cut-offs.",
+      "Longitudinal calibration assumes follow-up answers are self-reported honestly."
+    ],
+    "lastVerifiedAt": "2026-08-21"
   }
 }

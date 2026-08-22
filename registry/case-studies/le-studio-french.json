@@ -6,7 +6,12 @@
   "summary": "A client-side French speaking PWA built around a placement test and a twelve-unit roadmap. Every practice activity — conversation, dictation, spaced cards, quick fire, grammar, reading and listening — sits on the same progress model.",
   "stage": "beta",
   "category": "Learning",
-  "tags": ["PWA", "Speech", "CEFR", "Client-side"],
+  "tags": [
+    "PWA",
+    "Speech",
+    "CEFR",
+    "Client-side"
+  ],
   "accent": "#e4dcf0",
   "featured": false,
   "publish": true,
@@ -23,9 +28,9 @@
     ]
   },
   "repo": {
-    "label": "apps/french-practice",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/french-practice",
-    "path": "apps/french-practice"
+    "label": "french-practice",
+    "href": "https://github.com/henrygoldsmith07-wq/french-practice",
+    "path": "."
   },
   "caseStudy": {
     "problem": "Language apps either drill vocabulary you never speak or drop you into conversation with no scaffolding. The gap is a path: something that knows roughly where you are, gives you a mixed diet of activities, and lets you redo the thing you just failed rather than moving on regardless.",
@@ -48,8 +53,8 @@
           {
             "kind": "doc",
             "label": "README — features",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/french-practice/README.md",
-            "path": "apps/french-practice/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/french-practice/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -61,13 +66,13 @@
           {
             "kind": "doc",
             "label": "README — run",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/french-practice/README.md",
-            "path": "apps/french-practice/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/french-practice/blob/main/README.md",
+            "path": "README.md"
           },
           {
             "kind": "ci",
             "label": "french-practice.yml",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/french-practice.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/french-practice/blob/main/.github/workflows/french-practice.yml",
             "path": ".github/workflows/french-practice.yml"
           }
         ]
@@ -78,8 +83,8 @@
           {
             "kind": "doc",
             "label": "README — run",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/french-practice/README.md",
-            "path": "apps/french-practice/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/french-practice/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -92,6 +97,12 @@
       }
     ],
     "failedApproaches": [],
-    "lessons": []
+    "lessons": [],
+    "limitations": [
+      "No learner-progress study exists; fluency improvement is not measured and is graded 'insufficient-evidence' in the ecosystem's evidence registry.",
+      "Groq STT/TTS correction accuracy has never been benchmarked.",
+      "The API key lives in localStorage by design for a private tool — not hardened for public deployment."
+    ],
+    "lastVerifiedAt": "2026-08-09"
   }
 }

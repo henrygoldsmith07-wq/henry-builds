@@ -1,0 +1,102 @@
+{
+  "_generated": "Written by scripts/import-registry.mjs. Do not edit by hand.",
+  "checkedAt": "2026-08-21T19:19:39.401Z",
+  "projects": {
+    "agent-os-control-room": {
+      "derived": "archived-source",
+      "reason": "'agent-os-control-room' is no longer in the monorepo registry — renamed, retired, or migrated away."
+    },
+    "arise": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/arise@main.",
+      "repo": "henrygoldsmith07-wq/arise",
+      "ref": "main",
+      "sha": "532d5a1fd6986c2c57b134a29d9d4a6ce0779354",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/arise/commit/532d5a1fd6986c2c57b134a29d9d4a6ce0779354"
+    },
+    "daily-debate": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/daily-debate@main.",
+      "repo": "henrygoldsmith07-wq/daily-debate",
+      "ref": "main",
+      "sha": "ba9a494d97142de32cce8d5c286fda04fb4de8a1",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/commit/ba9a494d97142de32cce8d5c286fda04fb4de8a1"
+    },
+    "dictation-typer": {
+      "derived": "archived-source",
+      "reason": "'dictation-typer' is no longer in the monorepo registry — renamed, retired, or migrated away."
+    },
+    "forq": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/food-shopping-os@main.",
+      "repo": "henrygoldsmith07-wq/food-shopping-os",
+      "ref": "main",
+      "sha": "46b03d595efd21cf3ceb93a63c514484be323f61",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/commit/46b03d595efd21cf3ceb93a63c514484be323f61"
+    },
+    "le-studio-french": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/french-practice@main.",
+      "repo": "henrygoldsmith07-wq/french-practice",
+      "ref": "main",
+      "sha": "95f46d379810d2aa8e20493884fb3332e2899d4f",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/french-practice/commit/95f46d379810d2aa8e20493884fb3332e2899d4f"
+    },
+    "meeting-recorder": {
+      "derived": "archived-source",
+      "reason": "'meeting-recorder' is no longer in the monorepo registry — renamed, retired, or migrated away."
+    },
+    "noticed": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/mental-load-tracker@main.",
+      "repo": "henrygoldsmith07-wq/mental-load-tracker",
+      "ref": "main",
+      "sha": "d2d6dd40e40c843ac33b7a5ec2a5f11f2ef1c160",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/commit/d2d6dd40e40c843ac33b7a5ec2a5f11f2ef1c160"
+    },
+    "pulse": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/pulse@main.",
+      "repo": "henrygoldsmith07-wq/pulse",
+      "ref": "main",
+      "sha": "f8f5803251ca6764e4d22574580fcdaecd838a2c",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/pulse/commit/f8f5803251ca6764e4d22574580fcdaecd838a2c"
+    },
+    "rapport": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/rapport@main.",
+      "repo": "henrygoldsmith07-wq/rapport",
+      "ref": "main",
+      "sha": "2a015caf168c4aaf1ef10c48b28322d14382ee16",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/rapport/commit/2a015caf168c4aaf1ef10c48b28322d14382ee16"
+    },
+    "reflect": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/emotion-tracker@main.",
+      "repo": "henrygoldsmith07-wq/emotion-tracker",
+      "ref": "main",
+      "sha": "ac8b0b7b60b67df9980ac78156f99b87add9441e",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/commit/ac8b0b7b60b67df9980ac78156f99b87add9441e"
+    },
+    "revise": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/revise@main.",
+      "repo": "henrygoldsmith07-wq/revise",
+      "ref": "main",
+      "sha": "edf4e294aae1f0d5a8375fe1531a0957f72b143c",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/revise/commit/edf4e294aae1f0d5a8375fe1531a0957f72b143c"
+    },
+    "rtk": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/rtk@main.",
+      "repo": "henrygoldsmith07-wq/rtk",
+      "ref": "main",
+      "sha": "aa7975b44a757192a25c0b9ec6b189ef8b1e5946",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/rtk/commit/aa7975b44a757192a25c0b9ec6b189ef8b1e5946"
+    },
+    "world-news": {
+      "derived": "archived-source",
+      "reason": "'world-news' is no longer in the monorepo registry — renamed, retired, or migrated away."
+    }
+  }
+}

@@ -221,6 +221,43 @@
 .evidence-chip-link:hover { border-color: var(--foreground); color: var(--foreground); }
 .evidence-chip-link:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
+/* Source-status badges — what exists behind a case study right now. */
+.source-badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: oklch(0.48 0.09 155); border-color: color-mix(in oklab, oklch(0.48 0.09 155) 35%, var(--border)); }
+.source-archived { color: var(--muted-foreground); border-style: dashed; }
+.source-concept { color: oklch(0.52 0.12 300); border-color: color-mix(in oklab, oklch(0.52 0.12 300) 35%, var(--border)); }
+.source-historical { color: oklch(0.50 0.08 250); border-style: dotted; }
+.dark .source-badge { color: oklch(0.78 0.09 155); }
+.dark .source-concept { color: oklch(0.78 0.12 300); }
+.dark .source-historical { color: oklch(0.76 0.08 250); }
+
+/* Per-project verification strip — every value on it is generated. */
+.verification-row { display: flex; flex-wrap: wrap; gap: 6px 40px; border: 1px solid var(--border); background: var(--card, var(--background)); padding: 14px 20px; margin-bottom: 56px; font-size: 11px; letter-spacing: 0.02em; }
+.verification-row > div { display: flex; align-items: baseline; gap: 8px; }
+.verification-row dt { color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; font-size: 9px; }
+.verification-row dd { color: var(--foreground); }
+
+/* Evidence-ledger grades travel with each graded claim. */
+.ledger-grade { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 9px; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; border: 1px solid var(--border); }
+.grade-external { color: oklch(0.45 0.13 150); border-color: color-mix(in oklab, oklch(0.45 0.13 150) 40%, var(--border)); background: color-mix(in oklab, oklch(0.45 0.13 150) 7%, transparent); }
+.grade-demonstrated { color: oklch(0.48 0.12 165); border-color: color-mix(in oklab, oklch(0.48 0.12 165) 38%, var(--border)); }
+.grade-partial { color: oklch(0.50 0.11 130); border-color: color-mix(in oklab, oklch(0.50 0.11 130) 35%, var(--border)); }
+.grade-internal { color: oklch(0.50 0.11 240); border-color: color-mix(in oklab, oklch(0.50 0.11 240) 35%, var(--border)); }
+.grade-infra { color: var(--muted-foreground); }
+.grade-insufficient { color: oklch(0.50 0.19 25); border-color: color-mix(in oklab, oklch(0.50 0.19 25) 45%, var(--border)); font-weight: 700; }
+.dark .grade-external { color: oklch(0.76 0.13 150); }
+.dark .grade-demonstrated { color: oklch(0.78 0.12 165); }
+.dark .grade-partial { color: oklch(0.77 0.11 130); }
+.dark .grade-internal { color: oklch(0.76 0.10 240); }
+.dark .grade-insufficient { color: oklch(0.74 0.16 25); }
+
+.ledger-fact { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; letter-spacing: 0.04em; color: var(--muted-foreground); }
+
+.freshness-chip { display: inline-flex; align-items: center; border: 1px dashed var(--border); border-radius: 6px; padding: 2px 7px; font-size: 10px; color: var(--muted-foreground); }
+.freshness-stale { color: oklch(0.50 0.15 60); border-color: color-mix(in oklab, oklch(0.50 0.15 60) 45%, var(--border)); font-weight: 600; }
+.dark .freshness-stale { color: oklch(0.78 0.13 60); }
+
+.benchmark-chart ul { list-style: none; }
+
 .claim-item { background: var(--background); padding: 20px 24px; }
 .metric-card { background: var(--background); padding: 24px; }
 .metric-source { flex-shrink: 0; border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-foreground); }

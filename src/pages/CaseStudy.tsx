@@ -1,13 +1,15 @@
 import { ArrowLeft, ArrowRight, ExternalLink, Github, Minus, Plus } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { ArchitectureDiagram } from "@/components/portfolio/ArchitectureDiagram";
+import { BenchmarkChart } from "@/components/portfolio/BenchmarkChart";
 import { ClaimItem, EvidenceRow, MetricCard } from "@/components/portfolio/Evidence";
+import { SourceVerificationRow } from "@/components/portfolio/EvidenceMeta";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
-import { StageBadge } from "@/components/portfolio/StageBadge";
+import { SourceBadge, StageBadge } from "@/components/portfolio/StageBadge";
 import NotFound from "@/pages/NotFound";
-import { getProject, projects } from "@/data/registry";
+import { getProject, ledgerClaimOf, projects } from "@/data/registry";
 
 function Section({
   number,
@@ -46,6 +48,11 @@ export default function CaseStudy() {
   const { caseStudy: study, authorship } = project;
   const lead = study.visuals[0];
 
+  // Sections number themselves in render order, so inserting one never
+  // leaves stale "07" strings behind.
+  let sectionCounter = 0;
+  const num = () => String(++sectionCounter).padStart(2, "0");
+
   return (
     <div className="portfolio-shell min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteMetadata
@@ -69,6 +76,7 @@ export default function CaseStudy() {
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <StageBadge stage={project.stage} />
+                  <SourceBadge status={project.sourceStatus} />
                   <span className="text-xs text-muted-foreground">{project.category}</span>
                   {project.upstream?.stack && (
                     <span className="text-xs text-muted-foreground">· {project.upstream.stack}</span>
@@ -128,8 +136,18 @@ export default function CaseStudy() {
           )}
 
           <div className="mx-auto max-w-[1380px] px-5 sm:px-8 lg:px-12">
+            {/* ---- verification strip -------------------------------------- */}
+            <SourceVerificationRow
+              status={project.sourceStatus}
+              statusReason={project.sourceReason}
+              sha={project.sourceSha}
+              shaUrl={project.sourceShaUrl}
+              checkedAt={project.sourceCheckedAt}
+              ci={project.ci}
+            />
+
             {/* ---- what I built -------------------------------------------- */}
-            <Section number="01" title="What I built" id="authorship">
+            <Section number={num()} title="What I built" id="authorship">
               <p className="text-sm leading-6 text-foreground/85">{authorship.role}</p>
               <div className="mt-8 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
                 <div className="bg-background p-6">
@@ -166,11 +184,11 @@ export default function CaseStudy() {
             </Section>
 
             {/* ---- problem / approach -------------------------------------- */}
-            <Section number="02" title="The problem" id="problem">
+            <Section number={num()} title="The problem" id="problem">
               <p className="large-copy max-w-3xl">{study.problem}</p>
             </Section>
 
-            <Section number="03" title="The approach" id="approach">
+            <Section number={num()} title="The approach" id="approach">
               <p className="max-w-3xl text-base leading-7 text-muted-foreground">
                 {study.approach}
               </p>
@@ -179,7 +197,7 @@ export default function CaseStudy() {
             {/* ---- insight lifecycle states -------------------------------- */}
             {study.insightLifecycle && (
               <Section
-                number="04"
+                number={num()}
                 title="Insight Lifecycle States"
                 id="insight-lifecycle"
               >
@@ -233,14 +251,14 @@ export default function CaseStudy() {
 
             {/* ---- architecture -------------------------------------------- */}
             {study.architecture && (
-              <Section number="05" title="Architecture" id="architecture">
+              <Section number={num()} title="Architecture" id="architecture">
                 <ArchitectureDiagram architecture={study.architecture} />
               </Section>
             )}
 
             {/* ---- demo video ---------------------------------------------- */}
             {study.video && (
-              <Section number="06" title="Demo" id="demo">
+              <Section number={num()} title="Demo" id="demo">
                 <video
                   className="w-full rounded-[1.25rem] border border-border"
                   src={study.video.src}
@@ -254,24 +272,55 @@ export default function CaseStudy() {
 
             {/* ---- measurements -------------------------------------------- */}
             {study.metrics.length > 0 && (
-              <Section number="07" title="Measurements" id="measurements">
+              <Section number={num()} title="Measurements" id="measurements">
                 <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
                   {study.metrics.map((metric) => (
                     <MetricCard key={metric.label} metric={metric} />
                   ))}
                 </div>
+                {study.metrics.some((metric) => typeof metric.chart === "number") && (
+                  <div className="mt-10 border border-border p-6 sm:p-8">
+                    <BenchmarkChart metrics={study.metrics} />
+                  </div>
+                )}
               </Section>
             )}
 
             {/* ---- outcomes ------------------------------------------------ */}
             {study.outcomes.length > 0 && (
-              <Section number="08" title="What holds up" id="outcomes">
+              <Section number={num()} title="What holds up" id="outcomes">
                 <p className="mb-7 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Each statement links to the thing that backs it. Nothing appears here without one.
+                  Each statement links to the thing that backs it, and to its grade in the
+                  ecosystem&apos;s evidence registry where one exists. Nothing appears here
+                  without one.
                 </p>
                 <ul className="space-y-px overflow-hidden border border-border bg-border">
                   {study.outcomes.map((outcome) => (
-                    <ClaimItem key={outcome.statement} claim={outcome} />
+                    <ClaimItem
+                      key={outcome.statement}
+                      claim={outcome}
+                      ledgerClaim={ledgerClaimOf(project, outcome.ledgerClaimId)}
+                    />
+                  ))}
+                </ul>
+              </Section>
+            )}
+
+            {/* ---- limitations ---------------------------------------------- */}
+            {study.limitations.length > 0 && (
+              <Section number={num()} title="What this does not prove" id="limitations">
+                <p className="mb-7 max-w-2xl text-sm leading-6 text-muted-foreground">
+                  Stated before you have to ask. These are the known edges of every claim
+                  above — read them as part of the claims, not as a footnote.
+                </p>
+                <ul className="space-y-px overflow-hidden border border-border bg-border limitations-list">
+                  {study.limitations.map((limitation) => (
+                    <li
+                      key={limitation}
+                      className="bg-background p-5 text-sm leading-6 text-foreground/85"
+                    >
+                      {limitation}
+                    </li>
                   ))}
                 </ul>
               </Section>
@@ -279,7 +328,7 @@ export default function CaseStudy() {
 
             {/* ---- trade-offs ---------------------------------------------- */}
             {study.tradeoffs.length > 0 && (
-              <Section number="09" title="Trade-offs" id="tradeoffs">
+              <Section number={num()} title="Trade-offs" id="tradeoffs">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
                   {study.tradeoffs.map((tradeoff) => (
                     <div key={tradeoff.choice} className="bg-background p-6">
@@ -306,7 +355,7 @@ export default function CaseStudy() {
 
             {/* ---- failed approaches --------------------------------------- */}
             {study.failedApproaches.length > 0 && (
-              <Section number="10" title="What did not work" id="failed">
+              <Section number={num()} title="What did not work" id="failed">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
                   {study.failedApproaches.map((failure) => (
                     <div key={failure.approach} className="bg-background p-6">
@@ -325,6 +374,9 @@ export default function CaseStudy() {
                           </p>
                         </div>
                       </div>
+                      {failure.evidence && failure.evidence.length > 0 && (
+                        <EvidenceRow items={failure.evidence} />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -333,7 +385,7 @@ export default function CaseStudy() {
 
             {/* ---- lessons -------------------------------------------------- */}
             {study.lessons.length > 0 && (
-              <Section number="11" title="What I took from it" id="lessons">
+              <Section number={num()} title="What I took from it" id="lessons">
                 <ul className="space-y-6">
                   {study.lessons.map((lesson, i) => (
                     <li key={lesson} className="flex gap-5">

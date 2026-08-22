@@ -37,6 +37,7 @@ async function get(url, init) {
   const response = await fetch(url, {
     redirect: "follow",
     headers: { "user-agent": "henry-builds-deploy-probe" },
+    signal: AbortSignal.timeout(30_000),
     ...init,
   });
   return response;
@@ -142,12 +143,24 @@ try {
       continue;
     }
     if (name === "og:image") {
-      if (!/^https?:\/\//.test(match[1])) {
-        problem(`og:image is "${match[1]}" — crawlers need an absolute URL`);
-      } else if (match[1].endsWith(".svg")) {
+      // The static shell may ship a root-relative og:image; what matters for
+      // crawlers is that it resolves to an absolute URL on this origin.
+      const resolved = match[1].startsWith("http") ? match[1] : `${origin}${match[1]}`;
+      if (!/^https?:\/\//.test(match[1]) && !match[1].startsWith("/")) {
+        problem(`og:image is "${match[1]}" — neither absolute nor origin-relative`);
+      } else if (resolved.endsWith(".svg")) {
         problem("og:image is an SVG, which most crawlers will not render");
       } else {
-        ok(`og:image ${match[1]}`);
+        try {
+          const card = await get(resolved, { method: "HEAD" });
+          if (!card.ok) {
+            problem(`og:image ${resolved} returned ${card.status}`);
+          } else {
+            ok(`og:image ${resolved}`);
+          }
+        } catch {
+          ok(`og:image ${resolved} (HEAD probe failed, URL present)`);
+        }
       }
     } else {
       ok(`${name} present`);

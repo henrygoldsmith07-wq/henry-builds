@@ -6,7 +6,12 @@
   "summary": "A revision-first study platform for UK A-level and GCSE. Every screen exists to raise a grade: open it, get one recommended task, complete it, get marked, watch progress move.",
   "stage": "beta",
   "category": "Learning",
-  "tags": ["Spaced repetition", "FSRS", "Exam marking", "Curriculum data"],
+  "tags": [
+    "Spaced repetition",
+    "FSRS",
+    "Exam marking",
+    "Curriculum data"
+  ],
   "accent": "#d8e5ff",
   "featured": true,
   "publish": true,
@@ -24,9 +29,9 @@
     ]
   },
   "repo": {
-    "label": "apps/revise",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/revise",
-    "path": "apps/revise"
+    "label": "revise",
+    "href": "https://github.com/henrygoldsmith07-wq/revise",
+    "path": "."
   },
   "caseStudy": {
     "problem": "Revision tools are built as note-taking apps, so they optimise for capture. That leaves the one question that actually matters the week before an exam — what should I do right now? — entirely to the student, at exactly the moment they are least able to answer it.",
@@ -38,7 +43,7 @@
         {
           "name": "Curriculum modules",
           "role": "One module per board/qualification. Topics, spec points and seed questions, each with source and verification stamps.",
-          "path": "apps/revise/src/domain/curriculum"
+          "path": "src/domain/curriculum"
         },
         {
           "name": "Scheduling",
@@ -61,8 +66,8 @@
         {
           "kind": "doc",
           "label": "apps/revise/README.md",
-          "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
-          "path": "apps/revise/README.md"
+          "href": "https://github.com/henrygoldsmith07-wq/revise/blob/main/README.md",
+          "path": "README.md"
         }
       ]
     },
@@ -84,13 +89,13 @@
           {
             "kind": "doc",
             "label": "README — running it",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
-            "path": "apps/revise/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/revise/blob/main/README.md",
+            "path": "README.md"
           },
           {
             "kind": "ci",
             "label": "revise.yml",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/.github/workflows/revise.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/revise/blob/main/.github/workflows/revise.yml",
             "path": ".github/workflows/revise.yml"
           }
         ]
@@ -104,8 +109,8 @@
           {
             "kind": "doc",
             "label": "README — ships with",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
-            "path": "apps/revise/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/revise/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -117,8 +122,8 @@
           {
             "kind": "doc",
             "label": "README — architecture is board-agnostic",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
-            "path": "apps/revise/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/revise/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       },
@@ -128,8 +133,8 @@
           {
             "kind": "doc",
             "label": "README — no configuration is required",
-            "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/blob/main/apps/revise/README.md",
-            "path": "apps/revise/README.md"
+            "href": "https://github.com/henrygoldsmith07-wq/revise/blob/main/README.md",
+            "path": "README.md"
           }
         ]
       }
@@ -155,6 +160,12 @@
     ],
     "lessons": [
       "A coverage number is only as honest as the granularity of the metadata underneath it. Reporting statement-level coverage from topic-level provenance quietly overstated what had been checked."
-    ]
+    ],
+    "limitations": [
+      "No external examiner blind study — marking agreement is measured against an internal double-marked corpus only.",
+      "Short-answer formats only; maths/LaTeX equivalence checking is internal.",
+      "FSRS scheduling ships library defaults; retention has never been studied inside the product."
+    ],
+    "lastVerifiedAt": "2026-08-09"
   }
 }

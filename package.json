@@ -1,7 +1,7 @@
 {
-  "name": "vite-template",
+  "name": "henry-builds",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,12 +14,14 @@
     "registry:import": "node scripts/import-registry.mjs",
     "registry:import:ci": "node scripts/import-registry.mjs --ci",
     "registry:validate": "node scripts/validate-registry.mjs",
+    "verify:sources": "node scripts/verify-sources.mjs",
 
     "og": "node scripts/generate-og.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "audit:claims": "node scripts/audit-claims.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:links:external": "node scripts/check-links.mjs --external",
+    "check:links:github": "node scripts/check-links.mjs --github",
 
     "test:e2e": "playwright test",
     "test:a11y": "playwright test tests/a11y.spec.ts",
@@ -27,7 +29,7 @@
     "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",
     "lighthouse": "lhci autorun",
 
-    "verify": "bun run registry:validate && bun run audit:claims && tsc -b && bun run lint && bun run build && bun run check:links"
+    "verify": "bun run registry:validate && bun run verify:sources && bun run audit:claims && tsc -b && bun run lint && bun run build && bun run check:links"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.90",

@@ -4,9 +4,13 @@
   "name": "Meeting Recorder",
   "tagline": "Desktop capture, hosted transcription, cheap storage.",
   "summary": "A meeting recorder in two parts: an Electron desktop app that captures screen, system audio and microphone straight to object storage, and a web dashboard with a transcript synced to the recording.",
-  "stage": "prototype",
+  "stage": "archived",
   "category": "Developer tooling",
-  "tags": ["Electron", "Transcription", "Object storage"],
+  "tags": [
+    "Electron",
+    "Transcription",
+    "Object storage"
+  ],
   "accent": "#e9e7e2",
   "featured": false,
   "publish": true,
@@ -59,6 +63,9 @@
       }
     ],
     "failedApproaches": [],
-    "lessons": []
+    "lessons": [],
+    "limitations": [
+      "Built for personal meetings and never operated at scale; its source was removed during the 2026-08 ecosystem migration."
+    ]
   }
 }

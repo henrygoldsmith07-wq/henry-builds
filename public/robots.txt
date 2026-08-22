@@ -5,4 +5,4 @@ Allow: /
 Disallow: /auth
 Disallow: /dashboard
 
-Sitemap: /sitemap.xml
+Sitemap: https://henry-builds.vercel.app/sitemap.xml

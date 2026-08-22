@@ -1,93 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/</loc>
-    <lastmod>2026-08-14</lastmod>
+    <loc>https://henry-builds.vercel.app/</loc>
+    <lastmod>2026-08-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>/projects</loc>
-    <lastmod>2026-08-14</lastmod>
+    <loc>https://henry-builds.vercel.app/projects</loc>
+    <lastmod>2026-08-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>/projects/agent-os-control-room</loc>
+    <loc>https://henry-builds.vercel.app/projects/agent-os-control-room</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>/projects/arise</loc>
+    <loc>https://henry-builds.vercel.app/projects/arise</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>/projects/daily-debate</loc>
+    <loc>https://henry-builds.vercel.app/projects/daily-debate</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>/projects/dictation-typer</loc>
+    <loc>https://henry-builds.vercel.app/projects/dictation-typer</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>/projects/forq</loc>
+    <loc>https://henry-builds.vercel.app/projects/forq</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>/projects/le-studio-french</loc>
+    <loc>https://henry-builds.vercel.app/projects/le-studio-french</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>/projects/meeting-recorder</loc>
+    <loc>https://henry-builds.vercel.app/projects/meeting-recorder</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>/projects/noticed</loc>
+    <loc>https://henry-builds.vercel.app/projects/noticed</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>/projects/rapport</loc>
+    <loc>https://henry-builds.vercel.app/projects/rapport</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>/projects/reflect</loc>
+    <loc>https://henry-builds.vercel.app/projects/reflect</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>/projects/revise</loc>
+    <loc>https://henry-builds.vercel.app/projects/revise</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>/projects/rtk</loc>
+    <loc>https://henry-builds.vercel.app/projects/rtk</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>/projects/world-news</loc>
+    <loc>https://henry-builds.vercel.app/projects/world-news</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.5</priority>
   </url>
 </urlset>
