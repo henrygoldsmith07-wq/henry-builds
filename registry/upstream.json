@@ -5,7 +5,7 @@
     "path": "apps/registry.json",
     "ref": "main"
   },
-  "importedAt": "2026-08-22T06:12:22.885Z",
+  "importedAt": "2026-08-22T06:18:25.954Z",
   "lifecycleStates": {
     "active": "Shipped product; has CI and an owner.",
     "incubating": "In development behind a branch or feature flag; not yet listed as active.",
