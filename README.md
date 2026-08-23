@@ -17,6 +17,8 @@ Five layers, four of them generated:
 | `registry/evidence-ledger.json` | `registry:import` | Graded claims from the monorepo's `evidence/registry.json` — status, sample size, last-validated date and limitations per capability |
 | `registry/source-status.json` | `registry:import` | Per project: current vs archived-source, why, and the commit SHA the source sits at right now |
 | `registry/ci-facts.json` | `registry:import:ci` | Latest workflow conclusion per app, the last green run, and test counts pulled from Actions artifacts or job logs |
+| `registry/facts-history.json` | `registry:facts` | Per project: deployment state and deployed SHA vs HEAD, latest release/tag, Dependabot alerts — plus a dated history powering trend charts |
+| `registry/bundle-history.json` | `record:bundle` | This site's own dist weight over time; warns past 10% growth |
 | `registry/case-studies/*.json` | a human | Narrative, architecture, trade-offs, evidence |
 
 `src/data/registry/index.ts` merges all five and exports typed projects. Adding a
@@ -145,11 +147,12 @@ study.
 - **visual regression** — desktop and mobile, both colour schemes.
 - **Lighthouse budgets** — see `lighthouserc.json`.
 
-`registry-sync.yml` re-imports on every push to main and weekly (auto-merged PR),
-so CI facts, lifecycle states, commit SHAs and archive decisions stay current
-without anyone remembering. `deploy-monitor.yml` probes the live site every six
-hours; one issue per failure signature — an unchanged outage stays quiet instead
-of spamming comments every run.
+`registry-sync.yml` re-imports on every push to main and weekly (generated
+refreshes land directly; anything touching narrative opens a PR), so CI facts,
+lifecycle states, deployment status, commit SHAs and archive decisions stay
+current without anyone remembering. `deploy-monitor.yml` probes the live site
+every six hours; one issue per failure signature — an unchanged outage stays
+quiet instead of spamming comments every run, and recovers close the issue.
 
 ## Configuration
 
