@@ -209,6 +209,12 @@ async function checkExternalLinks() {
       }
       try {
         if (repo && privateRepos.has(repo)) {
+          if (!token) {
+            // Without a token the API 404s private repos by definition; the
+            // source-status derivation already verified existence with one.
+            warn(`private source, not verifiable this run (no token) — ${url}`);
+            continue;
+          }
           const res = await fetch(`https://api.github.com/repos/${repo}`, {
             headers,
             signal: AbortSignal.timeout(20_000),
