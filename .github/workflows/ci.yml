@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The registry-sync bot's own commits do not trigger push runs (GitHub rule),
+  # so sync dispatches CI explicitly on the post-refresh tree.
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
