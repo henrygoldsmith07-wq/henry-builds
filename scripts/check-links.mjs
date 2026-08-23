@@ -32,11 +32,17 @@ const checkAllSources = process.argv.includes("--all");
 const SITE_URL = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
 
 let errors = 0;
+let warnings = 0;
 let checked = 0;
 
 function fail(msg) {
   console.error(`✗ ${msg}`);
   errors++;
+}
+
+function warn(msg) {
+  console.warn(`  ! ${msg}`);
+  warnings++;
 }
 
 const projects = fs
@@ -254,7 +260,8 @@ async function checkGithubPaths() {
       const exists = await pathExistsIn(repo, ref, decodeURIComponent(filePath));
       if (!exists) fail(`github path missing — ${url}`);
     } catch (error) {
-      fail(`could not verify github path — ${url} (${error.message})`);
+      // Access failures are not evidence failures.
+      warn(`could not verify github path this run — ${url} (${error.message})`);
     }
   }
 }

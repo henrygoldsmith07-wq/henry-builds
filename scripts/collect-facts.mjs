@@ -38,8 +38,9 @@ async function ghJson(url) {
   return res.json();
 }
 
-/** Scoped tokens 404 on sibling repos; anonymous retries then rate-limit. */
+/** Partial facts are worse than none: only collect with an authenticated token. */
 async function readable() {
+  if (!token) return false;
   try {
     await ghJson("https://api.github.com/repos/henrygoldsmith07-wq/arise");
     return true;

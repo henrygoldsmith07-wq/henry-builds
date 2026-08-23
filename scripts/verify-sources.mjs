@@ -20,18 +20,24 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { crossRepoReadable, pathExistsIn, resolveLocation } from "./lib/github-paths.mjs";
+import { crossRepoReadMode, pathExistsIn, resolveLocation } from "./lib/github-paths.mjs";
 
 const root = process.cwd();
 const checkAll = process.argv.includes("--all");
 
 let errors = 0;
+let warnings = 0;
 let checked = 0;
-let skippedByAccess = 0;
+let unverifiable = 0;
 
 function fail(msg) {
   console.error(`✗ ${msg}`);
   errors++;
+}
+
+function warn(msg) {
+  console.warn(`  ! ${msg}`);
+  warnings++;
 }
 
 const upstreamRaw = JSON.parse(fs.readFileSync(path.join(root, "registry/upstream.json"), "utf8"));
@@ -44,11 +50,11 @@ const files = fs
   .filter((f) => f.endsWith(".json"))
   .sort();
 
-// Degraded mode: a repo-scoped CI token cannot read the sibling repos at all.
-// Enforcing here would fail on every path for reasons that have nothing to do
-// with the evidence — so verify nothing and say exactly what was skipped.
-const canRead = await crossRepoReadable();
-if (!canRead) {
+// Access modes: "authenticated" enforces fully; "anonymous" enforces but
+// treats access errors as unverifiable (rate limits are not evidence); "none"
+// skips entirely. Only a genuinely-fetched-and-absent path is a failure.
+const readMode = await crossRepoReadMode();
+if (readMode === "none") {
   console.warn(
     "verify-sources: cross-repo GitHub reads are unavailable in this environment " +
       "(repo-scoped token / rate-limited anonymous). Skipping verification.\n" +
@@ -58,6 +64,9 @@ if (!canRead) {
     console.log("::warning::verify:sources skipped — no usable GitHub token (set REGISTRY_TOKEN)");
   }
   process.exit(0);
+}
+if (readMode === "anonymous") {
+  warn("running in anonymous mode — access errors count as unverifiable, not missing");
 }
 
 for (const file of files) {
@@ -124,13 +133,24 @@ for (const file of files) {
         );
       }
     } catch (error) {
-      fail(`${file}: ${where} → could not check ${location.repo}: ${error.message}`);
+      // Access failures (rate limits, transient 403/5xx) say nothing about the
+      // evidence. They are recorded as unverifiable and warned about — only a
+      // successfully-fetched tree that lacks the path is a hard failure.
+      unverifiable++;
+      warn(`${file}: ${where} → unverifiable this run (${error.message})`);
     }
   }
 }
 
 console.log(
   `verify-sources: ${checked} paths checked across ${files.length} case studies ` +
-    `(${checkAll ? "including" : "excluding"} archived sources), ${errors} missing`,
+    `(${checkAll ? "including" : "excluding"} archived sources), ${errors} missing, ` +
+    `${unverifiable} unverifiable`,
 );
+if (unverifiable > 0 && process.env.CI) {
+  console.log(
+    `::warning::${unverifiable} source paths could not be verified this run ` +
+      `(GitHub access) — set REGISTRY_TOKEN for full enforcement`,
+  );
+}
 process.exit(errors > 0 ? 1 : 0);

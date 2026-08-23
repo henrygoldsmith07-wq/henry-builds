@@ -117,9 +117,8 @@
           },
           {
             "kind": "ci",
-            "label": "emotion-tracker.yml",
-            "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/.github/workflows/emotion-tracker.yml",
-            "path": ".github/workflows/emotion-tracker.yml"
+            "label": "Last green CI run (workflow file since removed upstream)",
+            "href": "https://github.com/henrygoldsmith07-wq/emotion-tracker/actions/runs/32508709365"
           }
         ],
         "ledgerClaimId": "emotion-tracker-reflection-quality"
@@ -155,7 +154,8 @@
     "limitations": [
       "No user study and no clinician review of the hedged language the pipeline produces.",
       "Bias-flag thresholds (confidence ≥ 0.45) are engineering choices, not clinically validated cut-offs.",
-      "Longitudinal calibration assumes follow-up answers are self-reported honestly."
+      "Longitudinal calibration assumes follow-up answers are self-reported honestly.",
+      "The upstream CI workflow file was removed from the emotion-tracker repository on 2026-08-22; the stage-beta label rests on the last green run (2026-08-21) until it is restored."
     ],
     "lastVerifiedAt": "2026-08-21"
   }

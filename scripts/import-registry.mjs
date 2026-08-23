@@ -27,7 +27,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { crossRepoReadable } from "./lib/github-paths.mjs";
+import { crossRepoReadMode } from "./lib/github-paths.mjs";
 
 const execFileAsync = promisify(execFile);
 
@@ -519,12 +519,14 @@ async function main() {
   }
 
   // --- source status --------------------------------------------------------
-  // Deriving status needs cross-repo REST reads. A repo-scoped Actions token
-  // cannot do them at all, and guessing would mark every project archived —
-  // so in degraded mode the existing snapshot is kept, loudly.
+  // Deriving status needs RELIABLE cross-repo reads. Anonymous access is too
+  // rate-limited to distinguish "repo deleted" from "request dropped", and a
+  // wrong archive is data corruption — so derivation runs only with an
+  // authenticated token; otherwise the existing snapshot is kept, loudly.
   const statusPath = path.join(outDir, "source-status.json");
   let statuses;
-  if (await crossRepoReadable()) {
+  const readMode = await crossRepoReadMode();
+  if (readMode === "authenticated") {
     statuses = await deriveSourceStatuses(entries);
     fs.writeFileSync(statusPath, `${JSON.stringify({
       _generated: "Written by scripts/import-registry.mjs. Do not edit by hand.",
@@ -541,10 +543,10 @@ async function main() {
     }
   } else {
     if (fs.existsSync(statusPath)) {
-      log("cross-repo reads unavailable — keeping the existing source-status.json");
-      if (process.env.CI) {
-        console.log("::warning::source-status not refreshed — no usable GitHub token (set REGISTRY_TOKEN)");
-      }
+    log(`cross-repo reads not authenticated (${readMode}) — keeping the existing source-status.json`);
+    if (process.env.CI) {
+      console.log("::warning::source-status not refreshed — set REGISTRY_TOKEN to a PAT with repo read access");
+    }
     } else {
       fail("cannot derive source status and none exists yet — set GITHUB_TOKEN to a PAT with repo read access");
       return;

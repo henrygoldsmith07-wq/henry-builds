@@ -108,20 +108,38 @@ export async function pathExistsIn(repo, ref, claimedPath) {
 }
 
 /**
- * Can this process actually read repositories other than its own?
+ * Can this process read repositories other than its own, and how reliably?
  *
- * Inside Actions, the built-in GITHUB_TOKEN is scoped to the calling repo and
- * gets 404 for every other repository, while anonymous retries from shared
- * runner IPs usually die on rate limits. Probing one known-public repo tells
- * the callers whether to enforce or to degrade loudly.
+ * Returns:
+ *   "authenticated" — the token itself reads sibling repos (full enforcement)
+ *   "anonymous"     — the token is repo-scoped (404 on siblings) but anonymous
+ *                     reads work; enforcement is possible but rate-limit fragile
+ *   "none"          — neither works; callers must skip, not fail
+ *
+ * A single probe cannot tell sustained access from luck, so callers must still
+ * treat per-request access errors as "unverifiable", never as "missing".
  */
-export async function crossRepoReadable(probe = `${API}/repos/${MONOREPO}/commits/main`) {
+export async function crossRepoReadMode(probe = `${API}/repos/${MONOREPO}/commits/main`) {
   try {
     await api(probe);
-    return true;
+    return "authenticated";
   } catch {
-    return false;
+    // fall through to the anonymous test
   }
+  try {
+    const res = await fetch(probe, {
+      headers: headers(false),
+      signal: AbortSignal.timeout(30_000),
+    });
+    return res.ok ? "anonymous" : "none";
+  } catch {
+    return "none";
+  }
+}
+
+/** Back-compat wrapper. */
+export async function crossRepoReadable(probe) {
+  return (await crossRepoReadMode(probe)) !== "none";
 }
 
 /** Parse owner/repo, ref and path out of a github.com blob/tree URL. */
