@@ -219,11 +219,19 @@ async function deriveSourceStatuses(entries) {
       }
       const branch = info.defaultBranch;
       const sha = await commitSha(entry.repo, branch);
+      let access = "unknown";
+      try {
+        const meta = await fetchJson(`https://api.github.com/repos/${entry.repo}`);
+        access = meta.private ? "private" : "public";
+      } catch {
+        // visibility unknown without a token — recorded as such
+      }
       projects[study.slug] = {
         derived: "current",
         reason: `Source lives at ${entry.repo}@${branch}.`,
         repo: entry.repo,
         ref: branch,
+        access,
         ...(sha ? { sha, shaUrl: `https://github.com/${entry.repo}/commit/${sha}` } : {}),
       };
       continue;

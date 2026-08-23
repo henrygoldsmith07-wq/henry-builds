@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, ExternalLink, Github, Minus, Plus } from "lucide
 import { Link, useParams } from "react-router";
 import { ArchitectureDiagram } from "@/components/portfolio/ArchitectureDiagram";
 import { BenchmarkChart } from "@/components/portfolio/BenchmarkChart";
-import { ClaimItem, EvidenceRow, MetricCard } from "@/components/portfolio/Evidence";
+import { ClaimItem, EvidenceRow, MetricCard, SourceAccessContext } from "@/components/portfolio/Evidence";
 import { SourceVerificationRow } from "@/components/portfolio/EvidenceMeta";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
@@ -66,7 +66,8 @@ export default function CaseStudy() {
       <SiteHeader />
 
       <main id="main">
-        <article>
+        <SourceAccessContext.Provider value={project.sourceAccess === "private"}>
+          <article>
           {/* ---- header ---------------------------------------------------- */}
           <header className="mx-auto max-w-[1380px] px-5 pb-12 pt-28 sm:px-8 sm:pt-36 lg:px-12">
             <Link to="/projects" className="inline-link mb-10">
@@ -409,6 +410,7 @@ export default function CaseStudy() {
             )}
           </div>
         </article>
+        </SourceAccessContext.Provider>
 
         {/* ---- prev / next ------------------------------------------------- */}
         <nav

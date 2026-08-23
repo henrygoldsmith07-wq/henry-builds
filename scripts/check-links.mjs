@@ -153,7 +153,15 @@ if (fs.existsSync(distDir)) {
 async function collectEvidenceUrls() {
   const urls = new Set();
 
+  // Archived-source studies keep historical pointers that legitimately rot;
+  // their pages disclose the archival, so they are not alarm fodder.
+  const statusPath = path.join(root, "registry/source-status.json");
+  const statusBySlug = fs.existsSync(statusPath)
+    ? (JSON.parse(fs.readFileSync(statusPath, "utf8")).projects ?? {})
+    : {};
+
   for (const { data } of projects) {
+    if (!checkAllSources && statusBySlug[data.slug]?.derived !== "current") continue;
     const study = data.caseStudy ?? {};
     const evidence = [
       ...(study.architecture?.evidence ?? []),
@@ -171,27 +179,59 @@ async function collectEvidenceUrls() {
 
 async function checkExternalLinks() {
   const urls = await collectEvidenceUrls();
-  console.log(`check-links: HEAD-checking ${urls.size} external URLs`);
 
-  // Bounded concurrency: slow hosts must not serialise the whole run, and a
-  // hung request must not hang the job.
+  // Repos known to be private (from the generated source-status) 404 to
+  // anonymous HTML requests by definition. They are verified via the API
+  // instead and reported as access-limited, not broken.
+  const privateRepos = new Set();
+  const statusPath = path.join(root, "registry/source-status.json");
+  if (fs.existsSync(statusPath)) {
+    for (const entry of Object.values(JSON.parse(fs.readFileSync(statusPath, "utf8")).projects ?? {})) {
+      if (entry.access === "private" && entry.repo) privateRepos.add(entry.repo);
+    }
+  }
+  const repoOf = (url) => {
+    const m = url.match(/^https?:\/\/github\.com\/([^/]+\/[^/]+)/);
+    return m ? m[1] : null;
+  };
+
+  const token = (process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "").trim();
   const queue = [...urls];
   const worker = async () => {
     for (;;) {
       const url = queue.shift();
       if (!url) return;
       checked++;
+      const repo = repoOf(url);
+      const headers = { "user-agent": "Mozilla/5.0 (compatible; henry-builds-link-check)" };
+      if (token && (repo || url.includes("api.github.com"))) {
+        headers.authorization = `Bearer ${token}`;
+      }
       try {
+        if (repo && privateRepos.has(repo)) {
+          const res = await fetch(`https://api.github.com/repos/${repo}`, {
+            headers,
+            signal: AbortSignal.timeout(20_000),
+          });
+          if (res.ok) {
+            console.log(`  · private source exists (access-limited) — ${url}`);
+            continue;
+          }
+          fail(`private source unreachable even via API — ${url}`);
+          continue;
+        }
+        const isGithubHtml = /^https?:\/\/github\.com\//.test(url);
         let response = await fetch(url, {
-          method: "HEAD",
+          method: isGithubHtml ? "GET" : "HEAD",
           redirect: "follow",
+          headers,
           signal: AbortSignal.timeout(20_000),
         });
-        // Some hosts refuse HEAD but answer GET.
-        if (response.status === 403 || response.status === 405 || response.status === 429) {
+        if (!isGithubHtml && [403, 405, 429].includes(response.status)) {
           response = await fetch(url, {
             method: "GET",
             redirect: "follow",
+            headers,
             signal: AbortSignal.timeout(20_000),
           });
         }

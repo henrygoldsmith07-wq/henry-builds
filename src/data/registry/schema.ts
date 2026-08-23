@@ -390,6 +390,8 @@ export type SourceStatusEntry = {
   /** Commit SHA the source sits at as of the last import. */
   sha?: string;
   shaUrl?: string;
+  /** Whether the source repository is publicly readable. */
+  access?: "public" | "private" | "unknown";
 };
 
 export type SourceStatusSnapshot = {

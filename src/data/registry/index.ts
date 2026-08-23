@@ -167,6 +167,7 @@ function hydrate(project: Project): HydratedProject {
     sourceRef: statusEntry?.ref,
     sourceSha: statusEntry?.sha,
     sourceShaUrl: statusEntry?.shaUrl,
+    sourceAccess: statusEntry?.access ?? ("unknown" as const),
     sourceCheckedAt: statusBySlug[project.slug]
       ? sourceStatuses.checkedAt
       : undefined,
@@ -208,6 +209,8 @@ export type HydratedProject = Omit<Project, "sourceStatus"> & {
   sourceRef?: string;
   sourceSha?: string;
   sourceShaUrl?: string;
+  /** Public / private / unknown visibility of the source repository. */
+  sourceAccess: "public" | "private" | "unknown";
   sourceCheckedAt?: string;
   /** Graded claims for this product from the monorepo's evidence ledger. */
   ledgerClaims: LedgerClaim[];

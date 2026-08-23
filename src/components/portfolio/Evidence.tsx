@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import {
   Beaker,
   CheckCircle2,
@@ -5,12 +6,20 @@ import {
   FolderGit2,
   Globe,
   Image as ImageIcon,
+  Lock,
   Video,
 } from "lucide-react";
 import type { Claim, Evidence, LedgerClaim, Metric } from "@/data/registry/schema";
 import { FreshnessChip, LedgerBadge } from "@/components/portfolio/EvidenceMeta";
 
 const FRESH_KINDS = new Set(["screenshot", "video", "benchmark"]);
+
+/**
+ * Set once per case study: when the source repository is private, every
+ * evidence chip discloses it. A reader who cannot open a link deserves to
+ * know why before they click.
+ */
+const PrivateSourceContext = createContext(false);
 
 const REPO_BASE = "https://github.com/henrygoldsmith07-wq/Claude-Code";
 
@@ -44,13 +53,15 @@ function evidenceHref(item: Evidence): string | undefined {
 export function EvidenceChip({ item }: { item: Evidence }) {
   const Icon = evidenceIcon[item.kind];
   const href = evidenceHref(item);
-  const label = `${evidenceNoun[item.kind]}: ${item.label}`;
+  const privateSource = useContext(PrivateSourceContext);
+  const label = `${evidenceNoun[item.kind]}: ${item.label}${privateSource ? " (private source)" : ""}`;
 
   if (!href) {
     return (
       <span className="evidence-chip" title={label}>
         <Icon className="size-3" aria-hidden="true" />
         {item.label}
+        {privateSource && <Lock className="size-3" aria-label="private source" />}
       </span>
     );
   }
@@ -62,12 +73,16 @@ export function EvidenceChip({ item }: { item: Evidence }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
+      title={privateSource ? `${label} — sign in to GitHub to view it` : undefined}
     >
       <Icon className="size-3" aria-hidden="true" />
       {item.label}
+      {privateSource && <Lock className="size-3" aria-label="private source" />}
     </a>
   );
 }
+
+export { PrivateSourceContext as SourceAccessContext };
 
 export function EvidenceRow({ items }: { items: Evidence[] }) {
   if (!items?.length) return null;
