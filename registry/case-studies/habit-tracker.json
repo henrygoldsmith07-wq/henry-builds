@@ -1,0 +1,157 @@
+{
+  "slug": "habit-tracker",
+  "upstreamId": "habit-tracker",
+  "name": "Habit",
+  "tagline": "A quiet habit tracker using weekly targets and 8-week history instead of daily chains",
+  "summary": "Habit is a single-person check-in log built with Next.js route handlers and Postgres (with PGlite for local dev). It uses weekly targets rather than daily streaks, archives habits instead of deleting them, and shows an 8-week history table. Auth is first-party with salted scrypt and opaque session t",
+  "stage": "research",
+  "category": "Personal productivity tool",
+  "tags": [
+    "Next.js",
+    "Postgres",
+    "PGlite",
+    "TypeScript",
+    "Playwright"
+  ],
+  "accent": "#dce9ec",
+  "featured": false,
+  "publish": false,
+  "publishGate": "AI-drafted scaffold — a human must author the narrative, verify every claim against the code, and earn a stage label before this publishes.",
+  "aiDraft": {
+    "model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "provider": "nvidia",
+    "draftedAt": "2026-08-23T16:11:59.837Z",
+    "evidenceVerified": 7,
+    "evidenceDropped": 0
+  },
+  "authorship": {
+    "role": "DRAFT — authorship statement must be written by a human.",
+    "built": [
+      "Next.js route handlers for auth, data, and account deletion (src/app/api/*)",
+      "Weekly-target streak semantics and DST-immune Sunday–Saturday week arithmetic",
+      "Offline replay engine with queue supersession and five-retry drop policy (src/lib/sync.ts)",
+      "First-party auth: salted scrypt, opaque 32-byte session tokens, SHA-256 storage, per-IP rate limiting",
+      "PGlite in-process fallback for zero-config local development and test isolation",
+      "Opt-in Pulse mirror to localStorage with schemaVersion, placeholder-free rows, and timezone provenance"
+    ],
+    "notBuilt": [
+      "Next.js framework",
+      "Postgres / PGlite (WASM Postgres)",
+      "scrypt (via Node crypto or library)",
+      "Playwright (E2E test runner)",
+      "ESLint / TypeScript (tooling)"
+    ]
+  },
+  "repo": {
+    "label": "habit-tracker",
+    "href": "https://github.com/henrygoldsmith07-wq/habit-tracker",
+    "path": "."
+  },
+  "caseStudy": {
+    "problem": "Most habit apps optimize for initial engagement with daily chains that punish the first miss, causing abandonment. Users need a tracker that treats a missed day as information, not failure, and supports legitimate part-week habits.",
+    "approach": "Weekly targets (e.g., 3×/week) with streaks counted in consecutive weeks met. The current week stays alive until it ends (Sunday–Saturday, DST-immune local calendar days). Habits archive with full history; deletion is explicit. Offline writes queue in IndexedDB, replay oldest-first, and supersede stale entries. First-party auth uses salted scrypt, httpOnly SameSite=Lax cookies storing only SHA-256 of tokens, with per-IP rate limiting. PGlite runs in-process when DATABASE_URL is absent, enabling zero-config local dev and tests. Schema changes are deliberate migrations (supabase/migrations/0001_initial_schema.sql). Pulse sharing is opt-in, mirroring to localStorage with schema versioning and deterministic ordering.",
+    "visuals": [
+      {
+        "kind": "illustration",
+        "preview": "generic",
+        "alt": "Placeholder illustration — replace with a real capture.",
+        "caption": "Placeholder illustration. Not a screenshot — no capture of the running app exists yet."
+      }
+    ],
+    "metrics": [],
+    "outcomes": [
+      {
+        "statement": "Weekly-target streak model keeps a habit's streak alive until the week ends, so a 3×/week habit can maintain a streak despite mid-week misses.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — Scheduling semantics",
+            "path": "README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/habit-tracker/blob/main/README.md"
+          },
+          {
+            "kind": "repo",
+            "label": "Sync/replay rules",
+            "path": "src/lib/sync.ts",
+            "href": "https://github.com/henrygoldsmith07-wq/habit-tracker/blob/main/src/lib/sync.ts"
+          }
+        ]
+      },
+      {
+        "statement": "Zero-config local development and unit tests run against in-process PGlite with no external database service required.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — Stack / Running it",
+            "path": "README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/habit-tracker/blob/main/README.md"
+          },
+          {
+            "kind": "doc",
+            "label": "README — Tests",
+            "path": "README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/habit-tracker/blob/main/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "First-party auth stores only SHA-256 of opaque session tokens, scopes every query by user id, and rate-limits credential endpoints.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — Stack / First-party auth",
+            "path": "README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/habit-tracker/blob/main/README.md"
+          }
+        ]
+      },
+      {
+        "statement": "Offline edits queue locally, replay oldest-first, supersede stale entries, and drop after five failures without blocking the queue.",
+        "evidence": [
+          {
+            "kind": "doc",
+            "label": "README — Scheduling semantics",
+            "path": "README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/habit-tracker/blob/main/README.md"
+          },
+          {
+            "kind": "repo",
+            "label": "Sync implementation",
+            "path": "src/lib/sync.ts",
+            "href": "https://github.com/henrygoldsmith07-wq/habit-tracker/blob/main/src/lib/sync.ts"
+          }
+        ]
+      }
+    ],
+    "tradeoffs": [
+      {
+        "choice": "PGlite fallback for local dev instead of a shared dev database",
+        "gained": "Zero-config onboarding; tests never reach a real database; CI needs no Postgres service",
+        "gaveUp": "Serverless deployments without DATABASE_URL lose all data between invocations because the WASM database lives on an ephemeral filesystem"
+      },
+      {
+        "choice": "Weekly targets (Sunday–Saturday) instead of rolling 7-day windows",
+        "gained": "Clear calendar alignment; streaks count whole weeks met; DST-immune local-day arithmetic",
+        "gaveUp": "Users who think in rolling windows must adapt to fixed calendar weeks"
+      },
+      {
+        "choice": "Opt-in Pulse mirror via localStorage rather than server-to-server sync",
+        "gained": "No shared database credentials; user controls sharing at the source; works offline",
+        "gaveUp": "Pulse only sees data from this browser/device; no cross-device sync of the mirror"
+      }
+    ],
+    "failedApproaches": [],
+    "lessons": [
+      "In-process PGlite makes the test suite hermetic and fast, but the same fallback is dangerous in serverless if DATABASE_URL is missing — the README now warns explicitly.",
+      "Weekly targets with a live current week reduce the 'first miss' abandonment signal without gamification.",
+      "Storing only SHA-256 of session tokens limits blast radius of a database leak while keeping stateless cookie validation."
+    ],
+    "limitations": [
+      "Single-user accounts only — no shared habits, families, or teams.",
+      "PGlite fallback is for development only; production requires a managed Postgres (e.g., Supabase pooler) and deliberate migrations.",
+      "Offline queue is per-browser; multi-device offline edits converge only when each device comes online.",
+      "Pulse mirror is localStorage-bound to one origin and one browser; clearing site data breaks the mirror until re-enabled."
+    ],
+    "lastVerifiedAt": "2026-08-23"
+  }
+}

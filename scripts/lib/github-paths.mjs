@@ -11,7 +11,7 @@
 export const MONOREPO = "henrygoldsmith07-wq/Claude-Code";
 const API = "https://api.github.com";
 
-const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "";
+const token = (process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "").trim();
 
 function headers(withAuth = true) {
   const h = { "user-agent": "henry-builds-evidence-check" };
@@ -115,7 +115,7 @@ export async function pathExistsIn(repo, ref, claimedPath) {
  * runner IPs usually die on rate limits. Probing one known-public repo tells
  * the callers whether to enforce or to degrade loudly.
  */
-export async function crossRepoReadable(probe = `${MONOREPO}/commits/main`) {
+export async function crossRepoReadable(probe = `${API}/repos/${MONOREPO}/commits/main`) {
   try {
     await api(probe);
     return true;

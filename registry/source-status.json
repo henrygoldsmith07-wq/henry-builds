@@ -1,6 +1,6 @@
 {
   "_generated": "Written by scripts/import-registry.mjs. Do not edit by hand.",
-  "checkedAt": "2026-08-22T05:53:55.829Z",
+  "checkedAt": "2026-08-23T16:12:55.569Z",
   "projects": {
     "agent-os-control-room": {
       "derived": "archived-source",
@@ -11,16 +11,16 @@
       "reason": "Source lives at henrygoldsmith07-wq/arise@main.",
       "repo": "henrygoldsmith07-wq/arise",
       "ref": "main",
-      "sha": "ff798b7d4221d381b32d714a422d396aec980fa7",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/arise/commit/ff798b7d4221d381b32d714a422d396aec980fa7"
+      "sha": "fec1b75ab0602557c69478272f5263f74bd80c1c",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/arise/commit/fec1b75ab0602557c69478272f5263f74bd80c1c"
     },
     "daily-debate": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/daily-debate@main.",
       "repo": "henrygoldsmith07-wq/daily-debate",
       "ref": "main",
-      "sha": "ac71121a0c9c5a8f9aa48a93c90a64761f9c925e",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/commit/ac71121a0c9c5a8f9aa48a93c90a64761f9c925e"
+      "sha": "0b85115a62ed79e06d41b94b3fa475c4fafa3ca6",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/commit/0b85115a62ed79e06d41b94b3fa475c4fafa3ca6"
     },
     "dictation-typer": {
       "derived": "archived-source",
@@ -34,13 +34,21 @@
       "sha": "46b03d595efd21cf3ceb93a63c514484be323f61",
       "shaUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/commit/46b03d595efd21cf3ceb93a63c514484be323f61"
     },
+    "habit-tracker": {
+      "derived": "current",
+      "reason": "Source lives at henrygoldsmith07-wq/habit-tracker@main.",
+      "repo": "henrygoldsmith07-wq/habit-tracker",
+      "ref": "main",
+      "sha": "b1dcf37a2aa84efd6f5832e94b42c4ad6f9665a8",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/habit-tracker/commit/b1dcf37a2aa84efd6f5832e94b42c4ad6f9665a8"
+    },
     "le-studio-french": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/french-practice@main.",
       "repo": "henrygoldsmith07-wq/french-practice",
       "ref": "main",
-      "sha": "afcd86ccf05cd16a9c293e17f3e3f08fb260a638",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/french-practice/commit/afcd86ccf05cd16a9c293e17f3e3f08fb260a638"
+      "sha": "bd884ab3049ed5977e3e65f00f942713951c0622",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/french-practice/commit/bd884ab3049ed5977e3e65f00f942713951c0622"
     },
     "meeting-recorder": {
       "derived": "archived-source",
@@ -59,40 +67,40 @@
       "reason": "Source lives at henrygoldsmith07-wq/pulse@main.",
       "repo": "henrygoldsmith07-wq/pulse",
       "ref": "main",
-      "sha": "f8f5803251ca6764e4d22574580fcdaecd838a2c",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/pulse/commit/f8f5803251ca6764e4d22574580fcdaecd838a2c"
+      "sha": "08c6d914d0180feca209099f111d7f1421101660",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/pulse/commit/08c6d914d0180feca209099f111d7f1421101660"
     },
     "rapport": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/rapport@main.",
       "repo": "henrygoldsmith07-wq/rapport",
       "ref": "main",
-      "sha": "2a015caf168c4aaf1ef10c48b28322d14382ee16",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/rapport/commit/2a015caf168c4aaf1ef10c48b28322d14382ee16"
+      "sha": "d741c326d082dede5452e6967662ae1b4f0deff2",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/rapport/commit/d741c326d082dede5452e6967662ae1b4f0deff2"
     },
     "reflect": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/emotion-tracker@main.",
       "repo": "henrygoldsmith07-wq/emotion-tracker",
       "ref": "main",
-      "sha": "b348d8320b2d2dc6d9c20bddb67a0f03be3b57d5",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/commit/b348d8320b2d2dc6d9c20bddb67a0f03be3b57d5"
+      "sha": "69611623ffbb3ad73e9e90400f9fb6954609b541",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/commit/69611623ffbb3ad73e9e90400f9fb6954609b541"
     },
     "revise": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/revise@main.",
       "repo": "henrygoldsmith07-wq/revise",
       "ref": "main",
-      "sha": "edf4e294aae1f0d5a8375fe1531a0957f72b143c",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/revise/commit/edf4e294aae1f0d5a8375fe1531a0957f72b143c"
+      "sha": "765b869008fa797519b86bdfa5ac5f24a844e489",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/revise/commit/765b869008fa797519b86bdfa5ac5f24a844e489"
     },
     "rtk": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/rtk@main.",
       "repo": "henrygoldsmith07-wq/rtk",
       "ref": "main",
-      "sha": "7d8c43e340c1a4357aea4ad75ecdb9a1b682f128",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/rtk/commit/7d8c43e340c1a4357aea4ad75ecdb9a1b682f128"
+      "sha": "eb8d03e744f6a5e981c4f5d854e88e17925d6793",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/rtk/commit/eb8d03e744f6a5e981c4f5d854e88e17925d6793"
     },
     "world-news": {
       "derived": "archived-source",

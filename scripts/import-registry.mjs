@@ -40,7 +40,7 @@ const root = process.cwd();
 const outDir = path.join(root, "registry");
 const wantCi = process.argv.includes("--ci");
 const allowEmpty = process.argv.includes("--allow-empty");
-const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "";
+const token = (process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "").trim();
 const mode = token ? "authenticated" : "anonymous";
 
 function log(msg) {

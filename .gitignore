@@ -32,3 +32,7 @@ test-results/
 # tests/*-snapshots/ are committed on purpose.
 **/*-actual.png
 **/*-diff.png
+
+# Local secrets (API keys)
+.env
+.env.*
