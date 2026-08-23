@@ -120,11 +120,17 @@ export async function pathExistsIn(repo, ref, claimedPath) {
  * treat per-request access errors as "unverifiable", never as "missing".
  */
 export async function crossRepoReadMode(probe = `${API}/repos/${MONOREPO}/commits/main`) {
-  try {
-    await api(probe);
-    return "authenticated";
-  } catch {
-    // fall through to the anonymous test
+  // "authenticated" must mean a WORKING TOKEN, not an anonymous success —
+  // with no token, api() is already anonymous and one lucky 200 must never
+  // unlock enforcement.
+  const token = (process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "").trim();
+  if (token) {
+    try {
+      await api(probe);
+      return "authenticated";
+    } catch {
+      // token present but rejected/limited — fall through
+    }
   }
   try {
     const res = await fetch(probe, {

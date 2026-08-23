@@ -12,7 +12,6 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 
 const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
@@ -46,20 +45,17 @@ const projects = fs.existsSync(caseStudyDir)
   : [];
 
 /**
- * A lastmod that changes on every build trains crawlers to distrust it.
- * Prefer the case-study file's last commit date (stable until the content
- * actually changes); fall back to the upstream import date.
+ * A lastmod that changes on every build trains crawlers to distrust it, and
+ * git-derived dates race the commit that carries them. Use the case study's
+ * own authored verification date — it changes exactly when the claims do.
  */
 function lastmodFor(file) {
   try {
-    const date = execFileSync(
-      "git",
-      ["log", "-1", "--format=%cs", "--", `registry/case-studies/${file}`],
-      { encoding: "utf8" },
-    ).trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
+    const study = JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8"));
+    const verified = study.caseStudy?.lastVerifiedAt;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(verified)) return verified;
   } catch {
-    // not a git checkout or git missing — fall through
+    // unreadable study — fall through
   }
   return undefined;
 }
