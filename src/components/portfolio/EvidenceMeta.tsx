@@ -1,5 +1,12 @@
 import { CalendarCheck, FlaskConical, GitCommitHorizontal, ShieldQuestion } from "lucide-react";
-import type { Evidence, LedgerClaim, SourceStatus } from "@/data/registry/schema";
+import type {
+  DeployFact,
+  Evidence,
+  LedgerClaim,
+  ReleaseFact,
+  SourceStatus,
+  VulnerabilityFact,
+} from "@/data/registry/schema";
 import { sourceStatusCopy } from "@/data/registry/schema";
 
 const gradeClass: Record<string, string> = {
@@ -89,9 +96,9 @@ export function FreshnessChip({ item }: { item: Evidence }) {
 }
 
 /**
- * The per-project verification strip: where the source sits right now, when CI
- * last went green against it, and when a human last checked the claims.
- * Every date on here is generated; none is hand-written.
+ * The per-project verification strip: where the source sits right now, what is
+ * actually deployed, when CI last went green against it, and when a human last
+ * checked the claims. Every value on it is generated; none is hand-written.
  */
 export function SourceVerificationRow({
   status,
@@ -100,6 +107,9 @@ export function SourceVerificationRow({
   shaUrl,
   checkedAt,
   ci,
+  deploy,
+  release,
+  vulnerabilities,
 }: {
   status: SourceStatus;
   statusReason?: string;
@@ -115,8 +125,12 @@ export function SourceVerificationRow({
         runUrl?: string;
       }
     | undefined;
+  deploy?: DeployFact;
+  release?: ReleaseFact;
+  vulnerabilities?: VulnerabilityFact;
 }) {
   const copy = sourceStatusCopy[status];
+  const deployedBehind = deploy?.upToDate === false;
   return (
     <dl className="verification-row" aria-label="Source verification state">
       <div>
@@ -138,6 +152,41 @@ export function SourceVerificationRow({
           )}
         </dd>
       </div>
+      {deploy && (
+        <div>
+          <dt>Deployment</dt>
+          <dd>
+            {deploy.state === "none" ? (
+              <span className="text-muted-foreground">not deployed</span>
+            ) : (
+              <>
+                {deploy.state ?? "?"}
+                {deploy.sha && (
+                  <>
+                    {" @ "}
+                    {deploy.url ? (
+                      <a href={deploy.url} target="_blank" rel="noopener noreferrer" className="inline-link">
+                        {deploy.sha}
+                      </a>
+                    ) : (
+                      deploy.sha
+                    )}
+                  </>
+                )}
+                {deployedBehind && (
+                  <span
+                    className="freshness-stale"
+                    title={`Repository HEAD (${sha?.slice(0, 7)}) is ahead of the deployment`}
+                  >
+                    {" "}
+                    · behind HEAD
+                  </span>
+                )}
+              </>
+            )}
+          </dd>
+        </div>
+      )}
       <div>
         <dt>Last green CI</dt>
         <dd>
@@ -156,6 +205,30 @@ export function SourceVerificationRow({
           )}
         </dd>
       </div>
+      {release && (
+        <div>
+          <dt>Release</dt>
+          <dd>
+            {release.url ? (
+              <a href={release.url} target="_blank" rel="noopener noreferrer" className="inline-link">
+                {release.tag}
+              </a>
+            ) : (
+              release.tag
+            )}
+          </dd>
+        </div>
+      )}
+      {vulnerabilities && (
+        <div>
+          <dt>Dependabot</dt>
+          <dd title={vulnerabilities.unavailable}>
+            {typeof vulnerabilities.open === "number"
+              ? `${vulnerabilities.open} open`
+              : "untracked"}
+          </dd>
+        </div>
+      )}
       <div>
         <dt>Sources checked</dt>
         <dd>{formatDate(checkedAt) ?? "—"}</dd>

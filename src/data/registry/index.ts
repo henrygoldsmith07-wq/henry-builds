@@ -2,6 +2,8 @@ import type {
   CiFacts,
   CiFactsFile,
   EvidenceLedgerFile,
+  FactsHistoryFile,
+  FactsSnapshot,
   LedgerClaim,
   LedgerStatus,
   Metric,
@@ -17,6 +19,7 @@ import upstreamRaw from "../../../registry/upstream.json";
 import ciFactsRaw from "../../../registry/ci-facts.json";
 import evidenceLedgerRaw from "../../../registry/evidence-ledger.json";
 import sourceStatusRaw from "../../../registry/source-status.json";
+import factsHistoryRaw from "../../../registry/facts-history.json";
 
 /**
  * Case studies are hand-authored, one file per project. Loading them by glob
@@ -33,6 +36,7 @@ const upstream = upstreamRaw as unknown as UpstreamSnapshot & {
 const ciFactsFile = ciFactsRaw as unknown as CiFactsFile;
 const evidenceLedger = evidenceLedgerRaw as unknown as EvidenceLedgerFile;
 const sourceStatuses = sourceStatusRaw as unknown as SourceStatusSnapshot;
+const factsFile = factsHistoryRaw as unknown as FactsHistoryFile;
 
 const ciFacts: CiFacts = ciFactsFile.facts ?? {};
 
@@ -168,6 +172,9 @@ function hydrate(project: Project): HydratedProject {
       : undefined,
     ledgerClaims: claimsByProduct.get(project.upstreamId) ?? [],
     ledgerImportedAt: evidenceLedger.importedAt,
+    facts: factsFile.latest?.[project.upstreamId],
+    factsHistory: factsFile.history?.[project.upstreamId] ?? [],
+    factsGeneratedAt: factsFile.generatedAt,
   };
 }
 
@@ -205,6 +212,11 @@ export type HydratedProject = Omit<Project, "sourceStatus"> & {
   /** Graded claims for this product from the monorepo's evidence ledger. */
   ledgerClaims: LedgerClaim[];
   ledgerImportedAt?: string;
+  /** Latest operational snapshot (CI, deployment, release, vulnerabilities). */
+  facts?: FactsSnapshot;
+  /** Dated snapshots powering trend charts. */
+  factsHistory: FactsSnapshot[];
+  factsGeneratedAt?: string;
 };
 
 export function ledgerClaimOf(
@@ -275,6 +287,7 @@ export const registryMeta = {
   ledgerImportedAt: evidenceLedger.importedAt,
   ledgerClaimCount: evidenceLedger.claims?.length ?? 0,
   sourcesCheckedAt: sourceStatuses.checkedAt,
+  factsGeneratedAt: factsFile.generatedAt,
 };
 
 export * from "./schema";

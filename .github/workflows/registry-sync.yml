@@ -49,6 +49,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: bun run verify:sources
 
+      - name: Collect deployment, release and vulnerability facts
+        env:
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: bun run registry:facts
+
       - name: Regenerate OG cards and sitemap
         env:
           SITE_URL: ${{ vars.SITE_URL }}

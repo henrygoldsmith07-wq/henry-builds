@@ -433,6 +433,50 @@ export type EvidenceLedgerFile = {
   claims: LedgerClaim[];
 };
 
+/** Where this project is deployed right now, from its repo's deployments API. */
+export type DeployFact = {
+  state?: string;
+  environment?: string;
+  /** Short SHA of what is actually deployed. */
+  sha?: string;
+  url?: string;
+  createdAt?: string;
+  /** True when the deployed commit equals the repository HEAD at collection time. */
+  upToDate?: boolean;
+};
+
+export type ReleaseFact = {
+  tag: string;
+  url?: string;
+  publishedAt?: string;
+};
+
+export type VulnerabilityFact = {
+  open?: number;
+  unavailable?: string;
+};
+
+/** One dated observation of a project's operational state. */
+export type FactsSnapshot = {
+  date: string;
+  sha?: string;
+  ci?: {
+    conclusion?: string;
+    tests?: number;
+    lastGreenAt?: string;
+  };
+  deploy?: DeployFact;
+  release?: ReleaseFact;
+  vulnerabilities?: VulnerabilityFact;
+};
+
+/** The whole generated facts-history.json wrapper. */
+export type FactsHistoryFile = {
+  generatedAt?: string;
+  latest: Record<string, FactsSnapshot>;
+  history: Record<string, FactsSnapshot[]>;
+};
+
 /**
  * Stage is not a free choice. These are the conditions the validator enforces,
  * so the label on the site always means the same thing.

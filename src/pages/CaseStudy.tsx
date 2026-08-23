@@ -8,6 +8,7 @@ import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { SourceBadge, StageBadge } from "@/components/portfolio/StageBadge";
+import { TestTrend } from "@/components/portfolio/TestTrend";
 import NotFound from "@/pages/NotFound";
 import { getProject, ledgerClaimOf, projects } from "@/data/registry";
 
@@ -144,6 +145,9 @@ export default function CaseStudy() {
               shaUrl={project.sourceShaUrl}
               checkedAt={project.sourceCheckedAt}
               ci={project.ci}
+              deploy={project.facts?.deploy}
+              release={project.facts?.release}
+              vulnerabilities={project.facts?.vulnerabilities}
             />
 
             {/* ---- what I built -------------------------------------------- */}
@@ -281,6 +285,11 @@ export default function CaseStudy() {
                 {study.metrics.some((metric) => typeof metric.chart === "number") && (
                   <div className="mt-10 border border-border p-6 sm:p-8">
                     <BenchmarkChart metrics={study.metrics} />
+                  </div>
+                )}
+                {project.factsHistory.length >= 2 && (
+                  <div className="mt-10 border border-border p-6 sm:p-8">
+                    <TestTrend history={project.factsHistory} />
                   </div>
                 )}
               </Section>

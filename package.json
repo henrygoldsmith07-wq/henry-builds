@@ -13,8 +13,10 @@
 
     "registry:import": "node scripts/import-registry.mjs",
     "registry:import:ci": "node scripts/import-registry.mjs --ci",
+    "registry:facts": "node scripts/collect-facts.mjs",
     "registry:validate": "node scripts/validate-registry.mjs",
     "verify:sources": "node scripts/verify-sources.mjs",
+    "record:bundle": "node scripts/record-bundle.mjs",
 
     "og": "node scripts/generate-og.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",

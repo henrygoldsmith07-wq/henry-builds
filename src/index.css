@@ -257,6 +257,7 @@
 .dark .freshness-stale { color: oklch(0.78 0.13 60); }
 
 .benchmark-chart ul { list-style: none; }
+.test-trend svg { color: var(--muted-foreground); display: block; }
 
 .claim-item { background: var(--background); padding: 20px 24px; }
 .metric-card { background: var(--background); padding: 24px; }

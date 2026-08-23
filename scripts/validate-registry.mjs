@@ -41,6 +41,8 @@ const STAGE_EVIDENCE = {
 const FRESH_KINDS = new Set(["screenshot", "video", "benchmark"]);
 const MAX_EVIDENCE_AGE_DAYS = 90;
 const MAX_VERIFICATION_AGE_DAYS = 365;
+/** Operational facts (CI/deploy snapshots) older than this stop being news. */
+const MAX_FACTS_AGE_DAYS = 14;
 
 /** Kinds whose very point is that CI ran them — empty facts are suspicious. */
 const CI_DEPENDENT_KINDS = new Set(["ci", "benchmark"]);
@@ -489,6 +491,19 @@ for (const file of files) {
         `${id}: claims were last verified against code ${age} days ago — re-verify before publishing`,
       );
     }
+  }
+
+  // --- facts freshness: operational data must keep flowing -----------------
+  const fact = ciFactsById[project.upstreamId];
+  if (
+    derivedStatus === "current" &&
+    project.stage !== "research" &&
+    ciFactsFile?.importedAt &&
+    daysSince(ciFactsFile.importedAt) > MAX_FACTS_AGE_DAYS
+  ) {
+    warn(
+      `${id}: CI facts are older than ${MAX_FACTS_AGE_DAYS} days — run registry:import --ci`,
+    );
   }
 
 // --- insight lifecycle states must be checkable ------------------------
