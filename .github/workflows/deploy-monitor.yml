@@ -3,8 +3,11 @@ name: Deployment monitor
 # Probes the live site on a schedule and opens an issue when it breaks.
 #
 # CI proves the build is good; this proves what is actually served is good.
-# Those come apart in the ways that matter most — a bad rewrite rule, an expired
-# certificate, a deploy that silently served the previous build.
+# Those come apart in the ways that matter most — a bad rewrite rule, an
+# expired certificate, a deploy that silently served the previous build.
+# It also watches evidence freshness: if ci-facts stop refreshing (a dead
+# REGISTRY_TOKEN, say), the site keeps displaying old verification data and
+# this monitor raises the alarm instead of letting it slide.
 #
 # The issue is the alarm, not a diary: a repeat failure only comments when the
 # failure signature changes, so a real outage cannot hide under six hours of
@@ -35,19 +38,48 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      # Facts older than three days mean the sync pipeline has not
+      # authenticated since then; the site is showing stale CI/deploy data.
+      - name: Measure evidence-facts freshness
+        id: facts
+        run: |
+          ts=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('registry/ci-facts.json','utf8')).importedAt||'')}catch{console.log('')}")
+          if [ -z "$ts" ]; then
+            echo "age_days=999" >> "$GITHUB_OUTPUT"
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          age=$(( ( $(date -u +%s) - $(date -u -d "$ts" +%s) ) / 86400 ))
+          echo "age_days=$age" >> "$GITHUB_OUTPUT"
+          if [ "$age" -gt 3 ]; then
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Probe live routes, assets and metadata
         id: probe
         env:
           SITE_URL: ${{ vars.SITE_URL }}
+          FACTS_STALE: ${{ steps.facts.outputs.stale }}
+          FACTS_AGE_DAYS: ${{ steps.facts.outputs.age_days }}
         run: |
           set +e
           bun run scripts/probe-deployment.mjs > probe.log 2>&1
           status=$?
           set -e
           cat probe.log
-          # The signature is the set of failing lines — identical failures
-          # hash identically, new failures do not.
-          sig=$(grep '^✗' probe.log | sort | sha256sum | cut -d' ' -f1)
+          # The signature is the set of failing lines plus the facts-staleness
+          # marker — identical failures hash identically, new failures do not,
+          # and recovery from a stale-facts state re-opens the conversation.
+          sig=$(
+            {
+              grep '^✗' probe.log | sort
+              if [ "$FACTS_STALE" = "true" ]; then
+                echo "facts-stale:${FACTS_AGE_DAYS}d"
+              fi
+            } | sha256sum | cut -d' ' -f1
+          )
           echo "status=$status" >> "$GITHUB_OUTPUT"
           echo "signature=$sig" >> "$GITHUB_OUTPUT"
           exit $status
@@ -69,6 +101,9 @@ jobs:
       - name: Reconcile the deployment issue (open, update, or close)
         if: always()
         uses: actions/github-script@v7
+        env:
+          FACTS_STALE: ${{ steps.facts.outputs.stale }}
+          FACTS_AGE_DAYS: ${{ steps.facts.outputs.age_days }}
         with:
           script: |
             const fs = require("fs");
@@ -76,7 +111,8 @@ jobs:
             const probeStatus = `${{ steps.probe.outputs.status }}`;
             const probeFailed = probeStatus === "1";
             const signature = `${{ steps.probe.outputs.signature }}`;
-            const title = "Deployment probe failing";
+            const factsStale = process.env.FACTS_STALE === "true";
+            const title = "Deployment or evidence alarm";
 
             const sections = [];
             if (probeFailed) {
@@ -84,6 +120,15 @@ jobs:
                 "## Probe output\n\n```\n" +
                   fs.readFileSync("probe.log", "utf8").slice(0, 30000) +
                   "\n```",
+              );
+            }
+            if (factsStale) {
+              sections.push(
+                "## Evidence facts stale (" + process.env.FACTS_AGE_DAYS + " days)\n\n" +
+                  "`registry/ci-facts.json` has not refreshed in over three days. " +
+                  "The scheduled registry-sync either failed or ran without a usable " +
+                  "`REGISTRY_TOKEN` — check that workflow's recent runs. Until it " +
+                  "recovers, the site is displaying old CI/deploy verification data.",
               );
             }
             let brokenLinks = 0;
@@ -99,7 +144,7 @@ jobs:
               }
             } catch {}
 
-            const healthy = !probeFailed && brokenLinks === 0;
+            const healthy = !probeFailed && brokenLinks === 0 && !factsStale;
 
             const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -108,6 +153,24 @@ jobs:
               labels: "deployment",
               per_page: 100,
             });
+            // Close legacy titles from before the alarm covered facts too.
+            for (const issue of existing.data) {
+              if (issue.title !== title) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body: "Superseded by the combined deployment/evidence alarm.",
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: "closed",
+                  state_reason: "not_planned",
+                });
+              }
+            }
             const open = existing.data.find((issue) => issue.title === title);
 
             // Healthy + no open issue: nothing to do.
@@ -126,9 +189,9 @@ jobs:
             if (healthy && open) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
-                repo: context.repo.repo,
+                repo: context.repo.owner ? context.repo.repo : context.repo.repo,
                 issue_number: open.number,
-                body: `Probe passed and all evidence links resolve — closing.\n\n${body}`,
+                body: `Probe passed, evidence facts are fresh, and all evidence links resolve — closing.\n\n${body}`,
               });
               await github.rest.issues.update({
                 owner: context.repo.owner,
