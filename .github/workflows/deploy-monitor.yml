@@ -189,7 +189,7 @@ jobs:
             if (healthy && open) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
-                repo: context.repo.owner ? context.repo.repo : context.repo.repo,
+                repo: context.repo.repo,
                 issue_number: open.number,
                 body: `Probe passed, evidence facts are fresh, and all evidence links resolve — closing.\n\n${body}`,
               });
