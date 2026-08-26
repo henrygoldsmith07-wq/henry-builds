@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   verify:
-    name: Types, lint, registry, sources, claims, build, links
+    name: Types, lint, registry, sources, claims, evidence tests, build, links
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +54,11 @@ jobs:
 
       - name: Audit public claims
         run: bun run audit:claims
+
+      # The gates above are themselves code. These subprocess scenarios prove
+      # the gate logic still catches what it exists to catch.
+      - name: Test the evidence machinery
+        run: bun run test:evidence
 
       - name: Type-check
         run: bunx tsc -b
