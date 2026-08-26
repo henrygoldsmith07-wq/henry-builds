@@ -5,6 +5,10 @@ name: Registry sync
 # the portfolio track the ecosystem instead of drifting from it: a project
 # renamed, retired, archived or promoted upstream shows up here without anyone
 # remembering to edit the site.
+#
+# The health gate exists because a dead REGISTRY_TOKEN used to degrade
+# silently: the import kept stale facts, verify:sources skipped itself, and
+# the job still passed green. Now that state fails the job instead.
 
 on:
   schedule:
@@ -37,6 +41,12 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      - name: Record the facts timestamp before importing
+        id: prev-facts
+        run: |
+          ts=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('registry/ci-facts.json','utf8')).importedAt||'')}catch{console.log('')}")
+          echo "imported_at=$ts" >> "$GITHUB_OUTPUT"
+
       - name: Import registry, evidence ledger, source status and CI facts
         env:
           # A PAT with actions:read widens private-repo coverage; the built-in
@@ -45,6 +55,12 @@ jobs:
           # token cannot see what it should.
           GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: bun run registry:import:ci
+
+      - name: Fail if the import ran without repository access
+        env:
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+          PREVIOUS_FACTS_IMPORTED_AT: ${{ steps.prev-facts.outputs.imported_at }}
+        run: node scripts/check-pipeline-health.mjs
 
       - name: Verify every cited source path still exists
         env:
