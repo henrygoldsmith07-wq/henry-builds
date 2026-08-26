@@ -46,6 +46,9 @@ which grades every capability claim from `insufficient-evidence` to
 - Citing CI evidence when the importer found no workflow **fails** in
   authenticated mode — empty facts are treated as a broken promise, not shrunk
   from.
+- Citing CI evidence while the latest upstream run failed draws a validator
+  warning once the last green run is older than 30 days (or none exists), so
+  stale-green claims surface where someone is editing copy.
 
 ### Source truth and automatic archiving
 
@@ -150,16 +153,18 @@ study.
 `registry-sync.yml` re-imports on every push to main and weekly (generated
 refreshes land directly; anything touching narrative opens a PR), so CI facts,
 lifecycle states, deployment status, commit SHAs and archive decisions stay
-current without anyone remembering. `deploy-monitor.yml` probes the live site
-every six hours; one issue per failure signature — an unchanged outage stays
-quiet instead of spamming comments every run, and recovers close the issue.
+current without anyone remembering. Its health gate fails the job when the
+import ran without usable repository access, so degradation cannot hide behind
+a green run. `deploy-monitor.yml` probes the live site every six hours and also
+raises its alarm when evidence facts go stale; one issue covers both, and it
+closes itself on recovery.
 
 ## Configuration
 
 | Variable | Where | Purpose |
 |---|---|---|
 | `SITE_URL` / `VITE_SITE_URL` | optional env | Overrides the build-time origin for sitemap URLs and OG images. Defaults to the production alias (`https://henry-builds.vercel.app`, see `PRODUCTION_ORIGIN` in `generate-sitemap.mjs`) so deploys without variables stay correct; `ALLOW_RELATIVE_SITEMAP=1` opts out locally. |
-| `REGISTRY_TOKEN` | repo secret | PAT with read access to the sibling repos (`public_repo` is enough). Without it every cross-repo gate — source verification, GitHub path link checks, CI-facts refresh — **skips loudly** instead of enforcing, because the built-in `GITHUB_TOKEN` cannot read repositories other than its own and anonymous runner calls are rate-limited. |
+| `REGISTRY_TOKEN` | repo secret | PAT with read access to the sibling repos (`public_repo` is enough). Without it every cross-repo gate — source verification, GitHub path link checks, CI-facts refresh — **skips loudly** instead of enforcing, because the built-in `GITHUB_TOKEN` cannot read repositories other than its own and anonymous runner calls are rate-limited. In scheduled sync an unusable token now **fails the job** instead of passing silently, and deploy-monitor raises its alarm when facts go stale. |
 | `VITE_CONVEX_URL` | deploy env | Optional. Enables `/auth` and `/dashboard`. The public site does not use it. |
 
 The public portfolio has no backend. `VITE_CONVEX_URL` being absent switches
