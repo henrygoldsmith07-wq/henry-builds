@@ -149,6 +149,7 @@ export default function CaseStudy() {
               deploy={project.facts?.deploy}
               release={project.facts?.release}
               vulnerabilities={project.facts?.vulnerabilities}
+              sourceAccess={project.sourceAccess}
             />
 
             {/* ---- what I built -------------------------------------------- */}
@@ -200,6 +201,7 @@ export default function CaseStudy() {
             </Section>
 
             {/* ---- insight lifecycle states -------------------------------- */}
+
             {study.insightLifecycle && (
               <Section
                 number={num()}
@@ -297,6 +299,7 @@ export default function CaseStudy() {
             )}
 
             {/* ---- outcomes ------------------------------------------------ */}
+
             {study.outcomes.length > 0 && (
               <Section number={num()} title="What holds up" id="outcomes">
                 <p className="mb-7 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -317,6 +320,7 @@ export default function CaseStudy() {
             )}
 
             {/* ---- limitations ---------------------------------------------- */}
+
             {study.limitations.length > 0 && (
               <Section number={num()} title="What this does not prove" id="limitations">
                 <p className="mb-7 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -337,6 +341,7 @@ export default function CaseStudy() {
             )}
 
             {/* ---- trade-offs ---------------------------------------------- */}
+
             {study.tradeoffs.length > 0 && (
               <Section number={num()} title="Trade-offs" id="tradeoffs">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
