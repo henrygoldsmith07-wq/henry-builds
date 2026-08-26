@@ -43,6 +43,8 @@ const MAX_EVIDENCE_AGE_DAYS = 90;
 const MAX_VERIFICATION_AGE_DAYS = 365;
 /** Operational facts (CI/deploy snapshots) older than this stop being news. */
 const MAX_FACTS_AGE_DAYS = 14;
+/** A green run older than this behind a failed latest run stops being news. */
+const RED_CI_STALE_DAYS = 30;
 
 /** Kinds whose very point is that CI ran them — empty facts are suspicious. */
 const CI_DEPENDENT_KINDS = new Set(["ci", "benchmark"]);
@@ -504,6 +506,23 @@ for (const file of files) {
     warn(
       `${id}: CI facts are older than ${MAX_FACTS_AGE_DAYS} days — run registry:import --ci`,
     );
+  }
+
+  // --- red upstream CI behind CI-cited claims ------------------------------
+  if (fact && derivedStatus === "current") {
+    everyEvidenceItem.forEach(([section, item]) => {
+      if (item.kind !== "ci" || fact.conclusion !== "failure") return;
+      const lastGreenDays = fact.lastSuccessAt ? daysSince(fact.lastSuccessAt) : NaN;
+      if (!Number.isNaN(lastGreenDays) && lastGreenDays <= RED_CI_STALE_DAYS) return;
+      warn(
+        `${id}: cites CI evidence (${section} '${item.label}') but the latest upstream ` +
+          `run failed` +
+          (fact.lastSuccessAt
+            ? ` and the last green run was ${fact.lastSuccessAt.slice(0, 10)} (${lastGreenDays} days ago)`
+            : " with no recorded green run") +
+          ` — recapture or lower the stage`,
+      );
+    });
   }
 
 // --- insight lifecycle states must be checkable ------------------------
