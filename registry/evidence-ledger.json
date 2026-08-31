@@ -5,7 +5,7 @@
     "path": "evidence/registry.json",
     "ref": "main"
   },
-  "importedAt": "2026-08-24T07:32:18.784Z",
+  "importedAt": "2026-08-31T14:02:37.096Z",
   "statusValues": {
     "demonstrated": "End-to-end behaviour shown with cited external or internal benchmark and sample.",
     "partially-demonstrated": "Core path demonstrated; edge cases, scale, or replication not yet shown.",
