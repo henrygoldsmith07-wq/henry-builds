@@ -1,50 +1,57 @@
 #!/usr/bin/env node
 /**
- * Imports everything the portfolio consumes, so the site is a view of the
- * ecosystem rather than a copy of it that drifts.
+ * Imports the upstream monorepo registry and CI facts into registry/.
  *
- *   node scripts/import-registry.mjs            # upstream + evidence ledger + source status
- *   node scripts/import-registry.mjs --ci       # ...and CI facts (token strongly recommended)
+ *   node scripts/import-registry.mjs            # upstream snapshot only (no token needed)
+ *   node scripts/import-registry.mjs --ci       # also pull test/benchmark facts from CI
+ *   node scripts/import-registry.mjs --ci --allow-empty
+ *                                               # write ci-facts.json even when nothing
+ *                                               # could be collected (validation then fails
+ *                                               # loudly instead of the import hiding it)
  *
- * Writes (all generated — never edit by hand):
- *   registry/upstream.json        snapshot of Claude-Code:apps/registry.json
- *   registry/evidence-ledger.json snapshot of Claude-Code:evidence/registry.json
- *   registry/source-status.json   per project: current vs archived-source, why, and the
- *                                 commit SHA the source sits at right now
- *   registry/ci-facts.json        latest workflow conclusions, last green runs, test and
- *                                 benchmark counts pulled from Actions artifacts or logs
+ * Writes:
+ *   registry/upstream.json   snapshot of henrygoldsmith07-wq/Claude-Code:apps/registry.json
+ *   registry/ci-facts.json   latest workflow facts, keyed by app id
  *
- * Narrative stays in registry/case-studies/*.json, which this script never touches —
- * except that nothing here invents content either.
+ * Both files are generated. Never edit them by hand — this script overwrites them.
+ * Narrative and evidence live in registry/case-studies/*.json, which this script
+ * never touches.
  *
- * No npm dependencies, on purpose: this has to run in a bare CI container.
- * The one external binary it may use is `unzip` (present on ubuntu-latest) to
- * read Actions artifacts, and only if the artifact route is available.
+ * CI facts come from two sources, in order of trust:
+ *   1. A `ci-facts` artifact uploaded by the app's own workflow (a small JSON file
+ *      with exact test/benchmark counts). Read directly from Actions artifacts.
+ *   2. The workflow's job logs, matched against conservative output patterns.
+ * When neither yields a count we record the run metadata only — a missing number
+ * is honest, a wrong number is not.
+ *
+ * Safety property: if collection fails outright (network down, rate limited) the
+ * previous ci-facts.json is left untouched rather than replaced with an empty
+ * file. An empty facts file must mean "CI really has no runs", never "the import
+ * errored and nobody noticed".
+ *
+ * No dependencies, on purpose: this has to run in a bare CI container.
  */
 
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { crossRepoReadMode } from "./lib/github-paths.mjs";
-
-const execFileAsync = promisify(execFile);
+import zlib from "node:zlib";
 
 const SOURCE_REPO = "henrygoldsmith07-wq/Claude-Code";
 const SOURCE_PATH = "apps/registry.json";
-const EVIDENCE_PATH = "evidence/registry.json";
 const SOURCE_REF = "main";
 
 const root = process.cwd();
 const outDir = path.join(root, "registry");
 const wantCi = process.argv.includes("--ci");
 const allowEmpty = process.argv.includes("--allow-empty");
-const token = (process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "").trim();
-const mode = token ? "authenticated" : "anonymous";
+const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "";
 
 function log(msg) {
   process.stdout.write(`import-registry: ${msg}\n`);
+}
+
+function warn(msg) {
+  process.stderr.write(`import-registry: ! ${msg}\n`);
 }
 
 function fail(msg) {
@@ -57,21 +64,16 @@ function fail(msg) {
  * whole import. Retry once anonymously — public repo metadata is readable
  * without auth, just rate-limited.
  */
-async function githubFetch(url, { raw = false, auth = true } = {}) {
+async function githubFetch(url, { raw = false, auth = true, accept } = {}) {
   const headers = { "user-agent": "henry-builds-registry-import" };
   if (token && auth && !raw) headers.authorization = `Bearer ${token}`;
-  if (!raw) headers.accept = "application/vnd.github+json";
+  if (accept) headers.accept = accept;
+  else if (!raw) headers.accept = "application/vnd.github+json";
 
-  const res = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
-  // 401: bad/expired token. 404 with a token attached is subtler — a repo-
-  // scoped GITHUB_TOKEN gets "not found" for every repository outside its
-  // scope, even public ones. Both recover by retrying anonymously, which can
-  // read anything public.
-  const retriable =
-    res.status === 401 || ((res.status === 404 || res.status === 403) && !raw);
-  if (retriable && auth && token) {
-    log(`token rejected (${res.status}) — retrying anonymously`);
-    return githubFetch(url, { raw, auth: false });
+  const res = await fetch(url, { headers });
+  if (res.status === 401 && auth && token) {
+    log("token rejected (401) — retrying anonymously");
+    return githubFetch(url, { raw, auth: false, accept });
   }
   if (!res.ok) {
     throw new Error(`${res.status} ${res.statusText} for ${url}`);
@@ -84,12 +86,12 @@ async function fetchJson(url, options = {}) {
   return res.json();
 }
 
-async function fetchRawText(url) {
-  const res = await githubFetch(url, { raw: true });
+async function fetchText(url) {
+  const res = await githubFetch(url);
   return res.text();
 }
 
-/** Flatten the upstream registry's sections into one list. */
+/** Flatten the upstream registry's three sections into one list. */
 function normalise(registry) {
   const sections = ["apps", "auxiliary", "external"];
   const entries = [];
@@ -115,183 +117,135 @@ function normalise(registry) {
   return entries;
 }
 
-function readCaseStudies() {
-  const dir = path.join(root, "registry/case-studies");
-  if (!fs.existsSync(dir)) return [];
-  return fs
-    .readdirSync(dir)
-    .filter((f) => f.endsWith(".json"))
-    .map((file) => {
-      try {
-        return JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
-      } catch (error) {
-        log(`case-studies/${file}: unreadable (${error.message})`);
-        return null;
-      }
-    })
-    .filter(Boolean);
-}
-
 // ---------------------------------------------------------------------------
-// Source status: current vs archived-source, derived from what actually exists.
+// Minimal ZIP reader for Actions artifacts (upload-artifact zips the files).
+// Handles stored (0) and deflate (8) entries; that covers every archive the
+// Actions artifact API produces.
 // ---------------------------------------------------------------------------
 
-const repoCache = new Map();
-
-async function repoInfo(slug) {
-  if (repoCache.has(slug)) return repoCache.get(slug);
-  const info = fetchJson(`https://api.github.com/repos/${slug}`)
-    .then((data) => ({ ok: true, defaultBranch: data.default_branch ?? "main" }))
-    .catch(() => ({ ok: false }));
-  repoCache.set(slug, info);
-  return info;
+function inflateRaw(data) {
+  return zlib.inflateRawSync(data);
 }
 
-async function commitSha(repo, branch) {
-  try {
-    const data = await fetchJson(
-      `https://api.github.com/repos/${repo}/commits/${encodeURIComponent(branch)}`,
-    );
-    return data.sha;
-  } catch {
-    return undefined;
+function readZipEntries(buffer) {
+  const EOCD_SIG = 0x06054b50;
+  const CD_SIG = 0x02014b50;
+  let eocd = -1;
+  const minEocd = Math.max(0, buffer.length - 22 - 65536);
+  for (let i = buffer.length - 22; i >= minEocd; i--) {
+    if (buffer.readUInt32LE(i) === EOCD_SIG) {
+      eocd = i;
+      break;
+    }
   }
-}
+  if (eocd < 0) throw new Error("not a zip archive (no end-of-central-directory)");
 
-async function monorepoPathExists(relPath) {
-  const url =
-    `https://api.github.com/repos/${SOURCE_REPO}/contents/` +
-    `${relPath.split("/").map(encodeURIComponent).join("/")}?ref=${SOURCE_REF}`;
-  try {
-    await githubFetch(url, { auth: false });
-    return true;
-  } catch {
-    return false;
+  const count = buffer.readUInt16LE(eocd + 10);
+  let ptr = buffer.readUInt32LE(eocd + 16);
+  const entries = [];
+
+  for (let n = 0; n < count; n++) {
+    if (ptr + 46 > buffer.length || buffer.readUInt32LE(ptr) !== CD_SIG) {
+      throw new Error("corrupt zip central directory");
+    }
+    const method = buffer.readUInt16LE(ptr + 10);
+    const compSize = buffer.readUInt32LE(ptr + 20);
+    const nameLen = buffer.readUInt16LE(ptr + 28);
+    const extraLen = buffer.readUInt16LE(ptr + 30);
+    const commentLen = buffer.readUInt16LE(ptr + 32);
+    const localOffset = buffer.readUInt32LE(ptr + 42);
+    const name = buffer.slice(ptr + 46, ptr + 46 + nameLen).toString("utf8");
+
+    const lNameLen = buffer.readUInt16LE(localOffset + 26);
+    const lExtraLen = buffer.readUInt16LE(localOffset + 28);
+    const dataStart = localOffset + 30 + lNameLen + lExtraLen;
+    const raw = buffer.slice(dataStart, dataStart + compSize);
+
+    entries.push({
+      name,
+      data: method === 0 ? raw : inflateRaw(raw),
+    });
+    ptr += 46 + nameLen + extraLen + commentLen;
   }
+  return entries;
 }
 
 /**
- * A project's source has three honest states:
- *   current          the upstream entry exists and its source resolves
- *   archived-source  the entry was renamed/removed, or its source no longer exists
- * plus two human-only states the validator protects (set by hand in the case study):
- *   concept          never had a real implementation behind the narrative
- *   historical       kept deliberately as a written record; source state irrelevant
+ * Pull test/benchmark counts out of a `ci-facts` artifact uploaded by the app's
+ * own workflow. This is the preferred source: it is produced by the same job
+ * that ran the tests, so it cannot drift from what actually ran.
+ *
+ * Accepted shapes: {"tests":{"total":n,"files"? :n},"benchmarks"?:{...}}
  */
-async function deriveSourceStatuses(entries) {
-  const byId = new Map(entries.map((entry) => [entry.id, entry]));
-  const studies = readCaseStudies();
-  const projects = {};
-  let monorepoSha;
+async function artifactFacts(runId) {
+  const list = await fetchJson(
+    `https://api.github.com/repos/${SOURCE_REPO}/actions/runs/${runId}/artifacts?per_page=50`,
+  );
+  const candidates = (list.artifacts ?? []).filter((a) => /^ci-facts(-[\w.-]+)?$/.test(a.name));
+  if (candidates.length === 0) return null;
 
-  for (const study of studies) {
-    const authored = study.sourceStatus;
-    const entry = byId.get(study.upstreamId);
-
-    // Human judgments are never overwritten by derivation.
-    if (authored === "concept" || authored === "historical") {
-      projects[study.slug] = {
-        derived: authored,
-        reason:
-          authored === "concept"
-            ? "Authored as a concept — declared by the case study, not derived."
-            : "Authored as a historical record — declared by the case study, not derived.",
-      };
-      continue;
-    }
-
-    if (!entry) {
-      projects[study.slug] = {
-        derived: "archived-source",
-        reason: `'${study.upstreamId}' is no longer in the monorepo registry — renamed, retired, or migrated away.`,
-      };
-      continue;
-    }
-
-    if (entry.repo) {
-      const info = await repoInfo(entry.repo);
-      if (!info.ok) {
-        projects[study.slug] = {
-          derived: "archived-source",
-          reason: `Repository ${entry.repo} does not exist or is not visible.`,
-        };
-        continue;
+  for (const artifact of candidates) {
+    try {
+      const res = await githubFetch(
+        `https://api.github.com/repos/${SOURCE_REPO}/actions/artifacts/${artifact.id}/zip`,
+        { accept: "application/vnd.github+json" },
+      );
+      const buffer = Buffer.from(await res.arrayBuffer());
+      for (const entry of readZipEntries(buffer)) {
+        if (!entry.name.endsWith(".json")) continue;
+        const parsed = JSON.parse(entry.data.toString("utf8"));
+        const tests =
+          parsed?.tests?.total > 0
+            ? {
+                total: Number(parsed.tests.total),
+                ...(parsed.tests.files > 0 ? { files: Number(parsed.tests.files) } : {}),
+              }
+            : undefined;
+        const benchmarks =
+          parsed?.benchmarks?.cases > 0
+            ? {
+                cases: Number(parsed.benchmarks.cases),
+                label: typeof parsed.benchmarks.label === "string" ? parsed.benchmarks.label : undefined,
+                sourceUrl:
+                  typeof parsed.benchmarks.sourceUrl === "string" ? parsed.benchmarks.sourceUrl : undefined,
+              }
+            : undefined;
+        if (tests || benchmarks) {
+          return { tests, benchmarks, derivedFrom: `artifact ${artifact.name}` };
+        }
       }
-      const branch = info.defaultBranch;
-      const sha = await commitSha(entry.repo, branch);
-      let access = "unknown";
-      try {
-        const meta = await fetchJson(`https://api.github.com/repos/${entry.repo}`);
-        access = meta.private ? "private" : "public";
-      } catch {
-        // visibility unknown without a token — recorded as such
-      }
-      projects[study.slug] = {
-        derived: "current",
-        reason: `Source lives at ${entry.repo}@${branch}.`,
-        repo: entry.repo,
-        ref: branch,
-        access,
-        ...(sha ? { sha, shaUrl: `https://github.com/${entry.repo}/commit/${sha}` } : {}),
-      };
-      continue;
+    } catch (error) {
+      warn(`artifact ${artifact.name} unreadable (${error.message})`);
     }
-
-    if (entry.path) {
-      const exists = await monorepoPathExists(entry.path);
-      if (!exists) {
-        projects[study.slug] = {
-          derived: "archived-source",
-          reason: `${SOURCE_REPO}:${entry.path} no longer exists on ${SOURCE_REF}.`,
-        };
-        continue;
-      }
-      monorepoSha ??= await commitSha(SOURCE_REPO, SOURCE_REF);
-      projects[study.slug] = {
-        derived: "current",
-        reason: `Source lives at ${SOURCE_REPO}:${entry.path} on ${SOURCE_REF}.`,
-        repo: SOURCE_REPO,
-        ref: SOURCE_REF,
-        ...(monorepoSha ? { sha: monorepoSha } : {}),
-      };
-      continue;
-    }
-
-    // An entry with neither repo nor path cannot be checked — say so rather
-    // than silently calling it current.
-    projects[study.slug] = {
-      derived: "archived-source",
-      reason: `Upstream entry '${entry.id}' declares neither a repo nor a path to verify.`,
-    };
   }
-
-  return { checkedAt: new Date().toISOString(), projects };
+  return null;
 }
 
-// ---------------------------------------------------------------------------
-// CI facts v2: standalone repos, last green run, artifacts before log parsing.
-// ---------------------------------------------------------------------------
-
+/**
+ * Pull the number of tests out of a job log.
+ *
+ * Deliberately conservative: if none of these shapes match, we record no count
+ * rather than guessing. A wrong number on the site is worse than no number.
+ */
 const TEST_PATTERNS = [
+  // vitest: "Tests  412 passed (412)"
   /^\s*Tests\s+(\d+)\s+passed\s+\((\d+)\)/im,
+  // vitest with failures: "Tests  2 failed | 410 passed (412)"
   /^\s*Tests\s+.*?\((\d+)\)\s*$/im,
-  /^#\s*tests?\s+(\d+)/im,
+  // node:test TAP summary: "# pass 37"
   /^#\s*pass\s+(\d+)/im,
+  // jest: "Tests:       412 passed, 412 total"
   /^\s*Tests:\s+.*?(\d+)\s+total/im,
 ];
 
-const FILE_PATTERNS = [/^\s*Test Files\s+\d+\s+passed\s+\((\d+)\)/im, /^\s*Test Files\s+.*?\((\d+)\)\s*$/im];
+const FILE_PATTERNS = [
+  // vitest: "Test Files  29 passed (29)"
+  /^\s*Test Files\s+\d+\s+passed\s+\((\d+)\)/im,
+  /^\s*Test Files\s+.*?\((\d+)\s*\)$/im,
+];
 
-/**
- * Every line in an Actions job log starts with an ISO timestamp
- * (`2026-08-21T17:34:15.0726649Z # pass 182`), and test summaries are wrapped
- * in ANSI colour codes — both break line-anchored patterns. Strip them.
- */
-function normaliseLogText(text) {
-  return text
-    .replace(/\x1b\[[0-9;]*[A-Za-z]/g, "")
-    .replace(/^\d{4}-\d{2}-\d{2}T[^\s]+Z?\s+/gm, "");
-}
+// rtk's benchmark runner prints a strict final line: "benchmark cases: N".
+const BENCHMARK_PATTERNS = [/^benchmark cases:\s*(\d+)\s*$/im];
 
 function extractCount(text, patterns) {
   for (const pattern of patterns) {
@@ -304,179 +258,164 @@ function extractCount(text, patterns) {
   return undefined;
 }
 
-const FACT_ARTIFACT_RE = /^(ci-facts|test-facts|test-results|benchmark-facts)\.json$/i;
-
-/** Read a downloaded artifact zip's first JSON member via system unzip. */
-async function readArtifactJson(downloadUrl) {
-  const tmpZip = path.join(os.tmpdir(), `hb-artifact-${Date.now()}.zip`);
-  try {
-    const res = await githubFetch(downloadUrl);
-    fs.writeFileSync(tmpZip, Buffer.from(await res.arrayBuffer()));
-    const { stdout } = await execFileAsync("unzip", ["-p", tmpZip], {
-      maxBuffer: 32 * 1024 * 1024,
-      timeout: 60_000,
-    });
-    return JSON.parse(stdout);
-  } finally {
-    fs.rmSync(tmpZip, { force: true });
-  }
-}
-
-async function listWorkflows(repo) {
-  const data = await fetchJson(`https://api.github.com/repos/${repo}/actions/workflows?per_page=50`);
-  return (data.workflows ?? []).filter((w) => w.state === "active");
-}
-
-function pickWorkflow(workflows, entry) {
-  const wanted = entry.workflow ? path.basename(entry.workflow) : null;
-  return (
-    workflows.find((w) => wanted && path.basename(w.path) === wanted) ??
-    workflows.find((w) => path.basename(w.path) === `${entry.id}.yml`) ??
-    workflows.find((w) => path.basename(w.path) === `${entry.id}.yaml`) ??
-    workflows.find((w) => w.name.toLowerCase().includes(entry.name.toLowerCase())) ??
-    (workflows.length === 1 ? workflows[0] : undefined)
-  );
-}
-
-async function latestRun(repo, workflowPath, status) {
+async function latestRun(workflowFile) {
   const url =
-    `https://api.github.com/repos/${repo}/actions/workflows/` +
-    `${encodeURIComponent(path.basename(workflowPath))}/runs` +
-    `?per_page=1&status=completed${status ? `&status=${status}` : ""}`;
+    `https://api.github.com/repos/${SOURCE_REPO}/actions/workflows/` +
+    `${encodeURIComponent(workflowFile)}/runs?branch=${SOURCE_REF}&per_page=1&status=completed`;
   const data = await fetchJson(url);
   return data.workflow_runs?.[0];
 }
 
-async function artifactFacts(repo, runId) {
-  const data = await fetchJson(`https://api.github.com/repos/${repo}/actions/runs/${runId}/artifacts?per_page=50`);
-  for (const artifact of data.artifacts ?? []) {
-    if (!FACT_ARTIFACT_RE.test(artifact.name) || artifact.expired) continue;
-    try {
-      const parsed = await readArtifactJson(
-        `https://api.github.com/repos/${repo}/actions/artifacts/${artifact.id}/zip`,
-      );
-      // Artifact contract: { tests?: { total, files? }, benchmarks?: { cases?, ... } }
-      return { tests: parsed.tests, benchmarks: parsed.benchmarks, artifact: artifact.name };
-    } catch (error) {
-      log(`artifact ${artifact.name} unreadable (${error.message})`);
-    }
-  }
-  return undefined;
+/**
+ * Recent completed runs, newest first. Used to find the last SUCCESS even when
+ * the newest run failed — the date of the last green run is the date the code
+ * was last verified, which is exactly what the site displays.
+ */
+async function recentRuns(workflowFile, perPage = 100) {
+  const url =
+    `https://api.github.com/repos/${SOURCE_REPO}/actions/workflows/` +
+    `${encodeURIComponent(workflowFile)}/runs?branch=${SOURCE_REF}&per_page=${perPage}&status=completed`;
+  const data = await fetchJson(url);
+  return data.workflow_runs ?? [];
 }
 
-async function logFacts(repo, runId) {
-  const jobs = await fetchJson(`https://api.github.com/repos/${repo}/actions/runs/${runId}/jobs?per_page=20`);
+async function runLogText(runId) {
+  // The logs endpoint 302s to a zip. We only want plain text, so we read the
+  // per-job logs instead, which the API serves directly.
+  const jobs = await fetchJson(
+    `https://api.github.com/repos/${SOURCE_REPO}/actions/runs/${runId}/jobs?per_page=20`,
+  );
   let combined = "";
   for (const job of jobs.jobs ?? []) {
     try {
-      combined += await (
-        await githubFetch(`https://api.github.com/repos/${repo}/actions/jobs/${job.id}/logs`)
-      ).text();
+      combined += await fetchText(
+        `https://api.github.com/repos/${SOURCE_REPO}/actions/jobs/${job.id}/logs`,
+      );
       combined += "\n";
     } catch {
       // A single unreadable job should not sink the whole import.
     }
   }
-  const total = extractCount(normaliseLogText(combined), TEST_PATTERNS);
-  if (!total) return undefined;
-  const files = extractCount(normaliseLogText(combined), FILE_PATTERNS);
-  return { tests: files ? { total, files } : { total }, derivedFrom: "workflow job log" };
+  return combined;
 }
 
-async function collectCiFacts(entries, statuses) {
+async function collectCiFacts(entries) {
   const facts = {};
-  const workflowCache = new Map();
-  let populated = 0;
-  // Anything with its own repo can run CI, whatever its lifecycle label says —
-  // after the migration every product is `external` with a repo field.
-  const candidates = entries.filter(
-    (entry) =>
-      entry.repo ||
-      entry.workflow ||
-      ["active", "incubating", "maintenance"].includes(entry.lifecycle),
-  );
+  const previous = readPreviousFacts();
+  let failures = 0;
 
-  for (const entry of candidates) {
-    const repo = entry.repo ?? SOURCE_REPO;
+  for (const entry of entries) {
+    if (!entry.workflow) continue;
+    const workflowFile = path.basename(entry.workflow);
+
     try {
-      if (!workflowCache.has(repo)) {
-        workflowCache.set(repo, listWorkflows(repo).catch(() => []));
-      }
-      const workflows = await workflowCache.get(repo);
-      const workflow = pickWorkflow(workflows, entry);
-      if (!workflow) {
-        log(`${entry.id}: no matching workflow in ${repo}`);
+      const runs = await recentRuns(workflowFile);
+      if (runs.length === 0) {
+        log(`${entry.id}: no completed runs for ${workflowFile}`);
         continue;
       }
+      const run = runs[0];
 
-      const run = await latestRun(repo, workflow.path);
-      const green = await latestRun(repo, workflow.path, "success").catch(() => undefined);
-      if (!run && !green) {
-        log(`${entry.id}: no completed runs for ${workflow.path}`);
-        continue;
-      }
-
+      const lastSuccess = runs.find((r) => r.conclusion === "success");
       const record = {
-        workflow: workflow.path,
-        workflowUrl: `https://github.com/${repo}/blob/${green?.head_branch ?? "main"}/${workflow.path.replace(/^\.?\//, "")}`,
-        repo,
-        ...(run
-          ? {
-              runUrl: run.html_url,
-              conclusion: run.conclusion,
-              completedAt: run.updated_at,
-              headSha: run.head_sha,
-            }
-          : {}),
-        ...(green
-          ? { lastSuccessAt: green.updated_at, greenRunUrl: green.html_url, greenSha: green.head_sha }
-          : {}),
+        workflow: entry.workflow,
+        workflowUrl: `https://github.com/${SOURCE_REPO}/blob/${SOURCE_REF}/${entry.workflow}`,
+        runUrl: run.html_url,
+        conclusion: run.conclusion,
+        lastRunAt: run.updated_at,
+        lastSuccessfulRunAt: lastSuccess?.updated_at,
+        lastSuccessRunUrl: lastSuccess?.html_url,
       };
 
-      if (green && token) {
-        const facts_ =
-          (await artifactFacts(repo, green.id).catch(() => undefined)) ??
-          (await logFacts(repo, green.id).catch(() => undefined));
-        if (facts_) {
-          if (facts_.tests) record.tests = facts_.tests;
-          if (facts_.benchmarks) record.benchmarks = facts_.benchmarks;
-          record.derivedFrom = facts_.artifact
-            ? `Actions artifact ${facts_.artifact}`
-            : facts_.derivedFrom;
+      // Facts content comes artifact-first, log-parsing second.
+      let measured = null;
+      if (token) {
+        try {
+          measured = await artifactFacts(run.id);
+        } catch (error) {
+          warn(`${entry.id}: artifact lookup failed (${error.message})`);
         }
-      } else if (green && !token) {
-        record.derivedFrom = "run metadata only (no GITHUB_TOKEN — artifacts and logs not readable)";
+      }
+      if (!measured && run.conclusion === "success" && token) {
+        const logs = await runLogText(run.id);
+        const total = extractCount(logs, TEST_PATTERNS);
+        const files = extractCount(logs, FILE_PATTERNS);
+        const benchCases = extractCount(logs, BENCHMARK_PATTERNS);
+        if (total || benchCases) {
+          measured = {
+            tests: total ? (files ? { total, files } : { total }) : undefined,
+            benchmarks: benchCases ? { cases: benchCases } : undefined,
+            derivedFrom: "workflow job log",
+          };
+        }
+      }
+
+      if (measured) {
+        if (measured.tests) record.tests = measured.tests;
+        if (measured.benchmarks) record.benchmarks = measured.benchmarks;
+        record.derivedFrom = measured.derivedFrom;
+      } else if (!token) {
+        record.derivedFrom = "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)";
+      } else if (previous[entry.id]?.tests && run.conclusion !== "success") {
+        // Keep the older verified count visible but marked stale rather than
+        // dropping it silently when the newest run failed before measuring.
+        record.tests = previous[entry.id].tests;
+        record.derivedFrom = `carried from earlier successful run (${previous[entry.id].completedAt ?? "unknown date"}); newest run did not produce a fresh count`;
+        warn(`${entry.id}: carrying stale test count forward — newest run ${run.conclusion}`);
       }
 
       facts[entry.id] = record;
-      populated++;
       log(
-        `${entry.id}: ${record.conclusion ?? "?"}` +
+        `${entry.id}: ${run.conclusion}` +
+          `${record.lastSuccessfulRunAt ? ` · last green ${record.lastSuccessfulRunAt.slice(0, 10)}` : ""}` +
           `${record.tests ? ` · ${record.tests.total} tests` : ""}` +
-          `${record.lastSuccessAt ? ` · last green ${record.lastSuccessAt.slice(0, 10)}` : ""}`,
+          `${record.benchmarks ? ` · ${record.benchmarks.cases} bench cases` : ""}`,
       );
     } catch (error) {
-      log(`${entry.id}: skipped (${error.message})`);
+      failures++;
+      warn(`${entry.id}: ${workflowFile} lookup failed — ${error.message}`);
+      // Preserve whatever we knew before so a transient outage cannot erase
+      // evidence from the site.
+      if (previous[entry.id]) {
+        facts[entry.id] = {
+          ...previous[entry.id],
+          carriedForward: true,
+          carriedReason: error.message,
+        };
+        log(`${entry.id}: kept previous fact (carried forward)`);
+      }
     }
   }
 
-  return { facts, populated };
+  if (failures > 0 && Object.keys(facts).length === 0) {
+    fail("every workflow lookup failed — refusing to overwrite ci-facts.json with an empty import");
+    process.exit(1);
+  }
+  if (failures > 0) {
+    warn(`${failures} workflow lookup(s) failed; surviving facts were preserved/carried forward`);
+  }
+
+  return facts;
 }
 
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
+function readPreviousFacts() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(path.join(outDir, "ci-facts.json"), "utf8"));
+    return parsed.facts ?? {};
+  } catch {
+    return {};
+  }
+}
 
 async function main() {
   fs.mkdirSync(outDir, { recursive: true });
 
-  // --- upstream registry ----------------------------------------------------
   const rawUrl = `https://raw.githubusercontent.com/${SOURCE_REPO}/${SOURCE_REF}/${SOURCE_PATH}`;
   log(`fetching ${rawUrl}`);
 
   let registry;
   try {
-    registry = JSON.parse(await fetchRawText(rawUrl));
+    registry = JSON.parse(await fetchText(rawUrl));
   } catch (error) {
     fail(`could not fetch upstream registry: ${error.message}`);
     return;
@@ -491,104 +430,24 @@ async function main() {
     entries,
   };
 
-  fs.writeFileSync(path.join(outDir, "upstream.json"), `${JSON.stringify(snapshot, null, 2)}\n`);
+  fs.writeFileSync(
+    path.join(outDir, "upstream.json"),
+    `${JSON.stringify(snapshot, null, 2)}\n`,
+  );
   log(`wrote registry/upstream.json (${entries.length} entries)`);
 
-  // --- evidence ledger ------------------------------------------------------
-  const evidenceUrl = `https://raw.githubusercontent.com/${SOURCE_REPO}/${SOURCE_REF}/${EVIDENCE_PATH}`;
-  try {
-    const ledger = JSON.parse(await fetchRawText(evidenceUrl));
-    const evidenceSnapshot = {
-      _generated: "Written by scripts/import-registry.mjs. Do not edit by hand.",
-      source: { repo: SOURCE_REPO, path: EVIDENCE_PATH, ref: SOURCE_REF },
-      importedAt: new Date().toISOString(),
-      statusValues: ledger.statusValues ?? {},
-      claims: (ledger.claims ?? []).map((claim) => ({
-        id: claim.id,
-        product: claim.product,
-        claim: claim.claim,
-        status: claim.status,
-        evidenceSource: claim.evidenceSource,
-        sampleSize: claim.sampleSize,
-        benchmark: claim.benchmark,
-        lastUpdated: claim.lastUpdated,
-        limitations: claim.limitations,
-      })),
-    };
-    fs.writeFileSync(
-      path.join(outDir, "evidence-ledger.json"),
-      `${JSON.stringify(evidenceSnapshot, null, 2)}\n`,
-    );
-    log(`wrote registry/evidence-ledger.json (${evidenceSnapshot.claims.length} graded claims)`);
-  } catch (error) {
-    fail(`could not fetch evidence ledger: ${error.message}`);
-    if (!fs.existsSync(path.join(outDir, "evidence-ledger.json"))) return;
-    log("keeping the existing evidence-ledger.json");
-  }
-
-  // --- source status --------------------------------------------------------
-  // Deriving status needs RELIABLE cross-repo reads. Anonymous access is too
-  // rate-limited to distinguish "repo deleted" from "request dropped", and a
-  // wrong archive is data corruption — so derivation runs only with an
-  // authenticated token; otherwise the existing snapshot is kept, loudly.
-  const statusPath = path.join(outDir, "source-status.json");
-  let statuses;
-  const readMode = await crossRepoReadMode();
-  if (readMode === "authenticated") {
-    statuses = await deriveSourceStatuses(entries);
-    fs.writeFileSync(statusPath, `${JSON.stringify({
-      _generated: "Written by scripts/import-registry.mjs. Do not edit by hand.",
-      ...statuses,
-    }, null, 2)}\n`);
-
-    const archived = Object.entries(statuses.projects).filter(([, s]) => s.derived !== "current");
-    log(
-      `wrote registry/source-status.json (${Object.keys(statuses.projects).length} projects, ` +
-        `${archived.length} not-current)`,
-    );
-    for (const [slug, status] of archived) {
-      log(`  ${slug}: ${status.derived} — ${status.reason}`);
-    }
-  } else {
-    if (fs.existsSync(statusPath)) {
-    log(`cross-repo reads not authenticated (${readMode}) — keeping the existing source-status.json`);
-    if (process.env.CI) {
-      console.log("::warning::source-status not refreshed — set REGISTRY_TOKEN to a PAT with repo read access");
-    }
-    } else {
-      fail("cannot derive source status and none exists yet — set GITHUB_TOKEN to a PAT with repo read access");
-      return;
-    }
-  }
-
-  // --- CI facts -------------------------------------------------------------
   if (!wantCi) {
     log("skipping CI facts (pass --ci to include them)");
     return;
   }
 
-  if (!token) {
-    // Reading Actions runs/logs for sibling repos needs a real token; the
-    // repo-scoped default cannot, and anonymous runner calls are rate-limited
-    // into uselessness. Keep the existing facts rather than degrading them.
-    const msg =
-      "registry:import:ci ran without a usable GITHUB_TOKEN — keeping the existing " +
-      "ci-facts.json. Set the REGISTRY_TOKEN secret (PAT with public-repo read) to refresh them.";
-    log(`WARNING: ${msg}`);
-    if (process.env.CI) console.log(`::warning::${msg}`);
-    return;
-  }
-
-  log("collecting CI facts (authenticated)");
-  const { facts, populated } = await collectCiFacts(entries, statuses?.projects ?? {});
-
-  if (populated === 0 && !allowEmpty) {
+  const facts = await collectCiFacts(entries);
+  if (Object.keys(facts).length === 0 && !allowEmpty) {
     fail(
-      "--ci ran but produced zero workflow facts. That is unexpected: every active app " +
-        "should have a workflow. Refusing to overwrite good data with an empty set — " +
-        "check GITHUB_TOKEN and the upstream repos, or pass --allow-empty to accept it.",
+      "no CI facts could be collected. Refusing to write an empty facts file — " +
+        "pass --allow-empty to force it (registry validation will then fail loudly).",
     );
-    return;
+    process.exit(1);
   }
 
   fs.writeFileSync(
@@ -597,14 +456,15 @@ async function main() {
       {
         _generated: "Written by scripts/import-registry.mjs --ci. Do not edit by hand.",
         importedAt: new Date().toISOString(),
-        mode,
+        sourceRepo: SOURCE_REPO,
+        sourceRef: SOURCE_REF,
         facts,
       },
       null,
       2,
     )}\n`,
   );
-  log(`wrote registry/ci-facts.json (${populated} workflows, mode=${mode})`);
+  log(`wrote registry/ci-facts.json (${Object.keys(facts).length} workflows)`);
 }
 
 main().catch((error) => {

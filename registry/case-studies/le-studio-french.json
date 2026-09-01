@@ -104,5 +104,6 @@
       "The API key lives in localStorage by design for a private tool — not hardened for public deployment."
     ],
     "lastVerifiedAt": "2026-08-09"
-  }
+  },
+  "sourceState": "current-source"
 }

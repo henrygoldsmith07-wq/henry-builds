@@ -158,5 +158,6 @@
       "The upstream CI workflow file was removed from the emotion-tracker repository on 2026-08-22; the stage-beta label rests on the last green run (2026-08-21) until it is restored."
     ],
     "lastVerifiedAt": "2026-08-21"
-  }
+  },
+  "sourceState": "current-source"
 }

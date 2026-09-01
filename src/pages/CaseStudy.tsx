@@ -1,16 +1,23 @@
-import { ArrowLeft, ArrowRight, ExternalLink, Github, Minus, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink, Github, Minus, Plus, TriangleAlert } from "lucide-react";
 import { Link, useParams } from "react-router";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { ArchitectureDiagram } from "@/components/portfolio/ArchitectureDiagram";
-import { BenchmarkChart } from "@/components/portfolio/BenchmarkChart";
-import { ClaimItem, EvidenceRow, MetricCard, SourceAccessContext } from "@/components/portfolio/Evidence";
-import { SourceVerificationRow } from "@/components/portfolio/EvidenceMeta";
+import { ClaimItem, EvidenceChip, EvidenceRow, MetricCard } from "@/components/portfolio/Evidence";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
-import { SourceBadge, StageBadge } from "@/components/portfolio/StageBadge";
-import { TestTrend } from "@/components/portfolio/TestTrend";
+import { SourceStateBadge, VerificationLine } from "@/components/portfolio/SourceState";
+import { StageBadge } from "@/components/portfolio/StageBadge";
 import NotFound from "@/pages/NotFound";
-import { getProject, ledgerClaimOf, projects } from "@/data/registry";
+import { getProject, projects, registryMeta } from "@/data/registry";
 
 function Section({
   number,
@@ -49,11 +56,6 @@ export default function CaseStudy() {
   const { caseStudy: study, authorship } = project;
   const lead = study.visuals[0];
 
-  // Sections number themselves in render order, so inserting one never
-  // leaves stale "07" strings behind.
-  let sectionCounter = 0;
-  const num = () => String(++sectionCounter).padStart(2, "0");
-
   return (
     <div className="portfolio-shell min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteMetadata
@@ -66,8 +68,7 @@ export default function CaseStudy() {
       <SiteHeader />
 
       <main id="main">
-        <SourceAccessContext.Provider value={project.sourceAccess === "private"}>
-          <article>
+        <article>
           {/* ---- header ---------------------------------------------------- */}
           <header className="mx-auto max-w-[1380px] px-5 pb-12 pt-28 sm:px-8 sm:pt-36 lg:px-12">
             <Link to="/projects" className="inline-link mb-10">
@@ -78,7 +79,7 @@ export default function CaseStudy() {
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <StageBadge stage={project.stage} />
-                  <SourceBadge status={project.sourceStatus} />
+                  <SourceStateBadge sourceState={project.sourceState} />
                   <span className="text-xs text-muted-foreground">{project.category}</span>
                   {project.upstream?.stack && (
                     <span className="text-xs text-muted-foreground">· {project.upstream.stack}</span>
@@ -123,6 +124,28 @@ export default function CaseStudy() {
                     </span>
                   ))}
                 </div>
+                <div className="mt-5">
+                  <VerificationLine ci={project.ci} importedAt={registryMeta.importedAt} />
+                </div>
+                {project.sourceState === "historical-case-study" && (
+                  <div
+                    className="mt-5 flex gap-3 rounded-[1rem] border border-amber-500/40 bg-amber-500/10 p-4"
+                    role="note"
+                  >
+                    <TriangleAlert
+                      className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                      aria-hidden="true"
+                    />
+                    <p className="text-xs leading-5 text-foreground/80">
+                      Historical case study — the source for this project no longer exists in the
+                      monorepo
+                      {project.sourceRemoved?.detectedAt
+                        ? ` (removed on or before ${project.sourceRemoved.detectedAt})`
+                        : ""}
+                      . It is kept as a record; its claims cannot currently be re-verified.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </header>
@@ -138,21 +161,8 @@ export default function CaseStudy() {
           )}
 
           <div className="mx-auto max-w-[1380px] px-5 sm:px-8 lg:px-12">
-            {/* ---- verification strip -------------------------------------- */}
-            <SourceVerificationRow
-              status={project.sourceStatus}
-              statusReason={project.sourceReason}
-              sha={project.sourceSha}
-              shaUrl={project.sourceShaUrl}
-              checkedAt={project.sourceCheckedAt}
-              ci={project.ci}
-              deploy={project.facts?.deploy}
-              release={project.facts?.release}
-              vulnerabilities={project.facts?.vulnerabilities}
-            />
-
             {/* ---- what I built -------------------------------------------- */}
-            <Section number={num()} title="What I built" id="authorship">
+            <Section number="01" title="What I built" id="authorship">
               <p className="text-sm leading-6 text-foreground/85">{authorship.role}</p>
               <div className="mt-8 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
                 <div className="bg-background p-6">
@@ -189,20 +199,54 @@ export default function CaseStudy() {
             </Section>
 
             {/* ---- problem / approach -------------------------------------- */}
-            <Section number={num()} title="The problem" id="problem">
+            <Section number="02" title="The problem" id="problem">
               <p className="large-copy max-w-3xl">{study.problem}</p>
             </Section>
 
-            <Section number={num()} title="The approach" id="approach">
+            <Section number="03" title="The approach" id="approach">
               <p className="max-w-3xl text-base leading-7 text-muted-foreground">
                 {study.approach}
               </p>
             </Section>
 
+            {/* ---- limitations: prominent by design ----------------------- */}
+            {study.limitations.length > 0 && (
+              <section id="limitations" className="case-section">
+                <div className="case-section-head">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/40">
+                    04
+                  </span>
+                  <h2 className="flex items-center gap-2 text-xl font-semibold tracking-[-0.03em]">
+                    <TriangleAlert
+                      className="size-4 text-amber-600 dark:text-amber-400"
+                      aria-hidden="true"
+                    />
+                    What this cannot yet claim
+                  </h2>
+                </div>
+                <div className="rounded-[1.25rem] border border-amber-500/40 bg-amber-500/5 p-6 sm:p-8">
+                  <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                    Read this before the measurements
+                  </p>
+                  <ul className="mt-4 space-y-3">
+                    {study.limitations.map((limitation) => (
+                      <li key={limitation} className="flex gap-3">
+                        <span
+                          aria-hidden="true"
+                          className="mt-2 size-1.5 shrink-0 rounded-full bg-amber-600/70 dark:bg-amber-400/70"
+                        />
+                        <p className="max-w-3xl text-sm leading-6 text-foreground/85">{limitation}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            )}
+
             {/* ---- insight lifecycle states -------------------------------- */}
             {study.insightLifecycle && (
               <Section
-                number={num()}
+                number="05"
                 title="Insight Lifecycle States"
                 id="insight-lifecycle"
               >
@@ -256,14 +300,14 @@ export default function CaseStudy() {
 
             {/* ---- architecture -------------------------------------------- */}
             {study.architecture && (
-              <Section number={num()} title="Architecture" id="architecture">
+              <Section number="06" title="Architecture" id="architecture">
                 <ArchitectureDiagram architecture={study.architecture} />
               </Section>
             )}
 
             {/* ---- demo video ---------------------------------------------- */}
             {study.video && (
-              <Section number={num()} title="Demo" id="demo">
+              <Section number="07" title="Demo" id="demo">
                 <video
                   className="w-full rounded-[1.25rem] border border-border"
                   src={study.video.src}
@@ -275,22 +319,67 @@ export default function CaseStudy() {
               </Section>
             )}
 
-            {/* ---- measurements -------------------------------------------- */}
-            {study.metrics.length > 0 && (
-              <Section number={num()} title="Measurements" id="measurements">
-                <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
-                  {study.metrics.map((metric) => (
-                    <MetricCard key={metric.label} metric={metric} />
-                  ))}
-                </div>
-                {study.metrics.some((metric) => typeof metric.chart === "number") && (
-                  <div className="mt-10 border border-border p-6 sm:p-8">
-                    <BenchmarkChart metrics={study.metrics} />
+            {/* ---- measurements + benchmark chart --------------------------- */}
+            {(study.metrics.length > 0 || study.benchmarkChart) && (
+              <Section number="08" title="Measurements" id="measurements">
+                {study.metrics.length > 0 && (
+                  <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
+                    {study.metrics.map((metric) => (
+                      <MetricCard key={metric.label} metric={metric} />
+                    ))}
                   </div>
                 )}
-                {project.factsHistory.length >= 2 && (
-                  <div className="mt-10 border border-border p-6 sm:p-8">
-                    <TestTrend history={project.factsHistory} />
+                {study.benchmarkChart && (
+                  <div className="mt-8 rounded-[1.25rem] border border-border p-6 sm:p-8">
+                    <div className="flex flex-wrap items-baseline justify-between gap-3">
+                      <h3 className="text-base font-semibold tracking-[-0.02em]">
+                        {study.benchmarkChart.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">{study.benchmarkChart.unit}</p>
+                    </div>
+                    <div className="mt-6 h-[280px] w-full" role="img" aria-label={`${study.benchmarkChart.title} — ${study.benchmarkChart.unit}`}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={study.benchmarkChart.series}
+                          layout="vertical"
+                          margin={{ top: 4, right: 24, bottom: 4, left: 8 }}
+                        >
+                          <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="currentColor" opacity={0.15} />
+                          <XAxis
+                            type="number"
+                            domain={[0, 100]}
+                            tick={{ fontSize: 11 }}
+                            stroke="currentColor"
+                            opacity={0.5}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="label"
+                            width={170}
+                            tick={{ fontSize: 11 }}
+                            stroke="currentColor"
+                            opacity={0.7}
+                          />
+                          <Tooltip
+                            formatter={(value) => [`${value}`, study.benchmarkChart?.unit]}
+                            contentStyle={{
+                              background: "var(--background)",
+                              border: "1px solid var(--border)",
+                              borderRadius: 12,
+                              fontSize: 12,
+                              color: "var(--foreground)",
+                            }}
+                          />
+                          <Bar dataKey="value" fill="currentColor" opacity={0.75} radius={[0, 6, 6, 0]} maxBarSize={18} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {study.benchmarkChart.note && (
+                      <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                        {study.benchmarkChart.note}
+                      </p>
+                    )}
+                    <EvidenceRow items={study.benchmarkChart.evidence} />
                   </div>
                 )}
               </Section>
@@ -298,39 +387,13 @@ export default function CaseStudy() {
 
             {/* ---- outcomes ------------------------------------------------ */}
             {study.outcomes.length > 0 && (
-              <Section number={num()} title="What holds up" id="outcomes">
+              <Section number="09" title="What holds up" id="outcomes">
                 <p className="mb-7 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Each statement links to the thing that backs it, and to its grade in the
-                  ecosystem&apos;s evidence registry where one exists. Nothing appears here
-                  without one.
+                  Each statement links to the thing that backs it. Nothing appears here without one.
                 </p>
                 <ul className="space-y-px overflow-hidden border border-border bg-border">
                   {study.outcomes.map((outcome) => (
-                    <ClaimItem
-                      key={outcome.statement}
-                      claim={outcome}
-                      ledgerClaim={ledgerClaimOf(project, outcome.ledgerClaimId)}
-                    />
-                  ))}
-                </ul>
-              </Section>
-            )}
-
-            {/* ---- limitations ---------------------------------------------- */}
-            {study.limitations.length > 0 && (
-              <Section number={num()} title="What this does not prove" id="limitations">
-                <p className="mb-7 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Stated before you have to ask. These are the known edges of every claim
-                  above — read them as part of the claims, not as a footnote.
-                </p>
-                <ul className="space-y-px overflow-hidden border border-border bg-border limitations-list">
-                  {study.limitations.map((limitation) => (
-                    <li
-                      key={limitation}
-                      className="bg-background p-5 text-sm leading-6 text-foreground/85"
-                    >
-                      {limitation}
-                    </li>
+                    <ClaimItem key={outcome.statement} claim={outcome} />
                   ))}
                 </ul>
               </Section>
@@ -338,7 +401,7 @@ export default function CaseStudy() {
 
             {/* ---- trade-offs ---------------------------------------------- */}
             {study.tradeoffs.length > 0 && (
-              <Section number={num()} title="Trade-offs" id="tradeoffs">
+              <Section number="10" title="Trade-offs" id="tradeoffs">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
                   {study.tradeoffs.map((tradeoff) => (
                     <div key={tradeoff.choice} className="bg-background p-6">
@@ -365,7 +428,7 @@ export default function CaseStudy() {
 
             {/* ---- failed approaches --------------------------------------- */}
             {study.failedApproaches.length > 0 && (
-              <Section number={num()} title="What did not work" id="failed">
+              <Section number="11" title="What did not work" id="failed">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
                   {study.failedApproaches.map((failure) => (
                     <div key={failure.approach} className="bg-background p-6">
@@ -384,9 +447,6 @@ export default function CaseStudy() {
                           </p>
                         </div>
                       </div>
-                      {failure.evidence && failure.evidence.length > 0 && (
-                        <EvidenceRow items={failure.evidence} />
-                      )}
                     </div>
                   ))}
                 </div>
@@ -395,7 +455,7 @@ export default function CaseStudy() {
 
             {/* ---- lessons -------------------------------------------------- */}
             {study.lessons.length > 0 && (
-              <Section number={num()} title="What I took from it" id="lessons">
+              <Section number="12" title="What I took from it" id="lessons">
                 <ul className="space-y-6">
                   {study.lessons.map((lesson, i) => (
                     <li key={lesson} className="flex gap-5">
@@ -410,7 +470,6 @@ export default function CaseStudy() {
             )}
           </div>
         </article>
-        </SourceAccessContext.Provider>
 
         {/* ---- prev / next ------------------------------------------------- */}
         <nav

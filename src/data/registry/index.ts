@@ -1,25 +1,13 @@
 import type {
   CiFacts,
-  CiFactsFile,
-  EvidenceLedgerFile,
-  FactsHistoryFile,
-  FactsSnapshot,
-  LedgerClaim,
-  LedgerStatus,
   Metric,
   Project,
-  SourceStatus,
-  SourceStatusEntry,
-  SourceStatusSnapshot,
   Stage,
   UpstreamEntry,
   UpstreamSnapshot,
 } from "./schema";
 import upstreamRaw from "../../../registry/upstream.json";
 import ciFactsRaw from "../../../registry/ci-facts.json";
-import evidenceLedgerRaw from "../../../registry/evidence-ledger.json";
-import sourceStatusRaw from "../../../registry/source-status.json";
-import factsHistoryRaw from "../../../registry/facts-history.json";
 
 /**
  * Case studies are hand-authored, one file per project. Loading them by glob
@@ -33,89 +21,47 @@ const caseStudyModules = import.meta.glob<{ default: Project }>(
 const upstream = upstreamRaw as unknown as UpstreamSnapshot & {
   lifecycleStates: Record<string, string>;
 };
-const ciFactsFile = ciFactsRaw as unknown as CiFactsFile;
-const evidenceLedger = evidenceLedgerRaw as unknown as EvidenceLedgerFile;
-const sourceStatuses = sourceStatusRaw as unknown as SourceStatusSnapshot;
-const factsFile = factsHistoryRaw as unknown as FactsHistoryFile;
-
-const ciFacts: CiFacts = ciFactsFile.facts ?? {};
+const ciFacts = (ciFactsRaw as { facts?: CiFacts }).facts ?? {};
 
 const upstreamById = new Map<string, UpstreamEntry>(
   upstream.entries.map((entry) => [entry.id, entry]),
 );
 
-const statusBySlug = sourceStatuses.projects ?? {};
-const claimsByProduct = new Map<string, LedgerClaim[]>();
-for (const claim of evidenceLedger.claims ?? []) {
-  const list = claimsByProduct.get(claim.product) ?? [];
-  list.push(claim);
-  claimsByProduct.set(claim.product, list);
-}
-
 /**
  * A `publish: false` project publishes itself once the monorepo registry
  * promotes it out of `incubating`. This is how Pulse reaches the site: when
  * its upstream lifecycle becomes `active`, the gate opens on the next import.
- *
- * The same gate runs in scripts/generate-sitemap.mjs and the test helpers —
- * keep the three definitions identical.
  */
-export function isPublishedGate(
-  publishFlag: boolean,
-  lifecycle: string | undefined,
-): boolean {
-  if (!publishFlag && (lifecycle === "active" || lifecycle === "maintenance")) return true;
-  return publishFlag;
-}
-
 function isPublished(project: Project): boolean {
-  return isPublishedGate(project.publish, upstreamById.get(project.upstreamId)?.lifecycle);
+  if (project.publish) return true;
+  const lifecycle = upstreamById.get(project.upstreamId)?.lifecycle;
+  return lifecycle === "active" || lifecycle === "maintenance";
 }
-
-/**
- * What exists behind a case study right now. A human may declare `concept` or
- * `historical`; everything else is derived by the importer from what actually
- * exists, and cannot be claimed by hand.
- */
-function sourceStatusOf(project: Project): SourceStatus & string {
-  if (project.sourceStatus === "concept" || project.sourceStatus === "historical") {
-    return project.sourceStatus;
-  }
-  const derived = statusBySlug[project.slug]?.derived;
-  if (derived === "current" || derived === "archived-source") return derived;
-  // Unknown slug in the generated layer — treat as current but the validator
-  // will flag the mismatch against source-status.json.
-  return "current";
-}
-
-/** Local-only shim: the importer is plain JS and this module runs in Vite. */
-const basename = (p: string) => p.split("/").pop() ?? p;
 
 /**
  * CI is the better source for a test count than a README that can drift.
- * Where the importer captured a real figure from a green run, it replaces the
- * authored one and says so; where the run failed, no number is invented — the
- * authored number stands with its own evidence.
+ * Where the importer captured a real figure, it replaces the authored one and
+ * says so; where it did not, the authored number stands with its own evidence.
  */
-function withCiMetrics(project: Project, facts: CiFacts[string] | undefined): Metric[] {
+function withCiMetrics(project: Project): Metric[] {
+  const facts = ciFacts[project.upstreamId];
   const metrics = project.caseStudy.metrics ?? [];
-  if (!facts?.tests || facts.conclusion !== "success") return metrics;
+  if (!facts?.tests) return metrics;
 
-  const when = facts.lastSuccessAt ?? facts.completedAt;
   const ciMetric: Metric = {
     label: "Automated tests",
     value: facts.tests.files
       ? `${facts.tests.total} across ${facts.tests.files} files`
       : `${facts.tests.total}`,
-    method: `Read from the latest successful ${basename(facts.workflow)} run${
-      when ? ` (${when.slice(0, 10)})` : ""
+    method: `Read from the latest ${facts.workflow} run on main${
+      facts.lastSuccessfulRunAt ? ` (${facts.lastSuccessfulRunAt.slice(0, 10)})` : ""
     }.`,
     source: "ci",
     evidence: [
       {
         kind: "ci",
-        label: facts.runUrl ? "Workflow run" : basename(facts.workflow),
-        href: facts.greenRunUrl ?? facts.runUrl ?? facts.workflowUrl,
+        label: facts.runUrl ? "Workflow run" : facts.workflow,
+        href: facts.runUrl ?? facts.workflowUrl,
         path: facts.workflow,
       },
     ],
@@ -126,19 +72,15 @@ function withCiMetrics(project: Project, facts: CiFacts[string] | undefined): Me
   return [ciMetric, ...rest];
 }
 
-function hydrate(project: Project): HydratedProject {
+function hydrate(project: Project) {
   const entry = upstreamById.get(project.upstreamId);
   const facts = ciFacts[project.upstreamId];
-  const statusEntry: SourceStatusEntry | undefined = statusBySlug[project.slug];
-  const sourceStatus = sourceStatusOf(project);
 
   return {
     ...project,
-    // An archived source never leads the landing page, whatever the file says.
-    featured: sourceStatus === "current" ? project.featured : false,
     caseStudy: {
       ...project.caseStudy,
-      metrics: withCiMetrics(project, facts),
+      metrics: withCiMetrics(project),
     },
     upstream: entry
       ? {
@@ -147,7 +89,6 @@ function hydrate(project: Project): HydratedProject {
           stack: entry.stack,
           description: entry.description,
           path: entry.path,
-          repo: entry.repo,
         }
       : undefined,
     ci: facts
@@ -155,92 +96,19 @@ function hydrate(project: Project): HydratedProject {
           workflow: facts.workflow,
           runUrl: facts.runUrl,
           conclusion: facts.conclusion,
-          completedAt: facts.completedAt,
-          lastSuccessAt: facts.lastSuccessAt,
-          greenRunUrl: facts.greenRunUrl,
-          tests: facts.tests,
+          lastRunAt: facts.lastRunAt,
+          /** The date of the newest green run — what "last verified" means. */
+          lastVerifiedAt:
+            facts.lastSuccessfulRunAt ??
+            (facts.conclusion === "success" ? facts.lastRunAt : undefined),
+          carriedForward: facts.carriedForward === true,
         }
       : undefined,
-    sourceStatus,
-    sourceReason: statusEntry?.reason,
-    sourceRepo: statusEntry?.repo,
-    sourceRef: statusEntry?.ref,
-    sourceSha: statusEntry?.sha,
-    sourceShaUrl: statusEntry?.shaUrl,
-    sourceAccess: statusEntry?.access ?? ("unknown" as const),
-    sourceCheckedAt: statusBySlug[project.slug]
-      ? sourceStatuses.checkedAt
-      : undefined,
-    ledgerClaims: claimsByProduct.get(project.upstreamId) ?? [],
-    ledgerImportedAt: evidenceLedger.importedAt,
-    facts: factsFile.latest?.[project.upstreamId],
-    factsHistory: factsFile.history?.[project.upstreamId] ?? [],
-    factsGeneratedAt: factsFile.generatedAt,
+    registryImportedAt: upstream.importedAt,
   };
 }
 
-export type HydratedProject = Omit<Project, "sourceStatus"> & {
-  /** Authored declarations (`concept`/`historical`) merged with derived reality. */
-  sourceStatus: SourceStatus;
-  featured: boolean;
-  upstream?:
-    | {
-        lifecycle: string;
-        lifecycleMeaning: string;
-        stack?: string;
-        description: string;
-        path?: string;
-        repo?: string;
-      }
-    | undefined;
-  ci?:
-    | {
-        workflow: string;
-        runUrl?: string;
-        conclusion?: string;
-        completedAt?: string;
-        lastSuccessAt?: string;
-        greenRunUrl?: string;
-        tests?: { total: number; files?: number };
-      }
-    | undefined;
-  sourceReason?: string;
-  sourceRepo?: string;
-  sourceRef?: string;
-  sourceSha?: string;
-  sourceShaUrl?: string;
-  /** Public / private / unknown visibility of the source repository. */
-  sourceAccess: "public" | "private" | "unknown";
-  sourceCheckedAt?: string;
-  /** Graded claims for this product from the monorepo's evidence ledger. */
-  ledgerClaims: LedgerClaim[];
-  ledgerImportedAt?: string;
-  /** Latest operational snapshot (CI, deployment, release, vulnerabilities). */
-  facts?: FactsSnapshot;
-  /** Dated snapshots powering trend charts. */
-  factsHistory: FactsSnapshot[];
-  factsGeneratedAt?: string;
-};
-
-export function ledgerClaimOf(
-  project: HydratedProject,
-  claimId: string | undefined,
-): LedgerClaim | undefined {
-  return claimId ? project.ledgerClaims.find((c) => c.id === claimId) : undefined;
-}
-
-export function ledgerGradeRank(status: string): number {
-  const order: LedgerStatus[] = [
-    "insufficient-evidence",
-    "infrastructure-only",
-    "internally-benchmarked",
-    "partially-demonstrated",
-    "demonstrated",
-    "externally-validated",
-  ];
-  const index = order.indexOf(status as LedgerStatus);
-  return index === -1 ? -1 : index;
-}
+export type HydratedProject = ReturnType<typeof hydrate>;
 
 const stageRank: Record<Stage, number> = {
   shipped: 0,
@@ -255,10 +123,6 @@ const allProjects: HydratedProject[] = Object.values(caseStudyModules)
   .filter(isPublished)
   .map(hydrate)
   .sort((a, b) => {
-    // Dead sources go to the bottom of every list, whatever their stage says.
-    const deadA = a.sourceStatus === "current" ? 0 : 1;
-    const deadB = b.sourceStatus === "current" ? 0 : 1;
-    if (deadA !== deadB) return deadA - deadB;
     if (a.featured !== b.featured) return a.featured ? -1 : 1;
     if (stageRank[a.stage] !== stageRank[b.stage]) {
       return stageRank[a.stage] - stageRank[b.stage];
@@ -283,14 +147,6 @@ export const registryMeta = {
   importedAt: upstream.importedAt,
   upstreamCount: upstream.entries.length,
   publishedCount: allProjects.length,
-  currentCount: allProjects.filter((p) => p.sourceStatus === "current").length,
-  archivedSourceCount: allProjects.filter((p) => p.sourceStatus !== "current").length,
-  ciMode: ciFactsFile.mode,
-  ciImportedAt: ciFactsFile.importedAt,
-  ledgerImportedAt: evidenceLedger.importedAt,
-  ledgerClaimCount: evidenceLedger.claims?.length ?? 0,
-  sourcesCheckedAt: sourceStatuses.checkedAt,
-  factsGeneratedAt: factsFile.generatedAt,
 };
 
 export * from "./schema";

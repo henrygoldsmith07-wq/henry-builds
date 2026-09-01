@@ -2,14 +2,11 @@
  * Portfolio registry types.
  *
  * The registry is the single source of truth for what appears on this site.
- * It has five layers, three of them generated:
+ * It has three layers:
  *
- *   registry/upstream.json         imported from the monorepo's apps/registry.json (generated)
- *   registry/evidence-ledger.json  imported from the monorepo's evidence/registry.json (generated)
- *   registry/ci-facts.json         workflow conclusions + test counts pulled from CI (generated)
- *   registry/source-status.json    current vs archived-source per project, with the commit
- *                                  SHA each source sits at (generated)
- *   registry/case-studies/*.json   hand-authored narrative + evidence (edited by a human)
+ *   registry/upstream.json        imported from the monorepo's apps/registry.json (generated)
+ *   registry/ci-facts.json        test/benchmark counts pulled from CI (generated)
+ *   registry/case-studies/*.json  hand-authored narrative + evidence (edited by a human)
  *
  * Generated layers are never edited by hand; `bun run registry:import` rewrites them.
  * `bun run registry:validate` enforces every rule described in these types, so a claim
@@ -20,6 +17,36 @@
 export type Stage = "research" | "prototype" | "beta" | "shipped" | "archived";
 
 export const stageOrder: Stage[] = ["research", "prototype", "beta", "shipped", "archived"];
+
+/**
+ * What kind of code the site is presenting. Distinct from stage: stage says how
+ * far the work got, source state says whether you can still go and read it.
+ */
+export type SourceState =
+  | "current-source"
+  | "archived-source"
+  | "concept"
+  | "historical-case-study";
+
+export const sourceStateCopy: Record<SourceState, { label: string; meaning: string }> = {
+  "current-source": {
+    label: "Current source",
+    meaning: "The code lives in the monorepo today and can be read and run.",
+  },
+  "archived-source": {
+    label: "Archived source",
+    meaning: "The code still exists but is archived or superseded upstream.",
+  },
+  concept: {
+    label: "Concept",
+    meaning: "An idea or design with no product source claimed.",
+  },
+  "historical-case-study": {
+    label: "Historical case study",
+    meaning:
+      "The source no longer exists on main. Kept for the record only — claims cannot be re-verified against code.",
+  },
+};
 
 export const stageCopy: Record<Stage, { label: string; meaning: string }> = {
   research: {
@@ -41,36 +68,6 @@ export const stageCopy: Record<Stage, { label: string; meaning: string }> = {
   archived: {
     label: "Archived",
     meaning: "Frozen. Kept for provenance, not developed further.",
-  },
-};
-
-/**
- * What exists behind a case study today. Distinct from `stage`, which says how
- * far the work got; this says what you would find if you followed the source
- * links right now. `current` and `archived-source` are derived from the live
- * monorepo registry by the importer; `concept` and `historical` are human
- * declarations the derivation never overwrites.
- */
-export type SourceStatus = "current" | "archived-source" | "concept" | "historical";
-
-export const sourceStatusCopy: Record<SourceStatus, { label: string; meaning: string }> = {
-  current: {
-    label: "Current source",
-    meaning:
-      "The source linked here exists right now and is where development happens. Checked on every import.",
-  },
-  "archived-source": {
-    label: "Archived source",
-    meaning:
-      "The source behind this case study no longer exists — removed or renamed upstream. The write-up stays as provenance.",
-  },
-  concept: {
-    label: "Concept",
-    meaning: "A written exploration. No implementation ever backed it.",
-  },
-  historical: {
-    label: "Historical case study",
-    meaning: "Kept deliberately as a record of past work. The source state is irrelevant by declaration.",
   },
 };
 
@@ -107,75 +104,6 @@ export type Evidence = {
   path?: string;
   /** Local asset served from /public, e.g. "/media/rtk/benchmark.png". */
   src?: string;
-  /**
-   * When this evidence was captured (ISO date). Required over time for
-   * captures that rot: screenshots, videos and benchmarks.
-   */
-  capturedAt?: string;
-  /**
-   * After this date (ISO) the evidence is stale and the validator refuses it.
-   * Set explicitly when a capture has a known shelf life.
-   */
-  expiresAt?: string;
-};
-
-/**
- * One graded claim from the monorepo's evidence/registry.json — the durable
- * ledger that says what the ecosystem has actually measured. A case-study
- * outcome can point at one with `ledgerClaimId`; the site then renders the
- * grade, sample size and last-validated date straight from the ledger, and
- * the validator refuses any capability whose grade is `insufficient-evidence`.
- */
-export type LedgerClaim = {
-  id: string;
-  /** Matches an upstream registry id, e.g. "revise". */
-  product: string;
-  claim: string;
-  status: string;
-  evidenceSource?: string;
-  sampleSize?: number;
-  benchmark?: string;
-  lastUpdated?: string;
-  limitations?: string;
-};
-
-/** The grades the ledger uses, weakest to strongest. */
-export const ledgerStatusOrder = [
-  "insufficient-evidence",
-  "infrastructure-only",
-  "internally-benchmarked",
-  "partially-demonstrated",
-  "demonstrated",
-  "externally-validated",
-] as const;
-
-export type LedgerStatus = (typeof ledgerStatusOrder)[number];
-
-export const ledgerStatusCopy: Record<LedgerStatus, { label: string; meaning: string }> = {
-  "insufficient-evidence": {
-    label: "Insufficient evidence",
-    meaning: "Claimed somewhere in copy but never measured. The site refuses to repeat such claims.",
-  },
-  "infrastructure-only": {
-    label: "Infrastructure only",
-    meaning: "The plumbing exists but no user-facing behaviour has been exercised.",
-  },
-  "internally-benchmarked": {
-    label: "Internally benchmarked",
-    meaning: "Measured on curated or synthetic data. Not tested with real users or third parties.",
-  },
-  "partially-demonstrated": {
-    label: "Partially demonstrated",
-    meaning: "Core path shown; edge cases, scale or replication not yet covered.",
-  },
-  demonstrated: {
-    label: "Demonstrated",
-    meaning: "End-to-end behaviour shown with a cited benchmark and sample.",
-  },
-  "externally-validated": {
-    label: "Externally validated",
-    meaning: "Independent replication or audit confirms it.",
-  },
 };
 
 /**
@@ -185,13 +113,6 @@ export const ledgerStatusCopy: Record<LedgerStatus, { label: string; meaning: st
 export type Claim = {
   statement: string;
   evidence: Evidence[];
-  /**
-   * Links the statement to a graded claim in the monorepo's evidence ledger.
-   * When set, the grade, sample size and last-validated date render with the
-   * claim — and if that grade is `insufficient-evidence`, the validator
-   * refuses the page entirely.
-   */
-  ledgerClaimId?: string;
 };
 
 /**
@@ -209,12 +130,6 @@ export type Metric = {
    * than from the hand-authored file. Never edited by hand.
    */
   source?: "ci" | "authored";
-  /**
-   * Include this metric in the benchmark chart on the case study page.
-   * Only set it when the value is a genuine benchmark result with evidence —
-   * the chart exists to compare measured things, not to decorate.
-   */
-  chart?: number;
 };
 
 export type Tradeoff = {
@@ -227,8 +142,6 @@ export type FailedApproach = {
   approach: string;
   whyItFailed: string;
   whatItChanged: string;
-  /** Receipts: where the failure was recorded or measured, when one exists. */
-  evidence?: Evidence[];
 };
 
 /**
@@ -309,12 +222,26 @@ export type CaseStudy = {
   failedApproaches: FailedApproach[];
   lessons: string[];
   /**
-   * Known limits, stated up front rather than discovered by the reader.
-   * Rendered prominently next to the claims they bound.
+   * Required. What this project cannot yet claim, stated plainly — rendered as
+   * its own prominent section, not a footnote.
    */
   limitations: string[];
-  /** When the claims in this study were last checked against the actual code (ISO date). */
-  lastVerifiedAt?: string;
+  /** Only where genuine committed benchmark data exists; never decoration. */
+  benchmarkChart?: BenchmarkChart;
+};
+
+/**
+ * A chart built from real benchmark data in the repo. The validator requires a
+ * unit, evidence and numeric series, so charts must rest on something a reader
+ * can go and re-run.
+ */
+export type BenchmarkChart = {
+  title: string;
+  /** What the numbers measure, e.g. "% of raw tokens removed". */
+  unit: string;
+  series: { label: string; value: number }[];
+  evidence: Evidence[];
+  note?: string;
 };
 
 /** What the author personally built, stated plainly. */
@@ -348,15 +275,17 @@ export type Project = {
   publish: boolean;
   /** Why publish is false, and what would flip it. Required when publish is false. */
   publishGate?: string;
+  /**
+   * Whether you can still read this project's code. Set by
+   * scripts/archive-removed.mjs from the upstream registry; "historical case
+   * study" means the source no longer exists on main.
+   */
+  sourceState?: SourceState;
+  /** Stamped when a project's source disappears from the monorepo. */
+  sourceRemoved?: { detectedAt: string; note: string };
   authorship: Authorship;
   repo?: { label: string; href: string; path?: string };
   liveUrl?: string;
-  /**
-   * Human-only source-status declaration. Only `concept` and `historical` are
-   * meaningful here — `current` and `archived-source` are derived from what
-   * actually exists on every import and cannot be claimed by hand.
-   */
-  sourceStatus?: "concept" | "historical";
   caseStudy: CaseStudy;
 };
 
@@ -381,103 +310,31 @@ export type UpstreamSnapshot = {
   entries: UpstreamEntry[];
 };
 
-/** One project's derived source state, from the generated source-status.json. */
-export type SourceStatusEntry = {
-  derived: SourceStatus;
-  reason: string;
-  repo?: string;
-  ref?: string;
-  /** Commit SHA the source sits at as of the last import. */
-  sha?: string;
-  shaUrl?: string;
-  /** Whether the source repository is publicly readable. */
-  access?: "public" | "private" | "unknown";
-};
-
-export type SourceStatusSnapshot = {
-  checkedAt: string;
-  projects: Record<string, SourceStatusEntry>;
-};
-
-/** Test and benchmark counts pulled from CI, keyed by upstream id. */
+/** Test and benchmark facts pulled from CI, keyed by upstream id. */
 export type CiFacts = Record<
   string,
   {
     workflow: string;
     workflowUrl?: string;
-    repo?: string;
     runUrl?: string;
     conclusion?: string;
-    completedAt?: string;
-    /** The most recent run that actually passed — the date the site shows. */
-    lastSuccessAt?: string;
-    greenRunUrl?: string;
-    greenSha?: string;
+    /** Newest completed run, whatever its conclusion. */
+    lastRunAt?: string;
+    /**
+     * The newest successful run — this is the date the code was last verified
+     * by CI, and the date the site shows as "last verified".
+     */
+    lastSuccessfulRunAt?: string;
+    lastSuccessRunUrl?: string;
     tests?: { total: number; files?: number };
-    benchmarks?: { cases: number; artifact?: string };
+    benchmarks?: { cases: number; label?: string; sourceUrl?: string };
     /** Where the number came from when CI did not report one directly. */
     derivedFrom?: string;
+    /** Set when a transient import failure carried an older fact forward. */
+    carriedForward?: boolean;
+    carriedReason?: string;
   }
 >;
-
-/** The whole generated ci-facts.json wrapper. */
-export type CiFactsFile = {
-  importedAt: string;
-  mode: "authenticated" | "anonymous";
-  facts: CiFacts;
-};
-
-/** The whole generated evidence-ledger.json wrapper. */
-export type EvidenceLedgerFile = {
-  source: { repo: string; path: string; ref: string };
-  importedAt: string;
-  statusValues: Record<string, string>;
-  claims: LedgerClaim[];
-};
-
-/** Where this project is deployed right now, from its repo's deployments API. */
-export type DeployFact = {
-  state?: string;
-  environment?: string;
-  /** Short SHA of what is actually deployed. */
-  sha?: string;
-  url?: string;
-  createdAt?: string;
-  /** True when the deployed commit equals the repository HEAD at collection time. */
-  upToDate?: boolean;
-};
-
-export type ReleaseFact = {
-  tag: string;
-  url?: string;
-  publishedAt?: string;
-};
-
-export type VulnerabilityFact = {
-  open?: number;
-  unavailable?: string;
-};
-
-/** One dated observation of a project's operational state. */
-export type FactsSnapshot = {
-  date: string;
-  sha?: string;
-  ci?: {
-    conclusion?: string;
-    tests?: number;
-    lastGreenAt?: string;
-  };
-  deploy?: DeployFact;
-  release?: ReleaseFact;
-  vulnerabilities?: VulnerabilityFact;
-};
-
-/** The whole generated facts-history.json wrapper. */
-export type FactsHistoryFile = {
-  generatedAt?: string;
-  latest: Record<string, FactsSnapshot>;
-  history: Record<string, FactsSnapshot[]>;
-};
 
 /**
  * Stage is not a free choice. These are the conditions the validator enforces,

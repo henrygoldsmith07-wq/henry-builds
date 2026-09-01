@@ -3,8 +3,9 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
-import { SourceBadge, StageBadge, StageLegend } from "@/components/portfolio/StageBadge";
-import { featuredProjects, projects, registryMeta } from "@/data/registry";
+import { SourceStateBadge } from "@/components/portfolio/SourceState";
+import { StageBadge, StageLegend } from "@/components/portfolio/StageBadge";
+import { projects, registryMeta } from "@/data/registry";
 import { stageOrder, type Stage } from "@/data/registry/schema";
 
 const ALL = "all" as const;
@@ -40,9 +41,9 @@ export default function Projects() {
             <span className="text-muted-foreground">including what isn&apos;t finished.</span>
           </h1>
           <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground">
-            The landing page shows {featuredProjects.length} projects. This page shows all of
-            them — prototypes, research and the things that stalled — each with a stage label
-            that means something specific.
+            The landing page shows six projects. This page shows all of them — prototypes,
+            research and the things that stalled — each with a stage label that means something
+            specific.
           </p>
           <p className="mt-5 max-w-xl text-xs leading-5 text-muted-foreground">
             Imported from{" "}
@@ -56,9 +57,7 @@ export default function Projects() {
             </a>
             {" — "}
             {registryMeta.upstreamCount} entries upstream, {registryMeta.publishedCount} published
-            here ({registryMeta.currentCount} with live sources). Registry last imported{" "}
-            {registryMeta.importedAt.slice(0, 10)}; CI facts{" "}
-            {registryMeta.ciImportedAt?.slice(0, 10) ?? "never"}.
+            here.
           </p>
         </section>
 
@@ -104,9 +103,7 @@ export default function Projects() {
                   <Link to={`/projects/${project.slug}`} className="project-row-link group">
                     <div className="flex flex-wrap items-center gap-3">
                       <StageBadge stage={project.stage} />
-                      {project.sourceStatus !== "current" && (
-                        <SourceBadge status={project.sourceStatus} />
-                      )}
+                      <SourceStateBadge sourceState={project.sourceState} />
                       <span className="text-xs text-muted-foreground">{project.category}</span>
                     </div>
 
@@ -115,6 +112,16 @@ export default function Projects() {
                       <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
                         {project.tagline}
                       </p>
+                      {project.ci && (
+                        <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                          Last code verification (green CI):{" "}
+                          {project.ci.lastVerifiedAt ? (
+                            project.ci.lastVerifiedAt.slice(0, 10)
+                          ) : (
+                            <span>none recorded</span>
+                          )}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-6">

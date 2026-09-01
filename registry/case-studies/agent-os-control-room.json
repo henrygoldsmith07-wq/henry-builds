@@ -47,5 +47,10 @@
     "limitations": [
       "Never progressed past a prototype; the source was removed from the ecosystem during the 2026-08 migration and this write-up survives as provenance."
     ]
+  },
+  "sourceState": "historical-case-study",
+  "sourceRemoved": {
+    "detectedAt": "2026-09-01",
+    "note": "Source no longer exists in the monorepo (removed from apps/registry.json on main). Kept as a historical case study."
   }
 }

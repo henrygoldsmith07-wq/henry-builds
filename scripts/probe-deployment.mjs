@@ -31,6 +31,7 @@ const problem = (msg) => {
   console.error(`✗ ${msg}`);
   failures++;
 };
+const warn = (msg) => console.warn(`  ! ${msg}`);
 const ok = (msg) => console.log(`✓ ${msg}`);
 
 async function get(url, init) {
@@ -183,5 +184,34 @@ try {
   problem(`404 probe failed — ${error.message}`);
 }
 
-console.log(`\nprobe-deployment: ${routes.length + assets.length} targets, ${failures} failure(s)`);
+// --- every published project's own live deployment -------------------------
+// A portfolio that links to dead products is lying by omission, so the monitor
+// probes each liveUrl too. Current-source projects must answer; archived or
+// historical ones are expected to rot, so their deaths are warnings.
+{
+  const withLive = projects
+    .filter((p) => typeof p.liveUrl === "string" && /^https?:\/\//.test(p.liveUrl))
+    .map((p) => ({ slug: p.slug, url: p.liveUrl.replace(/\/$/, ""), state: p.sourceState }));
+
+  for (const { slug, url, state } of withLive) {
+    try {
+      const response = await get(url);
+      const body = response.ok ? await response.text() : "";
+      const empty = body.length < 200;
+      if (!response.ok || empty) {
+        const msg = `${slug} live deployment at ${url} returned ${response.status}${empty ? " (near-empty body)" : ""}`;
+        if (state === "current-source") problem(msg);
+        else warn(msg);
+      } else {
+        ok(`${slug} live ${response.status} (${url})`);
+      }
+    } catch (error) {
+      const msg = `${slug} live deployment unreachable — ${url} (${error.message})`;
+      if (state === "current-source") problem(msg);
+      else console.warn(`  ! ${msg}`);
+    }
+  }
+}
+
+console.log(`\nprobe-deployment: done, ${failures} failure(s)`);
 process.exit(failures > 0 ? 1 : 0);

@@ -173,5 +173,10 @@
       "A strict Content-Security-Policy was abandoned because three.js cannot run under one.",
       "The source was removed during the 2026-08 ecosystem migration; no further verification of these claims is possible."
     ]
+  },
+  "sourceState": "historical-case-study",
+  "sourceRemoved": {
+    "detectedAt": "2026-09-01",
+    "note": "Source no longer exists in the monorepo (removed from apps/registry.json on main). Kept as a historical case study."
   }
 }

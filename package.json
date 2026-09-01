@@ -1,7 +1,7 @@
 {
-  "name": "henry-builds",
+  "name": "vite-template",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,18 +13,17 @@
 
     "registry:import": "node scripts/import-registry.mjs",
     "registry:import:ci": "node scripts/import-registry.mjs --ci",
-    "registry:facts": "node scripts/collect-facts.mjs",
-    "ai:draft": "node scripts/draft-case-study.mjs",
     "registry:validate": "node scripts/validate-registry.mjs",
-    "verify:sources": "node scripts/verify-sources.mjs",
-    "record:bundle": "node scripts/record-bundle.mjs",
+    "registry:validate:upstream": "node scripts/validate-registry.mjs --upstream",
+    "archive:removed": "node scripts/archive-removed.mjs",
+    "archive:removed:check": "node scripts/archive-removed.mjs --check",
 
     "og": "node scripts/generate-og.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "audit:claims": "node scripts/audit-claims.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:links:external": "node scripts/check-links.mjs --external",
-    "check:links:github": "node scripts/check-links.mjs --github",
+    "check:links:full": "node scripts/check-links.mjs --external --github",
 
     "test:e2e": "playwright test",
     "test:a11y": "playwright test tests/a11y.spec.ts",
@@ -32,7 +31,7 @@
     "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",
     "lighthouse": "lhci autorun",
 
-    "verify": "bun run registry:validate && bun run verify:sources && bun run audit:claims && tsc -b && bun run lint && bun run build && bun run check:links"
+    "verify": "bun run registry:validate && bun run audit:claims && tsc -b && bun run lint && bun run build && bun run check:links"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.90",

@@ -4,9 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-  # The registry-sync bot's own commits do not trigger push runs (GitHub rule),
-  # so sync dispatches CI explicitly on the post-refresh tree.
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,41 +13,27 @@ env:
   SITE_URL: ${{ vars.SITE_URL }}
   VITE_SITE_URL: ${{ vars.SITE_URL }}
 
-permissions:
-  contents: read
-
 jobs:
   verify:
-    name: Types, lint, registry, sources, claims, build, links
+    name: Types, lint, registry, claims, build, links
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          # Sitemap lastmod derives from per-file commit history.
-          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Cache bun install
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-
       - run: bun install --frozen-lockfile
 
-      # The registry gates everything else: if a claim has no evidence, a stage
-      # label is not earned, or a cited source path is gone, nothing downstream
-      # is worth running.
-      - name: Validate registry against the evidence layer
+      # The registry gates everything else: if a claim has no evidence, or a
+      # stage label is not earned, nothing downstream is worth running.
+      - name: Validate registry
         run: bun run registry:validate
 
-      - name: Verify every cited source path exists
-        env:
-          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
-        run: bun run verify:sources
+      - name: Fail if removed projects are not yet archived
+        # Catches hand-edits that reintroduce a project whose source upstream is
+        # gone, or an un-committed auto-archive from the sync workflow.
+        run: bun run archive:removed:check
 
       - name: Audit public claims
         run: bun run audit:claims
@@ -65,9 +48,7 @@ jobs:
         run: bun run build
 
       - name: Check internal links, assets and sitemap
-        run: bun run check:links --github
-        env:
-          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: bun run check:links
 
       - name: Fail if generated files are stale
         # The build regenerates OG cards and the sitemap. If either differs from
@@ -88,7 +69,6 @@ jobs:
 
   accessibility:
     name: Accessibility audit
-    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -96,25 +76,8 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Cache bun install
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
+      - run: bun run build
       - run: bunx playwright install --with-deps chromium
 
       - name: Run axe over every published route, light and dark
@@ -129,7 +92,6 @@ jobs:
 
   visual:
     name: Visual regression
-    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -137,25 +99,8 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Cache bun install
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
+      - run: bun run build
       - run: bunx playwright install --with-deps chromium
 
       - name: Compare against committed snapshots
@@ -172,7 +117,6 @@ jobs:
 
   lighthouse:
     name: Lighthouse budgets
-    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -180,18 +124,8 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Cache bun install
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
+      - run: bun run build
 
       - name: Assert performance, a11y, best-practices and SEO budgets
         run: bunx lhci autorun

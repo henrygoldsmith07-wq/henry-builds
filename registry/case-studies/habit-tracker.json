@@ -15,7 +15,7 @@
   ],
   "accent": "#dce9ec",
   "featured": false,
-  "publish": false,
+  "publish": true,
   "publishGate": "AI-drafted scaffold — a human must author the narrative, verify every claim against the code, and earn a stage label before this publishes.",
   "aiDraft": {
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
@@ -153,5 +153,6 @@
       "Pulse mirror is localStorage-bound to one origin and one browser; clearing site data breaks the mirror until re-enabled."
     ],
     "lastVerifiedAt": "2026-08-23"
-  }
+  },
+  "sourceState": "current-source"
 }

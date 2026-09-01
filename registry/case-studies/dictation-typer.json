@@ -72,5 +72,10 @@
     "limitations": [
       "A personal utility, never hardened for distribution; its source was removed during the 2026-08 ecosystem migration."
     ]
+  },
+  "sourceState": "historical-case-study",
+  "sourceRemoved": {
+    "detectedAt": "2026-09-01",
+    "note": "Source no longer exists in the monorepo (removed from apps/registry.json on main). Kept as a historical case study."
   }
 }

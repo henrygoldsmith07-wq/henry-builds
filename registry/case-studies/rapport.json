@@ -182,5 +182,6 @@
       "The safety gate is deterministic pattern matching; no third-party adversarial red-team has audited it."
     ],
     "lastVerifiedAt": "2026-08-09"
-  }
+  },
+  "sourceState": "current-source"
 }
