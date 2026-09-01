@@ -64,6 +64,18 @@
     },
     "visuals": [
       {
+        "kind": "screenshot",
+        "src": "/media/rtk/screenshot.png",
+        "alt": "RTK test output with collapsed passing suites and kept critical failures",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/rtk/screenshot.png",
+        "alt": "RTK test output with collapsed passing suites and kept critical failures",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
         "kind": "illustration",
         "preview": "rtk",
         "alt": "Illustration of a terminal showing a large raw log collapsing to a single summary line",
@@ -173,7 +185,11 @@
       "LLM task-success was measured on narrow rtk-specific fixtures, not general agentic workflows.",
       "Redaction covers common secret shapes by construction; novel formats pass through."
     ],
-    "lastVerifiedAt": "2026-08-09"
+    "lastVerifiedAt": "2026-08-09",
+    "video": {
+      "src": "/media/rtk/demo.webm",
+      "caption": "Scroll-through of the running app, captured 2026-09-01."
+    }
   },
   "sourceState": "current-source"
 }

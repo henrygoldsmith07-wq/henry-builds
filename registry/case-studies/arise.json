@@ -37,6 +37,18 @@
     "approach": "Derive every attribute from logged history. Strength comes from estimated 1RM and session count, endurance from reps and cardio minutes, consistency from streak, technique from variety and logging discipline. Every progression adjustment explains why it happened, and the deload logic stays deliberately conservative.",
     "visuals": [
       {
+        "kind": "screenshot",
+        "src": "/media/arise/screenshot.png",
+        "alt": "Arise weekly training view with session counts and next session card",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/arise/screenshot.png",
+        "alt": "Arise weekly training view with session counts and next session card",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
         "kind": "illustration",
         "preview": "fitness",
         "alt": "Illustration of a weekly training chart with a next-session card",
@@ -121,7 +133,11 @@
       "No training-outcome data exists — 'works' currently means the tests pass and loads compute, not that users got stronger.",
       "The 1–20 attribute curve is authored judgement, not fitted to data."
     ],
-    "lastVerifiedAt": "2026-08-21"
+    "lastVerifiedAt": "2026-08-21",
+    "video": {
+      "src": "/media/arise/demo.webm",
+      "caption": "Scroll-through of the running app, captured 2026-09-01."
+    }
   },
   "sourceState": "current-source"
 }

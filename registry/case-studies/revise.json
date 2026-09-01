@@ -73,6 +73,18 @@
     },
     "visuals": [
       {
+        "kind": "screenshot",
+        "src": "/media/revise/screenshot.png",
+        "alt": "Revise dashboard with streak counter, cards due and revision plan progress",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/revise/screenshot.png",
+        "alt": "Revise dashboard with streak counter, cards due and revision plan progress",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
         "kind": "illustration",
         "preview": "revise",
         "alt": "Illustration of a revision dashboard showing a streak counter, cards due today and a revision plan progress bar",
@@ -166,7 +178,11 @@
       "Short-answer formats only; maths/LaTeX equivalence checking is internal.",
       "FSRS scheduling ships library defaults; retention has never been studied inside the product."
     ],
-    "lastVerifiedAt": "2026-08-09"
+    "lastVerifiedAt": "2026-08-09",
+    "video": {
+      "src": "/media/revise/demo.webm",
+      "caption": "Scroll-through of the running app, captured 2026-09-01."
+    }
   },
   "sourceState": "current-source"
 }

@@ -69,6 +69,18 @@
     },
     "visuals": [
       {
+        "kind": "screenshot",
+        "src": "/media/reflect/screenshot.png",
+        "alt": "Reflect trace separating observations from assumptions with an alternative reading",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/reflect/screenshot.png",
+        "alt": "Reflect trace separating observations from assumptions with an alternative reading",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
         "kind": "illustration",
         "preview": "reflect",
         "alt": "Illustration of a reflection trace separating observations from assumptions, with an alternative reading beneath",
@@ -157,7 +169,11 @@
       "Longitudinal calibration assumes follow-up answers are self-reported honestly.",
       "The upstream CI workflow file was removed from the emotion-tracker repository on 2026-08-22; the stage-beta label rests on the last green run (2026-08-21) until it is restored."
     ],
-    "lastVerifiedAt": "2026-08-21"
+    "lastVerifiedAt": "2026-08-21",
+    "video": {
+      "src": "/media/reflect/demo.webm",
+      "caption": "Scroll-through of the running app, captured 2026-09-01."
+    }
   },
   "sourceState": "current-source"
 }

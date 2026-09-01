@@ -69,6 +69,18 @@
     },
     "visuals": [
       {
+        "kind": "screenshot",
+        "src": "/media/forq/screenshot.png",
+        "alt": "Forq weekly plan view with suggested recipe, kitchen coverage and cost per person",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/forq/screenshot.png",
+        "alt": "Forq weekly plan view with suggested recipe, kitchen coverage and cost per person",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
         "kind": "illustration",
         "preview": "forq",
         "alt": "Illustration of a weekly meal plan with a shopping list summary beneath it",
@@ -161,7 +173,11 @@
       "Cost and nutrition figures come from authored recipe data, not retailer APIs — prices drift from reality.",
       "Single-household model; local-first storage means no multi-user conflict handling."
     ],
-    "lastVerifiedAt": "2026-08-09"
+    "lastVerifiedAt": "2026-08-09",
+    "video": {
+      "src": "/media/forq/demo.webm",
+      "caption": "Scroll-through of the running app, captured 2026-09-01."
+    }
   },
   "sourceState": "current-source"
 }

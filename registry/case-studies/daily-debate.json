@@ -38,6 +38,18 @@
     "approach": "Force a minimum of five rounds so a position has to survive contact, and score every response on five named dimensions with short written feedback before the opponent replies. For head-to-head play, keep the judge neutral and score the whole transcript rather than round by round. Ground the daily topic in real, well-known institutions the user can go and research.",
     "visuals": [
       {
+        "kind": "screenshot",
+        "src": "/media/daily-debate/screenshot.png",
+        "alt": "Daily Debate transcript view with per-round score badges",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/daily-debate/screenshot.png",
+        "alt": "Daily Debate transcript view with per-round score badges",
+        "caption": "Captured from the running app. Captured 2026-09-01."
+      },
+      {
         "kind": "illustration",
         "preview": "generic",
         "alt": "Illustration of a debate transcript with per-round score badges",
@@ -98,7 +110,11 @@
       "Rate limiting is process-local; running multiple instances would need shared state the current design does not have.",
       "PvP assumes small trusted cohorts; anti-abuse beyond rate limits is thin."
     ],
-    "lastVerifiedAt": "2026-08-21"
+    "lastVerifiedAt": "2026-08-21",
+    "video": {
+      "src": "/media/daily-debate/demo.webm",
+      "caption": "Scroll-through of the running app, captured 2026-09-01."
+    }
   },
   "sourceState": "current-source"
 }
