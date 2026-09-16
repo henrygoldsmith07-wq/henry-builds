@@ -10,14 +10,22 @@ import {
   YAxis,
 } from "recharts";
 import { ArchitectureDiagram } from "@/components/portfolio/ArchitectureDiagram";
-import { ClaimItem, EvidenceChip, EvidenceRow, MetricCard } from "@/components/portfolio/Evidence";
+import { BenchmarkChart } from "@/components/portfolio/BenchmarkChart";
+import {
+  ClaimItem,
+  EvidenceRow,
+  MetricCard,
+  SourceAccessContext,
+} from "@/components/portfolio/Evidence";
+import { SourceVerificationRow } from "@/components/portfolio/EvidenceMeta";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { SourceStateBadge, VerificationLine } from "@/components/portfolio/SourceState";
 import { StageBadge } from "@/components/portfolio/StageBadge";
+import { TestTrend } from "@/components/portfolio/TestTrend";
 import NotFound from "@/pages/NotFound";
-import { getProject, projects, registryMeta } from "@/data/registry";
+import { getProject, ledgerClaimOf, projects, registryMeta } from "@/data/registry";
 
 function Section({
   number,
@@ -68,6 +76,7 @@ export default function CaseStudy() {
       <SiteHeader />
 
       <main id="main">
+        <SourceAccessContext.Provider value={project.sourceAccess === "private"}>
         <article>
           {/* ---- header ---------------------------------------------------- */}
           <header className="mx-auto max-w-[1380px] px-5 pb-12 pt-28 sm:px-8 sm:pt-36 lg:px-12">
@@ -161,6 +170,28 @@ export default function CaseStudy() {
           )}
 
           <div className="mx-auto max-w-[1380px] px-5 sm:px-8 lg:px-12">
+            {/* ---- verification strip: where the source sits, what is deployed,
+                   when CI last went green, when the claims were last checked -- */}
+            <SourceVerificationRow
+              status={project.sourceState}
+              statusReason={project.sourceReason}
+              sha={project.sourceSha}
+              shaUrl={project.sourceShaUrl}
+              checkedAt={project.sourceCheckedAt}
+              ci={
+                project.ci
+                  ? {
+                      conclusion: project.ci.conclusion,
+                      lastSuccessAt: project.ci.lastVerifiedAt,
+                      greenRunUrl: project.ci.runUrl,
+                    }
+                  : undefined
+              }
+              deploy={project.facts?.deploy}
+              release={project.facts?.release}
+              vulnerabilities={project.facts?.vulnerabilities}
+            />
+
             {/* ---- what I built -------------------------------------------- */}
             <Section number="01" title="What I built" id="authorship">
               <p className="text-sm leading-6 text-foreground/85">{authorship.role}</p>
@@ -329,6 +360,16 @@ export default function CaseStudy() {
                     ))}
                   </div>
                 )}
+                {study.metrics.some((metric) => typeof metric.chart === "number") && (
+                  <div className="mt-8 rounded-[1.25rem] border border-border p-6 sm:p-8">
+                    <BenchmarkChart metrics={study.metrics} />
+                  </div>
+                )}
+                {project.factsHistory.length >= 2 && (
+                  <div className="mt-8 rounded-[1.25rem] border border-border p-6 sm:p-8">
+                    <TestTrend history={project.factsHistory} />
+                  </div>
+                )}
                 {study.benchmarkChart && (
                   <div className="mt-8 rounded-[1.25rem] border border-border p-6 sm:p-8">
                     <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -393,7 +434,11 @@ export default function CaseStudy() {
                 </p>
                 <ul className="space-y-px overflow-hidden border border-border bg-border">
                   {study.outcomes.map((outcome) => (
-                    <ClaimItem key={outcome.statement} claim={outcome} />
+                    <ClaimItem
+                      key={outcome.statement}
+                      claim={outcome}
+                      ledgerClaim={ledgerClaimOf(project, outcome.ledgerClaimId)}
+                    />
                   ))}
                 </ul>
               </Section>
@@ -470,6 +515,7 @@ export default function CaseStudy() {
             )}
           </div>
         </article>
+        </SourceAccessContext.Provider>
 
         {/* ---- prev / next ------------------------------------------------- */}
         <nav

@@ -1,9 +1,6 @@
-import {
-  sourceStatusCopy,
-  stageCopy,
-  type SourceStatus,
-  type Stage,
-} from "@/data/registry/schema";
+import { stageCopy, type Stage } from "@/data/registry/schema";
+import { sourceStateCopy } from "@/data/registry/schema";
+import { SourceStateBadge } from "@/components/portfolio/SourceState";
 
 const stageClass: Record<Stage, string> = {
   shipped: "stage-shipped",
@@ -11,13 +8,6 @@ const stageClass: Record<Stage, string> = {
   prototype: "stage-prototype",
   research: "stage-research",
   archived: "stage-archived",
-};
-
-const sourceClass: Record<SourceStatus, string> = {
-  current: "source-current",
-  "archived-source": "source-archived",
-  concept: "source-concept",
-  historical: "source-historical",
 };
 
 /**
@@ -34,28 +24,6 @@ export function StageBadge({ stage, withMeaning = false }: { stage: Stage; withM
       {withMeaning && (
         <span className="text-xs text-muted-foreground">{copy.meaning}</span>
       )}
-    </span>
-  );
-}
-
-/**
- * What exists behind a case study right now. Distinct from stage: a beta write-up
- * whose source was deleted upstream reads fine but points nowhere.
- */
-export function SourceBadge({
-  status,
-  withMeaning = false,
-}: {
-  status: SourceStatus;
-  withMeaning?: boolean;
-}) {
-  const copy = sourceStatusCopy[status];
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span className={`source-badge ${sourceClass[status]}`} title={copy.meaning}>
-        {copy.label}
-      </span>
-      {withMeaning && <span className="text-xs text-muted-foreground">{copy.meaning}</span>}
     </span>
   );
 }
@@ -78,13 +46,13 @@ export function StageLegend() {
       </dl>
       <h3 className="eyebrow mt-8 mb-4">What exists behind each page</h3>
       <dl className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-        {(Object.keys(sourceStatusCopy) as SourceStatus[]).map((status) => (
-          <div key={status} className="bg-background p-5">
+        {(Object.keys(sourceStateCopy) as (keyof typeof sourceStateCopy)[]).map((state) => (
+          <div key={state} className="bg-background p-5">
             <dt>
-              <SourceBadge status={status} />
+              <SourceStateBadge sourceState={state} />
             </dt>
             <dd className="mt-3 text-xs leading-5 text-muted-foreground">
-              {sourceStatusCopy[status].meaning}
+              {sourceStateCopy[state].meaning}
             </dd>
           </div>
         ))}

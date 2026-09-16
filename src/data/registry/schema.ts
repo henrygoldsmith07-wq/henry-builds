@@ -2,11 +2,15 @@
  * Portfolio registry types.
  *
  * The registry is the single source of truth for what appears on this site.
- * It has three layers:
+ * It has five layers, four of them generated:
  *
- *   registry/upstream.json        imported from the monorepo's apps/registry.json (generated)
- *   registry/ci-facts.json        test/benchmark counts pulled from CI (generated)
- *   registry/case-studies/*.json  hand-authored narrative + evidence (edited by a human)
+ *   registry/upstream.json         imported from the monorepo's apps/registry.json (generated)
+ *   registry/evidence-ledger.json  imported from the monorepo's evidence/registry.json (generated)
+ *   registry/ci-facts.json         test/benchmark counts pulled from CI (generated)
+ *   registry/source-status.json    current vs archived-source per project, with the commit
+ *                                  SHA each source sits at (generated)
+ *   registry/facts-history.json    deployment, release and Dependabot snapshots (generated)
+ *   registry/case-studies/*.json   hand-authored narrative + evidence (edited by a human)
  *
  * Generated layers are never edited by hand; `bun run registry:import` rewrites them.
  * `bun run registry:validate` enforces every rule described in these types, so a claim
@@ -104,6 +108,16 @@ export type Evidence = {
   path?: string;
   /** Local asset served from /public, e.g. "/media/rtk/benchmark.png". */
   src?: string;
+  /**
+   * When this evidence was captured (ISO date). Required over time for
+   * captures that rot: screenshots, videos and benchmarks.
+   */
+  capturedAt?: string;
+  /**
+   * After this date (ISO) the evidence is stale and the validator refuses it.
+   * Set explicitly when a capture has a known shelf life.
+   */
+  expiresAt?: string;
 };
 
 /**
@@ -113,6 +127,12 @@ export type Evidence = {
 export type Claim = {
   statement: string;
   evidence: Evidence[];
+  /**
+   * When the statement grades a capability in the monorepo's evidence ledger,
+   * the id of that ledger claim. The site renders the grade, sample size and
+   * last-validated date straight from the generated ledger — never re-typed.
+   */
+  ledgerClaimId?: string;
 };
 
 /**
@@ -130,6 +150,12 @@ export type Metric = {
    * than from the hand-authored file. Never edited by hand.
    */
   source?: "ci" | "authored";
+  /**
+   * Include this metric in the benchmark chart on the case study page. The
+   * number must be 0–100 (it is rendered as a percentage-width bar) and the
+   * chart exists to compare measured things, not to decorate.
+   */
+  chart?: number;
 };
 
 export type Tradeoff = {
@@ -335,6 +361,96 @@ export type CiFacts = Record<
     carriedReason?: string;
   }
 >;
+
+/** How well-established a claim in the monorepo's evidence ledger is. Ordered weakest to strongest. */
+export type LedgerStatus =
+  | "insufficient-evidence"
+  | "infrastructure-only"
+  | "internally-benchmarked"
+  | "partially-demonstrated"
+  | "demonstrated"
+  | "externally-validated";
+
+/** One graded claim, imported from the monorepo's evidence/registry.json. */
+export type LedgerClaim = {
+  id: string;
+  /** Upstream product id — matches a project's `upstreamId`. */
+  product: string;
+  claim: string;
+  status: LedgerStatus;
+  evidenceSource: string;
+  /** How many measurements sit behind the grade; 0 means none. */
+  sampleSize?: number;
+  benchmark?: string;
+  /** When this grading was last updated (ISO date). */
+  lastUpdated?: string;
+  /** What the grade does not establish, stated plainly. */
+  limitations?: string;
+};
+
+/** Shape of the generated registry/evidence-ledger.json file. */
+export type EvidenceLedgerFile = {
+  importedAt: string;
+  statusValues?: Record<string, string>;
+  claims: LedgerClaim[];
+};
+
+/**
+ * One dated operational snapshot per project: CI conclusion, test count,
+ * deployment state, latest release and Dependabot alerts. Powers both the
+ * current facts and the trend charts.
+ */
+export type FactsSnapshot = {
+  date: string;
+  sha?: string;
+  ci?: {
+    conclusion?: string;
+    /** Total passing tests, when the workflow reported a count. */
+    tests?: number;
+    lastGreenAt?: string;
+  };
+  deploy?: {
+    state?: string;
+    environment?: string;
+    sha?: string;
+    url?: string;
+    createdAt?: string;
+    /** False when repository HEAD has moved past the deployment. */
+    upToDate?: boolean;
+  };
+  release?: { tag: string; url?: string };
+  vulnerabilities?: { open?: number; unavailable?: string };
+};
+
+/** Shape of the generated registry/facts-history.json file. */
+export type FactsHistoryFile = {
+  generatedAt: string;
+  latest: Record<string, FactsSnapshot>;
+  history?: Record<string, FactsSnapshot[]>;
+};
+
+/** One per-slug entry of the generated registry/source-status.json file. */
+export type SourceStatusEntry = {
+  derived: "current" | "archived-source";
+  reason?: string;
+  repo?: string;
+  ref?: string;
+  access?: "public" | "private";
+  sha?: string;
+  shaUrl?: string;
+};
+
+/** Shape of the generated registry/source-status.json file. */
+export type SourceStatusSnapshot = {
+  checkedAt: string;
+  projects: Record<string, SourceStatusEntry>;
+};
+
+/** Shape of the generated registry/ci-facts.json file. */
+export type CiFactsFile = {
+  importedAt?: string;
+  facts: CiFacts;
+};
 
 /**
  * Stage is not a free choice. These are the conditions the validator enforces,

@@ -79,12 +79,6 @@
         "caption": "Captured from the running app. Captured 2026-09-01."
       },
       {
-        "kind": "screenshot",
-        "src": "/media/revise/screenshot.png",
-        "alt": "Revise dashboard with streak counter, cards due and revision plan progress",
-        "caption": "Captured from the running app. Captured 2026-09-01."
-      },
-      {
         "kind": "illustration",
         "preview": "revise",
         "alt": "Illustration of a revision dashboard showing a streak counter, cards due today and a revision plan progress bar",

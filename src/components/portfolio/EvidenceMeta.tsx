@@ -1,13 +1,11 @@
 import { CalendarCheck, FlaskConical, GitCommitHorizontal, ShieldQuestion } from "lucide-react";
 import type {
-  DeployFact,
   Evidence,
+  FactsSnapshot,
   LedgerClaim,
-  ReleaseFact,
-  SourceStatus,
-  VulnerabilityFact,
+  SourceState,
 } from "@/data/registry/schema";
-import { sourceStatusCopy } from "@/data/registry/schema";
+import { sourceStateCopy } from "@/data/registry/schema";
 
 const gradeClass: Record<string, string> = {
   "externally-validated": "grade-external",
@@ -111,7 +109,7 @@ export function SourceVerificationRow({
   release,
   vulnerabilities,
 }: {
-  status: SourceStatus;
+  status: SourceState;
   statusReason?: string;
   sha?: string;
   shaUrl?: string;
@@ -125,11 +123,11 @@ export function SourceVerificationRow({
         runUrl?: string;
       }
     | undefined;
-  deploy?: DeployFact;
-  release?: ReleaseFact;
-  vulnerabilities?: VulnerabilityFact;
+  deploy?: FactsSnapshot["deploy"];
+  release?: FactsSnapshot["release"];
+  vulnerabilities?: FactsSnapshot["vulnerabilities"];
 }) {
-  const copy = sourceStatusCopy[status];
+  const copy = sourceStateCopy[status];
   const deployedBehind = deploy?.upToDate === false;
   return (
     <dl className="verification-row" aria-label="Source verification state">
