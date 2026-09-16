@@ -6,6 +6,11 @@ name: Visual baselines
 # themselves can only be produced on Linux (CI renders them; Windows locals
 # rely on pixel tolerance). Run this after merging intentional visual changes;
 # CI's visual job then compares against fresh truth.
+#
+# OG cards get the same treatment: they embed text rendered by the OS font
+# stack, so a card generated on Windows or macOS never matches the one CI's
+# stale-generated-files gate re-renders on Linux. Regenerate them here too,
+# so local runs only need to keep content (slugs, dates, tags) in sync.
 
 on:
   workflow_dispatch:
@@ -40,16 +45,19 @@ jobs:
       - name: Accept current rendering as the new baseline
         run: bun run test:visual:update
 
-      - name: Commit refreshed baselines if any changed
+      # The build already regenerated OG cards and the sitemap on Linux with
+      # the production SITE_URL, so public/ now holds the canonical render.
+      - name: Commit refreshed baselines and OG cards if any changed
         run: |
-          if git diff --quiet -- tests; then
+          if git diff --quiet -- tests public/og; then
             echo "Baselines unchanged."
             exit 0
           fi
           git config user.name "henry-builds-sync"
           git config user.email "actions@users.noreply.github.com"
-          git add tests
-          git commit -m "chore: refresh visual baselines
+          git add tests public/og
+          git commit -m "chore: refresh visual baselines and OG cards
 
-          Linux-rendered snapshots regenerated after intentional UI changes."
+          Linux-rendered snapshots and OG cards regenerated after
+          intentional UI changes."
           git push origin HEAD:main
