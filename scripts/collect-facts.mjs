@@ -95,7 +95,7 @@ for (const [slug, status] of Object.entries(statusBySlug)) {
     snapshot.ci = {
       conclusion: ci.conclusion,
       tests: ci.tests?.total,
-      lastGreenAt: ci.lastSuccessAt?.slice(0, 10),
+      lastGreenAt: ci.lastSuccessfulRunAt?.slice(0, 10),
     };
     snapshot.sha = ci.headSha ?? headSha;
   }

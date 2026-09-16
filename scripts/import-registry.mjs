@@ -271,12 +271,30 @@ async function latestRun(workflowFile) {
  * the newest run failed — the date of the last green run is the date the code
  * was last verified, which is exactly what the site displays.
  */
-async function recentRuns(workflowFile, perPage = 100) {
+async function recentRuns(repo, workflowFile, branch, perPage = 100) {
   const url =
-    `https://api.github.com/repos/${SOURCE_REPO}/actions/workflows/` +
-    `${encodeURIComponent(workflowFile)}/runs?branch=${SOURCE_REF}&per_page=${perPage}&status=completed`;
+    `https://api.github.com/repos/${repo}/actions/workflows/` +
+    `${encodeURIComponent(workflowFile)}/runs?branch=${branch}&per_page=${perPage}&status=completed`;
   const data = await fetchJson(url);
   return data.workflow_runs ?? [];
+}
+
+/**
+ * Standalone-repo entries name a repository, not a workflow. Their runs are
+ * queried repo-wide on the default branch; each run carries the workflow path
+ * it belongs to, which becomes the fact's workflow reference.
+ */
+async function recentRepoRuns(repo, branch, perPage = 10) {
+  const url =
+    `https://api.github.com/repos/${repo}/actions/runs` +
+    `?branch=${encodeURIComponent(branch)}&per_page=${perPage}&status=completed`;
+  const data = await fetchJson(url);
+  return data.workflow_runs ?? [];
+}
+
+async function defaultBranchOf(repo) {
+  const data = await fetchJson(`https://api.github.com/repos/${repo}`);
+  return data.default_branch ?? "main";
 }
 
 async function runLogText(runId) {
@@ -305,27 +323,48 @@ async function collectCiFacts(entries) {
   let failures = 0;
 
   for (const entry of entries) {
-    if (!entry.workflow) continue;
-    const workflowFile = path.basename(entry.workflow);
-
     try {
-      const runs = await recentRuns(workflowFile);
-      if (runs.length === 0) {
-        log(`${entry.id}: no completed runs for ${workflowFile}`);
+      let run;
+      let runs;
+      const record = {};
+
+      if (entry.workflow) {
+        // Monorepo-style entry: the registry names the workflow explicitly.
+        const workflowFile = path.basename(entry.workflow);
+        runs = await recentRuns(SOURCE_REPO, workflowFile, SOURCE_REF);
+        if (runs.length === 0) {
+          log(`${entry.id}: no completed runs for ${workflowFile}`);
+          continue;
+        }
+        run = runs[0];
+        record.workflow = entry.workflow;
+        record.workflowUrl = `https://github.com/${SOURCE_REPO}/blob/${SOURCE_REF}/${entry.workflow}`;
+      } else if (entry.repo) {
+        // Standalone-repo entry (post-2026-08 migration): derive the workflow
+        // from the repo's own most recent runs on its default branch.
+        const branch = await defaultBranchOf(entry.repo);
+        runs = await recentRepoRuns(entry.repo, branch);
+        if (runs.length === 0) {
+          log(`${entry.id}: no completed runs for ${entry.repo}`);
+          continue;
+        }
+        run = runs[0];
+        record.workflow = run.path ?? `${entry.repo} CI`;
+        record.workflowUrl = run.path
+          ? `https://github.com/${entry.repo}/blob/${branch}/${run.path}`
+          : `https://github.com/${entry.repo}/actions`;
+      } else {
+        // No CI anywhere to look up (tokens, tooling, archived entries).
         continue;
       }
-      const run = runs[0];
 
       const lastSuccess = runs.find((r) => r.conclusion === "success");
-      const record = {
-        workflow: entry.workflow,
-        workflowUrl: `https://github.com/${SOURCE_REPO}/blob/${SOURCE_REF}/${entry.workflow}`,
-        runUrl: run.html_url,
-        conclusion: run.conclusion,
-        lastRunAt: run.updated_at,
-        lastSuccessfulRunAt: lastSuccess?.updated_at,
-        lastSuccessRunUrl: lastSuccess?.html_url,
-      };
+      record.runUrl = run.html_url;
+      record.conclusion = run.conclusion;
+      record.lastRunAt = run.updated_at;
+      record.lastSuccessfulRunAt = lastSuccess?.updated_at;
+      record.lastSuccessRunUrl = lastSuccess?.html_url;
+      record.headSha = run.head_sha?.slice(0, 7);
 
       // Facts content comes artifact-first, log-parsing second.
       let measured = null;
@@ -373,7 +412,8 @@ async function collectCiFacts(entries) {
       );
     } catch (error) {
       failures++;
-      warn(`${entry.id}: ${workflowFile} lookup failed — ${error.message}`);
+      const label = entry.workflow ?? entry.repo ?? entry.id;
+      warn(`${entry.id}: ${label} lookup failed — ${error.message}`);
       // Preserve whatever we knew before so a transient outage cannot erase
       // evidence from the site.
       if (previous[entry.id]) {

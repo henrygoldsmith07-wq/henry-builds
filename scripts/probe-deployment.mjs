@@ -189,7 +189,7 @@ try {
 // probes each liveUrl too. Current-source projects must answer; archived or
 // historical ones are expected to rot, so their deaths are warnings.
 {
-  const withLive = projects
+  const withLive = published
     .filter((p) => typeof p.liveUrl === "string" && /^https?:\/\//.test(p.liveUrl))
     .map((p) => ({ slug: p.slug, url: p.liveUrl.replace(/\/$/, ""), state: p.sourceState }));
 
