@@ -1,6 +1,6 @@
 {
   "_generated": "Written by scripts/import-registry.mjs --ci. Do not edit by hand.",
-  "importedAt": "2026-09-16T13:45:57.032Z",
+  "importedAt": "2026-09-17T11:48:38.004Z",
   "sourceRepo": "henrygoldsmith07-wq/Claude-Code",
   "sourceRef": "main",
   "facts": {
@@ -16,14 +16,14 @@
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "daily-debate": {
-      "workflow": ".github/workflows/daily-debate.yml",
-      "workflowUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/daily-debate.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35075899379",
-      "conclusion": "success",
-      "lastRunAt": "2026-09-16T08:53:46Z",
-      "lastSuccessfulRunAt": "2026-09-16T08:53:46Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35075899379",
-      "headSha": "256dbc2",
+      "workflow": ".github/workflows/topic-generation.yml",
+      "workflowUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/topic-generation.yml",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35195264222",
+      "conclusion": "failure",
+      "lastRunAt": "2026-09-17T07:35:28Z",
+      "lastSuccessfulRunAt": "2026-09-16T14:17:54Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35107045424",
+      "headSha": "be22d38",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "emotion-tracker": {
@@ -95,12 +95,12 @@
     "revise": {
       "workflow": ".github/workflows/revise.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/revise/blob/main/.github/workflows/revise.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35067739591",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35199225243",
       "conclusion": "success",
-      "lastRunAt": "2026-09-16T07:27:55Z",
-      "lastSuccessfulRunAt": "2026-09-16T07:27:55Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35067739591",
-      "headSha": "074f52e",
+      "lastRunAt": "2026-09-17T08:33:33Z",
+      "lastSuccessfulRunAt": "2026-09-17T08:33:33Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35199225243",
+      "headSha": "065f5d0",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "rtk": {
