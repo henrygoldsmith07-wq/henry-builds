@@ -1,29 +1,29 @@
 {
   "_generated": "Written by scripts/import-registry.mjs --ci. Do not edit by hand.",
-  "importedAt": "2026-09-17T11:48:38.004Z",
+  "importedAt": "2026-09-18T11:23:01.298Z",
   "sourceRepo": "henrygoldsmith07-wq/Claude-Code",
   "sourceRef": "main",
   "facts": {
     "arise": {
       "workflow": ".github/workflows/arise.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/arise/blob/main/.github/workflows/arise.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/35025901255",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/35330123835",
       "conclusion": "success",
-      "lastRunAt": "2026-09-15T21:35:34Z",
-      "lastSuccessfulRunAt": "2026-09-15T21:35:34Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/35025901255",
-      "headSha": "1762d1d",
+      "lastRunAt": "2026-09-18T09:38:48Z",
+      "lastSuccessfulRunAt": "2026-09-18T09:38:48Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/35330123835",
+      "headSha": "e135fc5",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "daily-debate": {
       "workflow": ".github/workflows/topic-generation.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/topic-generation.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35195264222",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35319075118",
       "conclusion": "failure",
-      "lastRunAt": "2026-09-17T07:35:28Z",
-      "lastSuccessfulRunAt": "2026-09-16T14:17:54Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35107045424",
-      "headSha": "be22d38",
+      "lastRunAt": "2026-09-18T07:22:26Z",
+      "lastSuccessfulRunAt": "2026-09-17T17:46:28Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35254339116",
+      "headSha": "860c599",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "emotion-tracker": {
@@ -40,12 +40,12 @@
     "food-shopping-os": {
       "workflow": ".github/workflows/food-shopping-os.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/blob/main/.github/workflows/food-shopping-os.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/34679036616",
-      "conclusion": "success",
-      "lastRunAt": "2026-09-12T07:02:11Z",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/35272481476",
+      "conclusion": "failure",
+      "lastRunAt": "2026-09-17T21:54:51Z",
       "lastSuccessfulRunAt": "2026-09-12T07:02:11Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/34679036616",
-      "headSha": "ab692e3",
+      "headSha": "60d3a18",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "french-practice": {
@@ -95,12 +95,12 @@
     "revise": {
       "workflow": ".github/workflows/revise.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/revise/blob/main/.github/workflows/revise.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35199225243",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35316196331",
       "conclusion": "success",
-      "lastRunAt": "2026-09-17T08:33:33Z",
-      "lastSuccessfulRunAt": "2026-09-17T08:33:33Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35199225243",
-      "headSha": "065f5d0",
+      "lastRunAt": "2026-09-18T06:54:41Z",
+      "lastSuccessfulRunAt": "2026-09-18T06:54:41Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35316196331",
+      "headSha": "fe8e603",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "rtk": {
