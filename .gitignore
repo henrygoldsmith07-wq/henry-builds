@@ -36,3 +36,9 @@ test-results/
 # Local secrets (API keys)
 .env
 .env.*
+
+# Classifier evidence assist: local per-text cache (keyed by taxonomy version).
+# CI restores it via actions/cache; the committed registry/claim-classifications.json
+# is the shared record. Ephemeral per-run reports stay out of git.
+.cache/classifier-*.json
+classifier-report.json

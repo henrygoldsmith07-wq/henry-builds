@@ -36,7 +36,37 @@ jobs:
         run: bun run archive:removed:check
 
       - name: Audit public claims
-        run: bun run audit:claims
+        # Deterministic regex bans stay authoritative; classifier assist inside
+        # is advisory-only and writes a metadata-only report (no claim text).
+        run: bun run audit:claims -- --report classifier-report.json
+
+      - name: Restore classifier cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/classifier-v1.json
+          key: classifier-${{ hashFiles('scripts/lib/claim-taxonomy.mjs') }}-${{ hashFiles('registry/case-studies/*.json', 'registry/evidence-ledger.json') }}
+          restore-keys: classifier-
+
+      - name: Classify claims (evidence assist, advisory only)
+        # classifier.dev identifies claim TYPE only; it never decides proof.
+        # Offline fallback keeps the build green when the service is down.
+        run: |
+          bun run classify:claims || bun run classify:claims:offline
+          bun run classify:validate
+
+      - name: Classifier report (category, confidence, rule)
+        if: always()
+        run: |
+          node -e "const r=require('./classifier-report.json');for(const i of r.items)console.log(i.id+' | '+i.category+' | '+i.confidence+' | '+i.rule+' | '+i.status)"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: classifier-report
+          path: |
+            classifier-report.json
+            .cache/classifier-v1.json
+          retention-days: 7
 
       - name: Type-check
         run: bunx tsc -b

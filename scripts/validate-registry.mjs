@@ -13,6 +13,10 @@
  *   node scripts/validate-registry.mjs --upstream  # also verify repo paths still exist
  *                                                  # upstream via the GitHub API (scheduled)
  *
+ * Classifier assist (advisory, warn-only): when registry/claim-classifications.json
+ * exists, each high-confidence category selects its deterministic evidence rule
+ * and missing kinds are reported as warnings. Absent/offline -> skipped silently.
+ *
  * No dependencies — this has to run in a bare CI container.
  */
 
@@ -534,6 +538,51 @@ console.log(
     `CI facts ${presentCiCount}/${expectedCiCount} expected, ` +
     `${errors} error(s), ${warnings} warning(s)`,
 );
+
+// --- classifier assist: advisory only, never authoritative ------------------
+// classifier.dev identifies the TYPE of each claim; the deterministic category
+// rules in scripts/lib/claim-taxonomy.mjs then select which evidence kind the
+// claim should carry. This block only WARNS: proof is decided by the checks
+// above, which remain the gate. Offline/unsure -> "other" -> no warning.
+{
+  const classificationsPath = path.join(root, "registry", "claim-classifications.json");
+  let classifications = null;
+  try {
+    classifications = JSON.parse(fs.readFileSync(classificationsPath, "utf8"));
+  } catch {
+    classifications = null; // report absent until classify-claims has run; never fail
+  }
+  if (classifications && Array.isArray(classifications.items)) {
+    const byId = new Map(classifications.items.map((r) => [r.id, r]));
+    console.log(
+      `validate-registry: classifier assist taxonomy v${classifications.taxonomyVersion ?? "?"} — ${classifications.items.length} classified claim(s) (advisory only)`,
+    );
+    for (const file of files) {
+      const full = path.join(caseStudyDir, file);
+      const project = readJson(full);
+      if (!project) continue;
+      const id = path.basename(file, ".json");
+      const check = (claimId, kinds) => {
+        const row = byId.get(claimId);
+        if (!row || row.category === "other" || (row.confidence ?? 0) < 0.7) return;
+        const needs = row.requiresAny ?? [];
+        if (needs.length === 0 || needs.some((k) => kinds.includes(k))) return;
+        warn(
+          `${id}: ${claimId} reads as '${row.category}' (conf ${row.confidence}, rule ${row.rule}) ` +
+            `so '${needs.join("|")}' evidence is expected — has '${kinds.join(",") || "none"}' (advisory; existing rules still decide)`,
+        );
+      };
+      (project.caseStudy?.outcomes ?? []).forEach((o, i) =>
+        check(`${project.slug ?? id}.outcomes[${i}]`, (o.evidence ?? []).map((e) => e.kind)),
+      );
+      (project.caseStudy?.metrics ?? []).forEach((m, i) =>
+        check(`${project.slug ?? id}.metrics[${i}]`, (m.evidence ?? []).map((e) => e.kind)),
+      );
+    }
+  } else {
+    console.log("validate-registry: classifier assist skipped — registry/claim-classifications.json not present (run `bun run classify:claims`)");
+  }
+}
 
 if (gated.length) {
   console.log("\nPublish gates that have opened:");
