@@ -1,6 +1,6 @@
 {
   "_generated": "Written by scripts/import-registry.mjs --ci. Do not edit by hand.",
-  "importedAt": "2026-09-20T11:31:22.902Z",
+  "importedAt": "2026-09-21T12:56:04.867Z",
   "sourceRepo": "henrygoldsmith07-wq/Claude-Code",
   "sourceRef": "main",
   "facts": {
@@ -16,11 +16,11 @@
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "daily-debate": {
-      "workflow": ".github/workflows/daily-debate.yml",
-      "workflowUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/daily-debate.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35507751186",
-      "conclusion": "success",
-      "lastRunAt": "2026-09-20T11:28:43Z",
+      "workflow": ".github/workflows/judge-benchmark.yml",
+      "workflowUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/judge-benchmark.yml",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35582684132",
+      "conclusion": "failure",
+      "lastRunAt": "2026-09-21T10:32:19Z",
       "lastSuccessfulRunAt": "2026-09-20T11:28:43Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35507751186",
       "headSha": "bec1ec3",
@@ -40,22 +40,22 @@
     "food-shopping-os": {
       "workflow": ".github/workflows/food-shopping-os.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/blob/main/.github/workflows/food-shopping-os.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/35454585510",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/35525487127",
       "conclusion": "failure",
-      "lastRunAt": "2026-09-19T16:20:02Z",
+      "lastRunAt": "2026-09-20T17:32:42Z",
       "lastSuccessfulRunAt": "2026-09-18T15:35:23Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/35361360170",
-      "headSha": "daaa609",
+      "headSha": "0e1f80a",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "french-practice": {
-      "workflow": ".github/workflows/cross-browser.yml",
-      "workflowUrl": "https://github.com/henrygoldsmith07-wq/french-practice/blob/main/.github/workflows/cross-browser.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/35501230771",
+      "workflow": ".github/workflows/validation-status.yml",
+      "workflowUrl": "https://github.com/henrygoldsmith07-wq/french-practice/blob/main/.github/workflows/validation-status.yml",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/35598320820",
       "conclusion": "success",
-      "lastRunAt": "2026-09-20T09:06:06Z",
-      "lastSuccessfulRunAt": "2026-09-20T09:06:06Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/35501230771",
+      "lastRunAt": "2026-09-21T12:13:57Z",
+      "lastSuccessfulRunAt": "2026-09-21T12:13:57Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/35598320820",
       "headSha": "df4f12e",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
@@ -93,14 +93,14 @@
       "carriedReason": "404 Not Found for https://api.github.com/repos/henrygoldsmith07-wq/rapport"
     },
     "revise": {
-      "workflow": ".github/workflows/revise.yml",
-      "workflowUrl": "https://github.com/henrygoldsmith07-wq/revise/blob/main/.github/workflows/revise.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35316196331",
+      "workflow": ".github/workflows/revise-curriculum-freshness.yml",
+      "workflowUrl": "https://github.com/henrygoldsmith07-wq/revise/blob/main/.github/workflows/revise-curriculum-freshness.yml",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35601930274",
       "conclusion": "success",
-      "lastRunAt": "2026-09-18T06:54:41Z",
-      "lastSuccessfulRunAt": "2026-09-18T06:54:41Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35316196331",
-      "headSha": "fe8e603",
+      "lastRunAt": "2026-09-21T12:51:32Z",
+      "lastSuccessfulRunAt": "2026-09-21T12:51:32Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/35601930274",
+      "headSha": "0968cdf",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "rtk": {
