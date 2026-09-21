@@ -25,6 +25,7 @@
     "classify:claims": "node scripts/classify-claims.mjs",
     "classify:claims:offline": "node scripts/classify-claims.mjs --offline",
     "classify:validate": "node scripts/validate-classifier.mjs",
+    "test:claim-cache": "node scripts/test-claim-cache.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:links:external": "node scripts/check-links.mjs --external",
     "check:links:full": "node scripts/check-links.mjs --external --github",

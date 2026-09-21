@@ -114,6 +114,7 @@ console.log(
 // --- classifier assist: TYPE of claim -> deterministic rule (advisory) ---
 import { classifyClaims } from "./lib/classifier-client.mjs";
 import { CONFIDENCE_THRESHOLD, TAXONOMY_VERSION } from "./lib/claim-taxonomy.mjs";
+import { collectClaimItems } from "./lib/claim-source-hash.mjs";
 
 const classifierOffline = process.argv.includes("--offline");
 const classifierStrict = process.argv.includes("--strict-classifier");
@@ -121,20 +122,10 @@ const reportIdx = process.argv.indexOf("--report");
 const reportFile = reportIdx >= 0 ? process.argv[reportIdx + 1] : null;
 
 async function classifyPhase() {
-  const dir = path.join(root, "registry", "case-studies");
-  const items = [];
-  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json")).sort()) {
-    const p = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
-    const cs = p.caseStudy ?? {};
-    (cs.outcomes ?? []).forEach((o, i) => {
-      if (o?.statement)
-        items.push({ id: `${p.slug}.outcomes[${i}]`, text: o.statement, kinds: (o.evidence ?? []).map((e) => e.kind) });
-    });
-    (cs.metrics ?? []).forEach((m, i) => {
-      if (m?.label || m?.value)
-        items.push({ id: `${p.slug}.metrics[${i}]`, text: `${m.label}: ${m.value}`, kinds: (m.evidence ?? []).map((e) => e.kind) });
-    });
-  }
+  // Reuse the SAME canonical item source as classify-claims.mjs so the
+  // per-text classifier cache and the shared report stay consistent. IDs and
+  // text normalisation must match exactly across both scripts.
+  const items = collectClaimItems(root);
   const results = await classifyClaims(
     items.map((x) => x.text),
     { root, offline: classifierOffline },

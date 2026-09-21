@@ -1,0 +1,22 @@
+{
+  "description": "Synthetic registry scratch tree used by scripts/test-claim-cache.mjs to prove source-hash invalidation without touching committed registry data.",
+  "caseStudies": [
+    {
+      "slug": "alpha",
+      "caseStudy": {
+        "outcomes": [
+          { "statement": "Caches 90% of requests with Redis.", "evidence": [{ "kind": "benchmark" }] }
+        ],
+        "metrics": [
+          { "label": "P95", "value": "12 ms", "method": "wrk over 10k requests" }
+        ]
+      }
+    }
+  ],
+  "ledger": {
+    "claims": [
+      { "id": "alpha-perf", "claim": "End-to-end latency drops under load.", "status": "demonstrated" },
+      { "id": "alpha-unc", "claim": "A world-class experience users love.", "status": "insufficient-evidence" }
+    ]
+  }
+}

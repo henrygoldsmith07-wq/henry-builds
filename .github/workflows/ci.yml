@@ -35,11 +35,11 @@ jobs:
         # gone, or an un-committed auto-archive from the sync workflow.
         run: bun run archive:removed:check
 
-      - name: Audit public claims
-        # Deterministic regex bans stay authoritative; classifier assist inside
-        # is advisory-only and writes a metadata-only report (no claim text).
-        run: bun run audit:claims -- --report classifier-report.json
-
+      # Restore the per-text classifier cache BEFORE any classifier-assisted
+      # step runs. Offline CI relies on this cache, and even online CI must
+      # not repeat external classifier.dev requests for claims whose per-text
+      # hash is already cached. The cache key mirrors the source-hash inputs:
+      # taxonomy file + every registry source of claim text.
       - name: Restore classifier cache
         uses: actions/cache@v4
         with:
@@ -47,9 +47,16 @@ jobs:
           key: classifier-${{ hashFiles('scripts/lib/claim-taxonomy.mjs') }}-${{ hashFiles('registry/case-studies/*.json', 'registry/evidence-ledger.json') }}
           restore-keys: classifier-
 
+      - name: Audit public claims
+        # Deterministic regex bans stay authoritative; classifier assist inside
+        # is advisory-only and writes a metadata-only report (no claim text).
+        run: bun run audit:claims -- --report classifier-report.json
+
       - name: Classify claims (evidence assist, advisory only)
         # classifier.dev identifies claim TYPE only; it never decides proof.
         # Offline fallback keeps the build green when the service is down.
+        # classify-claims reuses its committed report when the source hash
+        # matches, so this is a no-op on a cache hit instead of an online call.
         run: |
           bun run classify:claims || bun run classify:claims:offline
           bun run classify:validate
