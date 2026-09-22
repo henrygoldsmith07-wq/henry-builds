@@ -123,3 +123,26 @@ test("missing routes tell crawlers not to index them", async ({ page }) => {
     "noindex, nofollow",
   );
 });
+
+
+test("saved theme preference is applied on navigation", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("henry-theme", "dark");
+  });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveClass(/dark/);
+});
+
+test("mobile menu closes with Escape and returns focus", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Mobile navigation only renders below md");
+
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: "Open menu" });
+  await trigger.click();
+
+  await expect(page.getByRole("navigation", { name: "Mobile" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  await expect(page.getByRole("navigation", { name: "Mobile" })).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+});
