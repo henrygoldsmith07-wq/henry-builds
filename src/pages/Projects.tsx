@@ -5,7 +5,7 @@ import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { SourceStateBadge } from "@/components/portfolio/SourceState";
 import { StageBadge, StageLegend } from "@/components/portfolio/StageBadge";
-import { projects, registryMeta } from "@/data/registry";
+import { featuredProjects, projects, registryMeta } from "@/data/registry";
 import { stageOrder, type Stage } from "@/data/registry/schema";
 
 const ALL = "all" as const;
@@ -115,7 +115,7 @@ export default function Projects() {
             </span>
           </h1>
           <p className="mt-7 max-w-xl text-base leading-7 text-muted-foreground">
-            The landing page shows six projects. This page shows all of them —
+            The landing page shows {featuredProjects.length} featured projects. This page shows all of them —
             prototypes, research and the things that stalled — each with a stage
             label that means something specific.
           </p>
