@@ -25,7 +25,7 @@ const published = fs
     JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")),
   )
   .filter((project) => {
-    if (project.publish !== false) return true;
+    if (project.publish === true) return true;
     const lifecycle = (
       upstreamById.get(project.upstreamId) as { lifecycle?: string } | undefined
     )?.lifecycle;
