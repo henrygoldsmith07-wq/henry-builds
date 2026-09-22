@@ -100,6 +100,7 @@ export default function Projects() {
         title="All work — Henry Goldsmith"
         description="Every project in the registry, including the weaker and unfinished ones, with an honest stage label on each."
         path="/projects"
+        image="/og/projects.png"
       />
       <SiteHeader />
 
