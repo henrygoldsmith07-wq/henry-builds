@@ -19,7 +19,6 @@ import path from "node:path";
 import { loadCaseStudies } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
-const caseStudyDir = path.join(root, "registry/case-studies");
 const publicDir = path.join(root, "public");
 const distDir = path.join(root, "dist");
 
