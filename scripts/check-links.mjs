@@ -16,6 +16,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { loadCaseStudies } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
@@ -44,15 +45,11 @@ function warn(msg) {
   console.warn(`  ! ${msg}`);
 }
 
-const projects = fs
-  .readdirSync(caseStudyDir)
-  .filter((file) => file.endsWith(".json"))
-  .map((file) => ({
-    file: `registry/case-studies/${file}`,
-    data: JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")),
-  }));
-
-const published = projects.filter((p) => p.data.publish !== false);
+const {
+  all: projects,
+  published,
+  unpublished,
+} = loadCaseStudies(root);
 
 /** Every route the app can serve. */
 const routes = new Set([
@@ -116,7 +113,7 @@ if (!fs.existsSync(sitemapPath)) {
     if (!routes.has(listed)) fail(`sitemap.xml lists ${listed}, which is not a route`);
   }
   // An unpublished project must not leak into the sitemap.
-  for (const { data } of projects.filter((p) => p.data.publish === false)) {
+  for (const { data } of unpublished) {
     checked++;
     if (paths.has(`/projects/${data.slug}`)) {
       fail(`sitemap.xml lists /projects/${data.slug}, but that project is not published`);
