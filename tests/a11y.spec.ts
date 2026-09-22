@@ -87,8 +87,9 @@ test("the skip link is reachable by keyboard and moves focus", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.keyboard.press("Tab");
   const skipLink = page.locator(".skip-link");
+  await expect(skipLink).toBeAttached();
+  await page.keyboard.press("Tab");
   await expect(skipLink).toBeFocused();
   await expect(skipLink).toBeVisible();
 });
