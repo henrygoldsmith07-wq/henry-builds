@@ -13,10 +13,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
+import { loadCaseStudies } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
 const outDir = path.join(root, "public/og");
-const caseStudyDir = path.join(root, "registry/case-studies");
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -124,11 +124,9 @@ async function render(name, svg) {
 async function main() {
   fs.mkdirSync(outDir, { recursive: true });
 
-  const files = fs.existsSync(caseStudyDir)
-    ? fs.readdirSync(caseStudyDir).filter((f) => f.endsWith(".json"))
-    : [];
+  const { published } = loadCaseStudies(root);
 
-  console.log(`generate-og: rendering ${files.length + 2} cards`);
+  console.log(`generate-og: rendering ${published.length + 2} cards`);
 
   await render(
     "default",
@@ -151,10 +149,7 @@ async function main() {
     }),
   );
 
-  for (const file of files) {
-    const project = JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8"));
-    if (project.publish === false) continue;
-
+  for (const { data: project } of published) {
     await render(
       project.slug,
       card({
