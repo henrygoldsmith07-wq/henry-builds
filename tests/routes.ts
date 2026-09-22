@@ -6,7 +6,17 @@ import path from "node:path";
  * study automatically adds it to the accessibility and visual suites. A new
  * project cannot ship unaudited.
  */
-const caseStudyDir = path.join(process.cwd(), "registry/case-studies");
+const root = process.cwd();
+const caseStudyDir = path.join(root, "registry/case-studies");
+const upstream = JSON.parse(
+  fs.readFileSync(path.join(root, "registry/upstream.json"), "utf8"),
+);
+const upstreamById = new Map(
+  (upstream.entries ?? []).map((entry: { id: string; lifecycle?: string }) => [
+    entry.id,
+    entry,
+  ]),
+);
 
 const published = fs
   .readdirSync(caseStudyDir)
@@ -14,7 +24,13 @@ const published = fs
   .map((file) =>
     JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")),
   )
-  .filter((project) => project.publish !== false);
+  .filter((project) => {
+    if (project.publish !== false) return true;
+    const lifecycle = (
+      upstreamById.get(project.upstreamId) as { lifecycle?: string } | undefined
+    )?.lifecycle;
+    return lifecycle === "active" || lifecycle === "maintenance";
+  });
 
 export const projectSlugs: string[] = published
   .map((project) => project.slug)
