@@ -1,14 +1,5 @@
 import { ArrowLeft, ArrowRight, ExternalLink, Github, Minus, Plus, TriangleAlert } from "lucide-react";
 import { Link, useParams } from "react-router";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { ArchitectureDiagram } from "@/components/portfolio/ArchitectureDiagram";
 import { BenchmarkChart } from "@/components/portfolio/BenchmarkChart";
 import {
@@ -378,43 +369,36 @@ export default function CaseStudy() {
                       </h3>
                       <p className="text-xs text-muted-foreground">{study.benchmarkChart.unit}</p>
                     </div>
-                    <div className="mt-6 h-[280px] w-full" role="img" aria-label={`${study.benchmarkChart.title} — ${study.benchmarkChart.unit}`}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={study.benchmarkChart.series}
-                          layout="vertical"
-                          margin={{ top: 4, right: 24, bottom: 4, left: 8 }}
-                        >
-                          <CartesianGrid horizontal={false} strokeDasharray="3 3" stroke="currentColor" opacity={0.15} />
-                          <XAxis
-                            type="number"
-                            domain={[0, 100]}
-                            tick={{ fontSize: 11 }}
-                            stroke="currentColor"
-                            opacity={0.5}
-                          />
-                          <YAxis
-                            type="category"
-                            dataKey="label"
-                            width={170}
-                            tick={{ fontSize: 11 }}
-                            stroke="currentColor"
-                            opacity={0.7}
-                          />
-                          <Tooltip
-                            formatter={(value) => [`${value}`, study.benchmarkChart?.unit]}
-                            contentStyle={{
-                              background: "var(--background)",
-                              border: "1px solid var(--border)",
-                              borderRadius: 12,
-                              fontSize: 12,
-                              color: "var(--foreground)",
-                            }}
-                          />
-                          <Bar dataKey="value" fill="currentColor" opacity={0.75} radius={[0, 6, 6, 0]} maxBarSize={18} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
+                    <ul
+                      className="mt-6 space-y-4"
+                      aria-label={`${study.benchmarkChart.title} — ${study.benchmarkChart.unit}`}
+                    >
+                      {study.benchmarkChart.series.map((point) => {
+                        const width = Math.max(0, Math.min(100, point.value));
+                        return (
+                          <li key={point.label}>
+                            <div className="flex items-baseline justify-between gap-4">
+                              <span className="text-sm font-medium tracking-tight">
+                                {point.label}
+                              </span>
+                              <span className="text-sm tabular-nums text-muted-foreground">
+                                {point.value} {study.benchmarkChart?.unit}
+                              </span>
+                            </div>
+                            <div
+                              className="mt-2 h-3 overflow-hidden rounded-full bg-muted"
+                              role="img"
+                              aria-label={`${point.label}: ${point.value} ${study.benchmarkChart?.unit}`}
+                            >
+                              <div
+                                className="h-full rounded-full bg-foreground/70"
+                                style={{ width: `${width}%` }}
+                              />
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
                     {study.benchmarkChart.note && (
                       <p className="mt-4 text-xs leading-5 text-muted-foreground">
                         {study.benchmarkChart.note}
