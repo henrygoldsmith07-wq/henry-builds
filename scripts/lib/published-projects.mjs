@@ -32,7 +32,7 @@ export function loadCaseStudies(root = process.cwd()) {
     : [];
 
   const isPublished = ({ data }) => {
-    if (data.publish !== false) return true;
+    if (data.publish === true) return true;
     const lifecycle = upstreamById.get(data.upstreamId)?.lifecycle;
     return lifecycle === "active" || lifecycle === "maintenance";
   };
