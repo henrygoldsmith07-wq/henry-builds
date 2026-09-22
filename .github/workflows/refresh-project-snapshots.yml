@@ -1,0 +1,44 @@
+name: Refresh project visual baselines
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.head_ref == 'improve/project-discovery-and-404'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bunx playwright install --with-deps chromium
+
+      - name: Refresh only the projects snapshots
+        run: >-
+          bunx playwright test tests/visual.spec.ts
+          --project=desktop --project=mobile
+          --grep "projects looks unchanged"
+          --update-snapshots
+
+      - name: Commit Linux baselines
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/visual.spec.ts-snapshots/projects-*-linux.png
+          if git diff --cached --quiet; then
+            echo "Snapshots already current."
+            exit 0
+          fi
+          git commit -m "test: refresh Linux project snapshots"
+          git push origin HEAD:${{ github.head_ref }}
