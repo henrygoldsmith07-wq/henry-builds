@@ -11,10 +11,14 @@ const caseStudyDir = path.join(process.cwd(), "registry/case-studies");
 const published = fs
   .readdirSync(caseStudyDir)
   .filter((file) => file.endsWith(".json"))
-  .map((file) => JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")))
+  .map((file) =>
+    JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")),
+  )
   .filter((project) => project.publish !== false);
 
-export const projectSlugs: string[] = published.map((project) => project.slug).sort();
+export const projectSlugs: string[] = published
+  .map((project) => project.slug)
+  .sort();
 
 export const featuredSlugs: string[] = published
   .filter((project) => project.featured)
@@ -26,9 +30,18 @@ export const coreRoutes = [
   { name: "projects", path: "/projects" },
 ];
 
+export const notFoundRoute = {
+  name: "not-found",
+  path: "/__missing-page-for-test__",
+};
+
 export const allRoutes = [
   ...coreRoutes,
-  ...projectSlugs.map((slug) => ({ name: `case-study-${slug}`, path: `/projects/${slug}` })),
+  notFoundRoute,
+  ...projectSlugs.map((slug) => ({
+    name: `case-study-${slug}`,
+    path: `/projects/${slug}`,
+  })),
 ];
 
 /**
@@ -38,5 +51,8 @@ export const allRoutes = [
  */
 export const visualRoutes = [
   ...coreRoutes,
-  { name: "case-study", path: `/projects/${featuredSlugs[0] ?? projectSlugs[0]}` },
+  {
+    name: "case-study",
+    path: `/projects/${featuredSlugs[0] ?? projectSlugs[0]}`,
+  },
 ];
