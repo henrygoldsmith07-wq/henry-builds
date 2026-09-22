@@ -13,11 +13,10 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { loadCaseStudies } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
 const distDir = path.join(root, "dist");
-const caseStudyDir = path.join(root, "registry/case-studies");
-const upstreamPath = path.join(root, "registry/upstream.json");
 const templatePath = path.join(distDir, "index.html");
 
 const PRODUCTION_ORIGIN = "https://henry-builds.vercel.app";
@@ -31,16 +30,9 @@ if (!fs.existsSync(templatePath)) {
 }
 
 const template = fs.readFileSync(templatePath, "utf8");
-const upstream = fs.existsSync(upstreamPath)
-  ? JSON.parse(fs.readFileSync(upstreamPath, "utf8"))
-  : { entries: [] };
-const upstreamById = new Map((upstream.entries ?? []).map((entry) => [entry.id, entry]));
-
-const projects = fs
-  .readdirSync(caseStudyDir)
-  .filter((file) => file.endsWith(".json"))
-  .map((file) => JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")))
-  .filter((project) => project.publish !== false)
+const { published, upstreamById } = loadCaseStudies(root);
+const projects = published
+  .map(({ data }) => data)
   .sort((a, b) => a.name.localeCompare(b.name));
 
 function escapeHtml(value) {
