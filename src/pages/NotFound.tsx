@@ -9,6 +9,7 @@ export default function NotFound() {
       <SiteMetadata
         title="Page not found — Henry Goldsmith"
         description="That page does not exist. Return to Henry Goldsmith's portfolio or browse the project archive."
+        noIndex
       />
       <SiteHeader />
 
