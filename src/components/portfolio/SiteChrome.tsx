@@ -1,5 +1,5 @@
 import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { profile } from "@/data/profile";
 
@@ -11,15 +11,19 @@ const STORAGE_KEY = "henry-theme";
  */
 export function useTheme() {
   const [isDark, setIsDark] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored) return stored === "dark";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (typeof document !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return false;
   });
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
-    window.localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
+    try {
+      window.localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
+    } catch {
+      // Theme still works for the current page when storage is unavailable.
+    }
   }, [isDark]);
 
   return { isDark, toggle: () => setIsDark((current) => !current) };
@@ -34,6 +38,7 @@ const navItems = [
 
 export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [scrolled, setScrolled] = useState(
     () => typeof window !== "undefined" && window.scrollY > 24,
   );
@@ -44,6 +49,19 @@ export function SiteHeader() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [menuOpen]);
 
   return (
     <header className={`site-nav ${scrolled ? "site-nav-scrolled" : ""}`}>
@@ -76,6 +94,7 @@ export function SiteHeader() {
             {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
           </button>
           <button
+            ref={menuButtonRef}
             type="button"
             className="icon-button md:hidden"
             onClick={() => setMenuOpen((current) => !current)}
