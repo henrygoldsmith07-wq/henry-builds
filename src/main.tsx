@@ -1,54 +1,65 @@
-import '@vly-ai/integrations';
-import { Toaster } from "@/components/ui/sonner";
-import { RequireAuth } from "@/components/RequireAuth";
-import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
-import { InstrumentationProvider } from "@/instrumentation.tsx";
-import { ConvexAuthProvider } from "@convex-dev/auth/react";
-import { ConvexReactClient } from "convex/react";
-import { StrictMode, useEffect, lazy, Suspense } from "react";
-import Landing from "./pages/Landing.tsx";
+import {
+  Component,
+  StrictMode,
+  Suspense,
+  lazy,
+  useEffect,
+  type ErrorInfo,
+  type ReactNode,
+} from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 import "./types/global.d.ts";
 
-// Lazy load route components for better code splitting
-const AuthPage = lazy(() => import("./pages/Auth.tsx"));
-const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
+const Landing = lazy(() => import("./pages/Landing.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const Projects = lazy(() => import("./pages/Projects.tsx"));
 const CaseStudy = lazy(() => import("./pages/CaseStudy.tsx"));
 
-// Simple loading fallback for route transitions
+const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
+const PrivateRoute = convexUrl
+  ? lazy(() => import("@/components/PrivateRoute"))
+  : null;
+
+const isVlyDeployment =
+  typeof window !== "undefined" &&
+  window.location.hostname.endsWith(".vly.sh");
+
+const VlyToolbar = isVlyDeployment
+  ? lazy(async () => {
+      await import("@vly-ai/integrations");
+      const module = await import("../vly-toolbar-readonly.tsx");
+      return { default: module.VlyToolbar };
+    })
+  : null;
+
+const vlyInstrumentationEnabled = Boolean(import.meta.env.VITE_VLY_APP_ID);
+const VlyInstrumentation = vlyInstrumentationEnabled
+  ? lazy(async () => {
+      const module = await import("@/instrumentation.tsx");
+      return { default: module.InstrumentationProvider };
+    })
+  : null;
+
 function RouteLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center">
       <div className="animate-pulse text-muted-foreground">Loading...</div>
     </div>
   );
 }
 
-/**
- * The public portfolio — landing, archive and case studies — needs no backend.
- * Only /auth and /dashboard do.
- *
- * Constructing ConvexReactClient with no address throws during module
- * evaluation, which took down the whole site (blank page, no error shown) if
- * the environment variable was ever missing. Public content must not depend on
- * a backend it never calls, so the client is only built when an address exists
- * and the authenticated routes are gated behind it.
- */
-const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
-const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
-
 function BackendNotConfigured() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 text-center">
       <div className="max-w-md">
-        <h1 className="text-2xl font-semibold tracking-tight">Sign-in is unavailable</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Sign-in is unavailable
+        </h1>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          This deployment has no backend configured, so accounts are switched off. Everything
-          public still works.
+          This deployment has no backend configured, so accounts are switched
+          off. Everything public still works.
         </p>
         <a href="/" className="inline-link mt-8">
           Back to the site
@@ -58,18 +69,64 @@ function BackendNotConfigured() {
   );
 }
 
-/** Wraps children in the Convex providers only when there is a backend to talk to. */
-function AppProviders({ children }: { children: React.ReactNode }) {
-  if (!convex) return <>{children}</>;
-  return (
-    <ConvexAuthProvider client={convex}>
-      {children}
-      <Toaster />
-    </ConvexAuthProvider>
-  );
+class PublicErrorBoundary extends Component<
+  { children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("Portfolio render failed", error, info.componentStack);
+  }
+
+  render() {
+    if (!this.state.failed) return this.props.children;
+
+    return (
+      <main
+        id="main"
+        className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground"
+      >
+        <div className="max-w-md text-center">
+          <p className="eyebrow">Something went wrong</p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight">
+            This page could not render.
+          </h1>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Reload the page once. If the problem persists, return to the
+            portfolio home page.
+          </p>
+          <div className="mt-7 flex flex-wrap justify-center gap-3">
+            <button
+              type="button"
+              className="button-primary"
+              onClick={() => window.location.reload()}
+            >
+              Reload
+            </button>
+            <a href="/" className="button-secondary">
+              Home
+            </a>
+          </div>
+        </div>
+      </main>
+    );
+  }
 }
 
+function OptionalVlyInstrumentation({ children }: { children: ReactNode }) {
+  if (!VlyInstrumentation) return <>{children}</>;
 
+  return (
+    <Suspense fallback={null}>
+      <VlyInstrumentation>{children}</VlyInstrumentation>
+    </Suspense>
+  );
+}
 
 /**
  * Restores scroll position across client-side navigations, and honours a hash
@@ -92,8 +149,10 @@ function ScrollManager() {
   return null;
 }
 
+/** Vly iframe navigation bridge. Never mounted on the public portfolio. */
 function RouteSyncer() {
   const location = useLocation();
+
   useEffect(() => {
     window.parent.postMessage(
       { type: "iframe-route-change", path: location.pathname },
@@ -115,43 +174,54 @@ function RouteSyncer() {
   return null;
 }
 
+function AppRoutes() {
+  return (
+    <BrowserRouter>
+      {isVlyDeployment && <RouteSyncer />}
+      <ScrollManager />
+      <Suspense fallback={<RouteLoading />}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:slug" element={<CaseStudy />} />
+          <Route
+            path="/auth"
+            element={
+              PrivateRoute ? (
+                <PrivateRoute page="auth" />
+              ) : (
+                <BackendNotConfigured />
+              )
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              PrivateRoute ? (
+                <PrivateRoute page="dashboard" />
+              ) : (
+                <BackendNotConfigured />
+              )
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <VlyToolbar />
-    <InstrumentationProvider>
-      <AppProviders>
-        <BrowserRouter>
-          <RouteSyncer />
-          <ScrollManager />
-          <Suspense fallback={<RouteLoading />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/projects/:slug" element={<CaseStudy />} />
-              <Route
-                path="/auth"
-                element={
-                  convex ? <AuthPage redirectAfterAuth="/dashboard" /> : <BackendNotConfigured />
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  convex ? (
-                    <RequireAuth>
-                      <Dashboard />
-                    </RequireAuth>
-                  ) : (
-                    <BackendNotConfigured />
-                  )
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </AppProviders>
-    </InstrumentationProvider>
+    {VlyToolbar && (
+      <Suspense fallback={null}>
+        <VlyToolbar />
+      </Suspense>
+    )}
+    <OptionalVlyInstrumentation>
+      <PublicErrorBoundary>
+        <AppRoutes />
+      </PublicErrorBoundary>
+    </OptionalVlyInstrumentation>
   </StrictMode>,
 );
