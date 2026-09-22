@@ -8,6 +8,10 @@ type MetadataProps = {
   /** Route path, e.g. "/projects/revise". Defaults to the current location. */
   path?: string;
   type?: "website" | "article";
+  /** Optional crawler/social card override, e.g. "/og/projects.png". */
+  image?: string;
+  /** Prevent utility/error routes from being indexed. */
+  noIndex?: boolean;
   /** When present, adds SoftwareSourceCode structured data and a per-project card. */
   project?: HydratedProject;
 };
@@ -54,6 +58,8 @@ export function SiteMetadata({
   description,
   path,
   type = "website",
+  image: imageOverride,
+  noIndex = false,
   project,
 }: MetadataProps = {}) {
   useEffect(() => {
@@ -65,13 +71,18 @@ export function SiteMetadata({
     const pageDescription = description ?? profile.siteDescription;
 
     // Per-project cards are pre-rendered at build time by scripts/generate-og.mjs.
-    const image = project
-      ? `${origin}/og/${project.slug}.png`
-      : `${origin}/og/default.png`;
+    const image = imageOverride
+      ? imageOverride.startsWith("http")
+        ? imageOverride
+        : `${origin}${imageOverride}`
+      : project
+        ? `${origin}/og/${project.slug}.png`
+        : `${origin}/og/default.png`;
 
     document.title = pageTitle;
 
     meta("name", "description", pageDescription);
+    meta("name", "robots", noIndex ? "noindex, nofollow" : "index, follow");
     meta("property", "og:site_name", profile.siteName);
     meta("property", "og:title", pageTitle);
     meta("property", "og:description", pageDescription);
@@ -149,7 +160,7 @@ export function SiteMetadata({
     return () => {
       document.head.querySelectorAll(`[${OWNED}]`).forEach((element) => element.remove());
     };
-  }, [title, description, path, type, project]);
+  }, [title, description, path, type, imageOverride, noIndex, project]);
 
   return null;
 }
