@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "bun run prebuild && tsc -b && vite build",
+    "build": "bun run prebuild && tsc -b && vite build && bun run route-html",
     "prebuild": "bun run og && bun run sitemap",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -20,6 +20,7 @@
 
     "og": "node scripts/generate-og.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
+    "route-html": "node scripts/generate-route-html.mjs",
     "audit:claims": "node scripts/audit-claims.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:links:external": "node scripts/check-links.mjs --external",
