@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { allRoutes } from "./routes";
+import { allRoutes, projectSlugs } from "./routes";
 
 /**
  * Accessibility audit over every published route, in both colour schemes.
@@ -111,6 +111,14 @@ test("project discovery filters are shareable and reset cleanly", async ({
   await page.getByRole("button", { name: "Clear filters" }).click();
   await expect(page).toHaveURL(/\/projects$/);
   await expect(page.getByRole("status")).toContainText(
-    "Showing 14 of 14 projects",
+    `Showing ${projectSlugs.length} of ${projectSlugs.length} projects`,
+  );
+});
+
+test("missing routes tell crawlers not to index them", async ({ page }) => {
+  await page.goto("/__missing-page-for-test__");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex, nofollow",
   );
 });
