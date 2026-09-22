@@ -100,6 +100,7 @@ bun run registry:import        # re-import upstream registry + evidence ledger +
 bun run registry:import:ci     # ...and pull CI facts (needs a token for counts)
 bun run verify:sources         # every cited repo path must exist, before publishing
 bun run registry:validate      # enforce every rule above
+bun run route-html             # after Vite: emit crawler-visible HTML per public route
 
 bun run audit:claims           # ban self-ratings and unfalsifiable superlatives
 bun run check:links            # internal assets, sitemap, built output
@@ -165,10 +166,23 @@ quiet instead of spamming comments every run, and recovers close the issue.
 The public portfolio has no backend. `VITE_CONVEX_URL` being absent switches
 sign-in off and leaves everything else working.
 
-## OG cards
+## Crawler-visible routes and OG cards
 
 `scripts/generate-og.mjs` renders one PNG per published project into `public/og/`.
 PNG rather than SVG on purpose — most crawlers will not render an SVG OG image.
+
+After Vite builds, `scripts/generate-route-html.mjs` turns the built `index.html`
+into a small static entry for every public route. The React app still hydrates
+normally, but a crawler that never executes JavaScript now receives the correct
+title, description, canonical URL, OpenGraph/Twitter card and structured data
+for `/projects` and each case study. It also emits `404.html`, while account
+routes are explicitly `noindex`.
+
+All generated surfaces use the same publication gate as the runtime registry:
+an authored `publish: false` study becomes public when its upstream lifecycle
+moves to `active` or `maintenance`. `check:route-html` enforces that no
+published project can have a page without crawler metadata, and no gated project
+can leak a static route.
 
 ## Deployment
 
