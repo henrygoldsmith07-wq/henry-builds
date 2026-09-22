@@ -27,6 +27,20 @@ function fail(message) {
   errors++;
 }
 
+function escapeHtml(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
+}
+
 function expectContains(html, needle, label) {
   checked++;
   if (!html.includes(needle)) fail(label);
@@ -57,7 +71,7 @@ function verifyRoute({
   const url = `${origin}${route === "/" ? "/" : route}`;
   const imageUrl = `${origin}${image}`;
 
-  expectContains(html, `<title>${title}</title>`, `${relative}: wrong or missing title`);
+  expectContains(html, `<title>${escapeHtml(title)}</title>`, `${relative}: wrong or missing title`);
   expectContains(
     html,
     `<link rel="canonical" href="${url}" />`,
