@@ -2,12 +2,12 @@
 /**
  * Fails the build on public copy that cannot be backed up.
  *
- * Deleting a "10/10" once is not a fix — it comes back the next time someone
- * writes copy. This is the fix: the patterns are banned in CI, so the site
- * cannot regress into self-rating or unqualified superlatives.
- *
- * Scans user-facing copy only: registry case studies, the profile, and the
- * portfolio components/pages. Not source comments, not this file.
+ * Two layers, in order:
+ *  1. Deterministic regex bans (RULES below) — AUTHORITATIVE, always run.
+ *  2. classifier.dev assist — identifies the TYPE of each registry claim and
+ *     selects a deterministic evidence requirement. ADVISORY ONLY: it never
+ *     decides proof, never fails the build by default (--strict-classifier
+ *     opts into hard failures), and falls back to "other" when offline.
  */
 
 import fs from "node:fs";
@@ -110,6 +110,52 @@ TARGETS.forEach(walk);
 console.log(
   `audit-claims: scanned ${filesScanned} files, ${violations} violation(s) across ${RULES.length} rules`,
 );
+
+// --- classifier assist: TYPE of claim -> deterministic rule (advisory) ---
+import { classifyClaims } from "./lib/classifier-client.mjs";
+import { CONFIDENCE_THRESHOLD, TAXONOMY_VERSION } from "./lib/claim-taxonomy.mjs";
+import { collectClaimItems } from "./lib/claim-source-hash.mjs";
+
+const classifierOffline = process.argv.includes("--offline");
+const classifierStrict = process.argv.includes("--strict-classifier");
+const reportIdx = process.argv.indexOf("--report");
+const reportFile = reportIdx >= 0 ? process.argv[reportIdx + 1] : null;
+
+async function classifyPhase() {
+  // Reuse the SAME canonical item source as classify-claims.mjs so the
+  // per-text classifier cache and the shared report stay consistent. IDs and
+  // text normalisation must match exactly across both scripts.
+  const items = collectClaimItems(root);
+  const results = await classifyClaims(
+    items.map((x) => x.text),
+    { root, offline: classifierOffline },
+  );
+  const rows = items.map((item, i) => {
+    const r = results[i];
+    const needs = r.rule.requiresAny ?? [];
+    const missing = needs.length > 0 && !needs.some((k) => item.kinds.includes(k));
+    const hard = r.rule.enforce && !r.lowConfidence && !r.unknownLabel && r.source === "classifier";
+    const status = missing ? (hard ? "advisory-fail" : "warn") : "ok";
+    if (status !== "ok") {
+      const line = `  [${status}] ${item.id} category=${r.category} conf=${r.confidence.toFixed(2)} rule=${r.rule.ruleId} needs=${needs.join("|") || "any"} has=${item.kinds.join(",") || "none"}`;
+      console.warn(`  ! classifier:${line}`);
+    }
+    return { id: item.id, category: r.category, confidence: Math.round(r.confidence * 1000) / 1000, rule: r.rule.ruleId, requiresAny: needs, enforce: r.rule.enforce, status, source: r.source, cacheHit: r.cacheHit, lowConfidence: r.lowConfidence, evidenceKinds: item.kinds };
+  });
+  const fails = rows.filter((r) => r.status === "advisory-fail").length;
+  const warns = rows.filter((r) => r.status === "warn").length;
+  console.log(
+    `audit-claims: classifier taxonomy v${TAXONOMY_VERSION} threshold ${CONFIDENCE_THRESHOLD} — ${rows.length} claims, ${fails} advisory-fail(s), ${warns} warning(s)${classifierOffline ? " (offline fallback)" : ""} (advisory only; regex bans remain authoritative)`,
+  );
+  if (reportFile) {
+    fs.mkdirSync(path.dirname(path.join(root, reportFile)), { recursive: true });
+    fs.writeFileSync(path.join(root, reportFile), JSON.stringify({ taxonomyVersion: TAXONOMY_VERSION, threshold: CONFIDENCE_THRESHOLD, items: rows }, null, 2) + "\n");
+    console.log(`audit-claims: classifier report → ${reportFile}`);
+  }
+  if (classifierStrict && fails > 0) violations += fails;
+}
+
+await classifyPhase();
 
 if (violations > 0) {
   console.error(

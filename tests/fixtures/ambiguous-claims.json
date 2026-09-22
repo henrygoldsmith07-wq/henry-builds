@@ -1,0 +1,46 @@
+{
+  "ambiguousClaims": [
+    {
+      "id": "ambiguous-perf-or-reliability",
+      "text": "Cut tool-call tokens while keeping every failure line.",
+      "note": "Could be performance (reduction) or reliability (retention). Either rule is satisfiable with benchmark evidence; low-confidence must still route to other, never fail.",
+      "acceptable": ["performance", "reliability", "other"],
+      "evidenceKinds": ["benchmark"]
+    },
+    {
+      "id": "ambiguous-feature-or-usability",
+      "text": "The app is fully usable with no environment variables at all.",
+      "note": "Feature (capability) vs usability (ease) vs deployment (works anywhere). Advisory only.",
+      "acceptable": ["feature", "usability", "deployment", "other"],
+      "evidenceKinds": ["doc"]
+    },
+    {
+      "id": "ambiguous-security-or-reliability",
+      "text": "Safety gate blocks manipulation deterministically.",
+      "note": "Security gate with deterministic (reliability-flavoured) wording.",
+      "acceptable": ["security", "reliability", "other"],
+      "evidenceKinds": ["ci", "repo"]
+    },
+    {
+      "id": "ambiguous-vague-scale",
+      "text": "World-class experience users love.",
+      "note": "Must land in unsupported-or-unclear or other — never a hard evidence category at high confidence used to fail a build.",
+      "acceptable": ["unsupported-or-unclear", "other"],
+      "evidenceKinds": []
+    },
+    {
+      "id": "ambiguous-a11y-or-usability",
+      "text": "Every chart is readable with a screen reader and keyboard.",
+      "note": "Accessibility when stated as assistive-tech support; usability reading is acceptable at low confidence.",
+      "acceptable": ["accessibility", "usability", "other"],
+      "evidenceKinds": ["screenshot", "ci"]
+    },
+    {
+      "id": "ambiguous-benchmark-or-testing",
+      "text": "140 tests pass and the benchmark table shows 99% reduction.",
+      "note": "Mixed testing + benchmark wording; either deterministic rule requires ci/benchmark evidence.",
+      "acceptable": ["benchmark", "testing", "performance", "other"],
+      "evidenceKinds": ["benchmark", "ci"]
+    }
+  ]
+}

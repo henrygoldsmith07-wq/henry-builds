@@ -148,6 +148,30 @@ async function draft(id) {
   const draft_ = result.data;
   console.log(`draft-case-study: drafted by ${result.model}; verifying cited paths...`);
 
+  // classifier.dev assist: TYPE each drafted outcome, then require the
+  // deterministic evidence kind for that type. Advisory only — a mismatch is
+  // reported and the outcome keeps its verified paths; nothing auto-publishes
+  // (drafts land publish:false regardless) and proof stays with validation.
+  try {
+    const { classifyClaims } = await import("./lib/classifier-client.mjs");
+    const offline = process.argv.includes("--offline");
+    const statements = (draft_.outcomes ?? []).map((o) => String(o.statement ?? ""));
+    if (statements.length) {
+      const routed = await classifyClaims(statements, { root, offline });
+      routed.forEach((r, i) => {
+        const needs = r.rule.requiresAny ?? [];
+        const kinds = ((draft_.outcomes[i].evidence ?? []).map((e) => e.kind));
+        const missing = needs.length > 0 && !needs.some((k) => kinds.includes(k));
+        console.log(
+          `draft-case-study: outcome[${i}] type=${r.category} conf=${r.confidence.toFixed(2)} rule=${r.rule.ruleId}` +
+            (missing ? ` — expected '${needs.join("|")}', has '${kinds.join(",") || "none"}' (advisory)` : " — evidence kind ok"),
+        );
+      });
+    }
+  } catch (error) {
+    console.log(`draft-case-study: classifier assist skipped (${String(error.message).slice(0, 80)})`);
+  }
+
   const allCited = [
     ...(draft_.outcomes ?? []).flatMap((o) => o.evidence ?? []),
   ];

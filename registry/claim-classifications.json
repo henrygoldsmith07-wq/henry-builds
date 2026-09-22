@@ -1,0 +1,1062 @@
+{
+  "_generated": "Written by scripts/classify-claims.mjs. Do not edit by hand.",
+  "taxonomyVersion": "1.0.0",
+  "confidenceThreshold": 0.7,
+  "generatedAt": "2026-09-19T12:44:10.401Z",
+  "count": 58,
+  "items": [
+    {
+      "id": "arise.outcomes[0]",
+      "category": "other",
+      "confidence": 0.63,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "feature",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "arise.outcomes[1]",
+      "category": "other",
+      "confidence": 0.56,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "feature",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "arise.outcomes[2]",
+      "category": "testing",
+      "confidence": 0.81,
+      "rule": "test-evidence",
+      "requiresAny": [
+        "ci",
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "ci"
+      ]
+    },
+    {
+      "id": "arise.metrics[0]",
+      "category": "other",
+      "confidence": 0.4,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "benchmark",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "daily-debate.outcomes[0]",
+      "category": "other",
+      "confidence": 0.39,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "feature",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "daily-debate.metrics[0]",
+      "category": "testing",
+      "confidence": 1,
+      "rule": "test-evidence",
+      "requiresAny": [
+        "ci",
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc",
+        "ci"
+      ]
+    },
+    {
+      "id": "dictation-typer.outcomes[0]",
+      "category": "security",
+      "confidence": 0.79,
+      "rule": "sec-reviewable",
+      "requiresAny": [
+        "ci",
+        "repo",
+        "doc"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "forq.outcomes[0]",
+      "category": "other",
+      "confidence": 0.46,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "feature",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "forq.outcomes[1]",
+      "category": "reliability",
+      "confidence": 0.98,
+      "rule": "rel-test-prod",
+      "requiresAny": [
+        "ci",
+        "benchmark",
+        "live"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "forq.metrics[0]",
+      "category": "feature",
+      "confidence": 0.77,
+      "rule": "feat-any",
+      "requiresAny": [
+        "repo",
+        "doc",
+        "ci",
+        "screenshot",
+        "video",
+        "live",
+        "benchmark"
+      ],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "forq.metrics[1]",
+      "category": "testing",
+      "confidence": 1,
+      "rule": "test-evidence",
+      "requiresAny": [
+        "ci",
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc",
+        "ci"
+      ]
+    },
+    {
+      "id": "habit-tracker.outcomes[0]",
+      "category": "feature",
+      "confidence": 0.8,
+      "rule": "feat-any",
+      "requiresAny": [
+        "repo",
+        "doc",
+        "ci",
+        "screenshot",
+        "video",
+        "live",
+        "benchmark"
+      ],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc",
+        "repo"
+      ]
+    },
+    {
+      "id": "habit-tracker.outcomes[1]",
+      "category": "other",
+      "confidence": 0.38,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "deployment",
+      "evidenceKinds": [
+        "doc",
+        "doc"
+      ]
+    },
+    {
+      "id": "habit-tracker.outcomes[2]",
+      "category": "security",
+      "confidence": 1,
+      "rule": "sec-reviewable",
+      "requiresAny": [
+        "ci",
+        "repo",
+        "doc"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "habit-tracker.outcomes[3]",
+      "category": "reliability",
+      "confidence": 0.89,
+      "rule": "rel-test-prod",
+      "requiresAny": [
+        "ci",
+        "benchmark",
+        "live"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc",
+        "repo"
+      ]
+    },
+    {
+      "id": "le-studio-french.outcomes[0]",
+      "category": "other",
+      "confidence": 0.69,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "feature",
+      "evidenceKinds": [
+        "doc",
+        "ci"
+      ]
+    },
+    {
+      "id": "le-studio-french.outcomes[1]",
+      "category": "other",
+      "confidence": 0.37,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "usability",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "le-studio-french.metrics[0]",
+      "category": "feature",
+      "confidence": 0.7,
+      "rule": "feat-any",
+      "requiresAny": [
+        "repo",
+        "doc",
+        "ci",
+        "screenshot",
+        "video",
+        "live",
+        "benchmark"
+      ],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "meeting-recorder.outcomes[0]",
+      "category": "other",
+      "confidence": 0.51,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "other",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "noticed.outcomes[0]",
+      "category": "security",
+      "confidence": 0.8,
+      "rule": "sec-reviewable",
+      "requiresAny": [
+        "ci",
+        "repo",
+        "doc"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "pulse.outcomes[0]",
+      "category": "testing",
+      "confidence": 0.98,
+      "rule": "test-evidence",
+      "requiresAny": [
+        "ci",
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "pulse.outcomes[1]",
+      "category": "other",
+      "confidence": 0.43,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": [
+        "doc",
+        "repo"
+      ]
+    },
+    {
+      "id": "pulse.outcomes[2]",
+      "category": "other",
+      "confidence": 0.46,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "security",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "pulse.metrics[0]",
+      "category": "testing",
+      "confidence": 1,
+      "rule": "test-evidence",
+      "requiresAny": [
+        "ci",
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc",
+        "ci"
+      ]
+    },
+    {
+      "id": "pulse.metrics[1]",
+      "category": "other",
+      "confidence": 0.52,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "rapport.outcomes[0]",
+      "category": "feature",
+      "confidence": 0.74,
+      "rule": "feat-any",
+      "requiresAny": [
+        "repo",
+        "doc",
+        "ci",
+        "screenshot",
+        "video",
+        "live",
+        "benchmark"
+      ],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "ci"
+      ]
+    },
+    {
+      "id": "rapport.outcomes[1]",
+      "category": "reliability",
+      "confidence": 0.99,
+      "rule": "rel-test-prod",
+      "requiresAny": [
+        "ci",
+        "benchmark",
+        "live"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "rapport.outcomes[2]",
+      "category": "reliability",
+      "confidence": 0.89,
+      "rule": "rel-test-prod",
+      "requiresAny": [
+        "ci",
+        "benchmark",
+        "live"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "rapport.metrics[0]",
+      "category": "other",
+      "confidence": 0.43,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "feature",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "rapport.metrics[1]",
+      "category": "testing",
+      "confidence": 1,
+      "rule": "test-evidence",
+      "requiresAny": [
+        "ci",
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc",
+        "ci"
+      ]
+    },
+    {
+      "id": "reflect.outcomes[0]",
+      "category": "other",
+      "confidence": 0.46,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": [
+        "repo",
+        "ci"
+      ]
+    },
+    {
+      "id": "reflect.outcomes[1]",
+      "category": "feature",
+      "confidence": 0.94,
+      "rule": "feat-any",
+      "requiresAny": [
+        "repo",
+        "doc",
+        "ci",
+        "screenshot",
+        "video",
+        "live",
+        "benchmark"
+      ],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "reflect.metrics[0]",
+      "category": "other",
+      "confidence": 0.47,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "reflect.metrics[1]",
+      "category": "feature",
+      "confidence": 0.8,
+      "rule": "feat-any",
+      "requiresAny": [
+        "repo",
+        "doc",
+        "ci",
+        "screenshot",
+        "video",
+        "live",
+        "benchmark"
+      ],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "revise.outcomes[0]",
+      "category": "other",
+      "confidence": 0.58,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "feature",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "revise.outcomes[1]",
+      "category": "other",
+      "confidence": 0.6,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "usability",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "revise.metrics[0]",
+      "category": "testing",
+      "confidence": 1,
+      "rule": "test-evidence",
+      "requiresAny": [
+        "ci",
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc",
+        "ci"
+      ]
+    },
+    {
+      "id": "revise.metrics[1]",
+      "category": "other",
+      "confidence": 0.32,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "benchmark",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "rtk.outcomes[0]",
+      "category": "reliability",
+      "confidence": 0.96,
+      "rule": "rel-test-prod",
+      "requiresAny": [
+        "ci",
+        "benchmark",
+        "live"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "benchmark",
+        "ci"
+      ]
+    },
+    {
+      "id": "rtk.outcomes[1]",
+      "category": "other",
+      "confidence": 0.44,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "performance",
+      "evidenceKinds": [
+        "benchmark"
+      ]
+    },
+    {
+      "id": "rtk.metrics[0]",
+      "category": "benchmark",
+      "confidence": 0.86,
+      "rule": "bench-evidence",
+      "requiresAny": [
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "benchmark"
+      ]
+    },
+    {
+      "id": "rtk.metrics[1]",
+      "category": "benchmark",
+      "confidence": 0.87,
+      "rule": "bench-evidence",
+      "requiresAny": [
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "benchmark"
+      ]
+    },
+    {
+      "id": "rtk.metrics[2]",
+      "category": "benchmark",
+      "confidence": 0.99,
+      "rule": "bench-evidence",
+      "requiresAny": [
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "benchmark"
+      ]
+    },
+    {
+      "id": "world-news.outcomes[0]",
+      "category": "other",
+      "confidence": 0.54,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "world-news.outcomes[1]",
+      "category": "other",
+      "confidence": 0.54,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "usability",
+      "evidenceKinds": [
+        "doc",
+        "ci"
+      ]
+    },
+    {
+      "id": "world-news.metrics[0]",
+      "category": "other",
+      "confidence": 0.31,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "feature",
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "world-news.metrics[1]",
+      "category": "feature",
+      "confidence": 0.7,
+      "rule": "feat-any",
+      "requiresAny": [
+        "repo",
+        "doc",
+        "ci",
+        "screenshot",
+        "video",
+        "live",
+        "benchmark"
+      ],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": [
+        "doc"
+      ]
+    },
+    {
+      "id": "ledger:revise-marking-accuracy",
+      "category": "reliability",
+      "confidence": 0.71,
+      "rule": "rel-test-prod",
+      "requiresAny": [
+        "ci",
+        "benchmark",
+        "live"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:revise-fsrs-scheduling",
+      "category": "other",
+      "confidence": 0.4,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:rapport-transfer",
+      "category": "other",
+      "confidence": 0.56,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "unsupported-or-unclear",
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:rapport-safety-gate",
+      "category": "security",
+      "confidence": 0.98,
+      "rule": "sec-reviewable",
+      "requiresAny": [
+        "ci",
+        "repo",
+        "doc"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:pulse-discovery",
+      "category": "other",
+      "confidence": 0.56,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:daily-debate-observable-scoring",
+      "category": "reliability",
+      "confidence": 0.93,
+      "rule": "rel-test-prod",
+      "requiresAny": [
+        "ci",
+        "benchmark",
+        "live"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:emotion-tracker-reflection-quality",
+      "category": "other",
+      "confidence": 0.31,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:arise-progression",
+      "category": "other",
+      "confidence": 0.6,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "reliability",
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:rtk-token-saving",
+      "category": "performance",
+      "confidence": 0.9,
+      "rule": "perf-benchmark",
+      "requiresAny": [
+        "benchmark"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:noticed-household-isolation",
+      "category": "security",
+      "confidence": 1,
+      "rule": "sec-reviewable",
+      "requiresAny": [
+        "ci",
+        "repo",
+        "doc"
+      ],
+      "enforce": true,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": false,
+      "unknownLabel": false,
+      "suggested": null,
+      "evidenceKinds": []
+    },
+    {
+      "id": "ledger:french-practice-fluency",
+      "category": "other",
+      "confidence": 0.42,
+      "rule": "other-any",
+      "requiresAny": [],
+      "enforce": false,
+      "source": "classifier",
+      "cacheHit": false,
+      "lowConfidence": true,
+      "unknownLabel": false,
+      "suggested": "unsupported-or-unclear",
+      "evidenceKinds": []
+    }
+  ],
+  "sourceHash": "sha256:0bb20cb9c99e6e710cd494acf829c7c06075e371"
+}
