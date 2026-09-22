@@ -60,15 +60,15 @@ export const allRoutes = [
   })),
 ];
 
+export const representativeCaseStudy = {
+  name: "case-study",
+  path: `/projects/${featuredSlugs[0] ?? projectSlugs[0]}`,
+};
+
 /**
- * Visual snapshots cover the two core pages plus one representative case study.
- * Snapshotting all fourteen would make every copy edit a snapshot update
- * without catching anything the one case study does not already catch.
+ * Full-page pixel snapshots stay on routes whose content is stable. Case-study
+ * pages intentionally contain generated CI/source facts that refresh without a
+ * UI change, so pixel-diffing an entire 5,000+ px page turns data freshness into
+ * false visual regressions. Case-study structure is asserted separately.
  */
-export const visualRoutes = [
-  ...coreRoutes,
-  {
-    name: "case-study",
-    path: `/projects/${featuredSlugs[0] ?? projectSlugs[0]}`,
-  },
-];
+export const visualRoutes = [...coreRoutes];
