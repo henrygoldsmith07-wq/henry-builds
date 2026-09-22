@@ -22,7 +22,8 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "route-html": "node scripts/generate-route-html.mjs",
     "audit:claims": "node scripts/audit-claims.mjs",
-    "check:links": "node scripts/check-links.mjs",
+    "check:route-html": "node scripts/check-route-html.mjs",
+    "check:links": "node scripts/check-links.mjs && node scripts/check-route-html.mjs",
     "check:links:external": "node scripts/check-links.mjs --external",
     "check:links:full": "node scripts/check-links.mjs --external --github",
 
