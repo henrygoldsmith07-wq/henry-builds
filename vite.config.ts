@@ -87,9 +87,7 @@ export default defineConfig({
             '@radix-ui/react-toggle-group',
             '@radix-ui/react-tooltip',
           ],
-          // Heavy optional libraries - separate chunks for better lazy loading
-          'framer-motion': ['framer-motion'],
-          'charts': ['recharts'],
+          // Form libraries stay isolated behind authenticated/editor routes.
           'forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
         },
         // Optimize chunk size
