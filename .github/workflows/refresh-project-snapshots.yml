@@ -1,20 +1,17 @@
 name: Refresh project visual baselines
 
 on:
-  pull_request:
-    branches: [main]
+  push:
+    branches: [improve/project-discovery-and-404]
 
 permissions:
   contents: write
 
 jobs:
   refresh:
-    if: github.head_ref == 'improve/project-discovery-and-404'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -41,4 +38,4 @@ jobs:
             exit 0
           fi
           git commit -m "test: refresh Linux project snapshots"
-          git push origin HEAD:${{ github.head_ref }}
+          git push origin HEAD:${{ github.ref_name }}
