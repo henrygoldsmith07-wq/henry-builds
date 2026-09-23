@@ -1,10 +1,12 @@
 name: Deployment monitor
 
-# Probes the live site on a schedule and opens an issue when it breaks.
+# Probes the live site on a schedule and reconciles one alarm issue when it breaks.
 #
 # CI proves the build is good; this proves what is actually served is good.
 # Those come apart in the ways that matter most — a bad rewrite rule, an expired
 # certificate, a deploy that silently served the previous build.
+# It also watches evidence freshness so a dead REGISTRY_TOKEN cannot leave stale
+# verification data looking current.
 
 on:
   schedule:
@@ -27,6 +29,23 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
+      - name: Measure evidence-facts freshness
+        id: facts
+        run: |
+          ts=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('registry/ci-facts.json','utf8')).importedAt||'')}catch{console.log('')}")
+          if [ -z "$ts" ]; then
+            echo "age_days=999" >> "$GITHUB_OUTPUT"
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          age=$(( ( $(date -u +%s) - $(date -u -d "$ts" +%s) ) / 86400 ))
+          echo "age_days=$age" >> "$GITHUB_OUTPUT"
+          if [ "$age" -gt 3 ]; then
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Probe live routes, assets and metadata
         id: probe
         env:
@@ -45,45 +64,96 @@ jobs:
           exit $status
 
       - name: External evidence links and upstream paths still resolve
+        id: links
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: bun run check:links:full
         continue-on-error: true
 
-      - name: Open an issue on failure
-        if: failure()
+      - name: Reconcile deployment or evidence alarm
+        if: always()
         uses: actions/github-script@v7
+        env:
+          FACTS_STALE: ${{ steps.facts.outputs.stale }}
+          FACTS_AGE_DAYS: ${{ steps.facts.outputs.age_days }}
+          PROBE_OUTCOME: ${{ steps.probe.outcome }}
+          LINKS_OUTCOME: ${{ steps.links.outcome }}
+          PROBE_LOG: ${{ steps.probe.outputs.log }}
         with:
           script: |
-            const log = `${{ steps.probe.outputs.log }}`;
-            const title = "Deployment probe failed";
+            const factsStale = process.env.FACTS_STALE === "true";
+            const probeFailed = process.env.PROBE_OUTCOME === "failure";
+            const linksFailed = process.env.LINKS_OUTCOME === "failure";
+            const unhealthy = factsStale || probeFailed || linksFailed;
+            const title = "Deployment or evidence alarm";
 
             const existing = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: "open",
               labels: "deployment",
+              per_page: 100,
             });
 
-            const body = [
-              `The scheduled probe of \`${{ vars.SITE_URL }}\` failed.`,
-              "",
-              "```",
-              log.slice(0, 60000),
-              "```",
-              "",
-              `[Workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
-            ].join("\n");
+            for (const issue of existing.data) {
+              if (issue.title === "Deployment probe failed") {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  state: "closed",
+                  state_reason: "not_planned",
+                });
+              }
+            }
 
             const open = existing.data.find((issue) => issue.title === title);
+            if (!unhealthy) {
+              if (open) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: open.number,
+                  body: "Deployment probe passed, evidence links resolve, and evidence facts are fresh — closing.",
+                });
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: open.number,
+                  state: "closed",
+                  state_reason: "completed",
+                });
+              }
+              return;
+            }
+
+            const sections = [];
+            if (probeFailed) {
+              sections.push("## Deployment probe failed\n\n```\n" +
+                (process.env.PROBE_LOG || "(no probe log)").slice(0, 50000) + "\n```");
+            }
+            if (factsStale) {
+              sections.push("## Evidence facts stale\n\n`registry/ci-facts.json` has not refreshed in " +
+                (process.env.FACTS_AGE_DAYS || "?") +
+                " days. Check registry-sync and the `REGISTRY_TOKEN` secret.");
+            }
+            if (linksFailed) {
+              sections.push("## Evidence link verification failed\n\nAt least one external evidence link or upstream source path no longer resolves.");
+            }
+            sections.push("[Workflow run](" + context.serverUrl + "/" + context.repo.owner + "/" +
+              context.repo.repo + "/actions/runs/" + context.runId + ")");
+            const body = sections.join("\n\n");
+
             if (open) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: open.number,
-                body,
-              });
+              if (open.body !== body) {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: open.number,
+                  body,
+                });
+              }
             } else {
               await github.rest.issues.create({
                 owner: context.repo.owner,
@@ -93,3 +163,9 @@ jobs:
                 labels: ["deployment"],
               });
             }
+
+      - name: Fail when evidence monitoring is unhealthy
+        if: always() && (steps.facts.outputs.stale == 'true' || steps.links.outcome == 'failure')
+        run: |
+          echo "::error::Evidence monitoring detected stale facts or broken evidence links."
+          exit 1

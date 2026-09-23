@@ -17,6 +17,7 @@
     "registry:validate:upstream": "node scripts/validate-registry.mjs --upstream",
     "archive:removed": "node scripts/archive-removed.mjs",
     "archive:removed:check": "node scripts/archive-removed.mjs --check",
+    "test:evidence": "node scripts/run-evidence-tests.mjs",
 
     "og": "node scripts/generate-og.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
@@ -38,7 +39,7 @@
     "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",
     "lighthouse": "lhci autorun",
 
-    "verify": "bun run registry:validate && bun run audit:claims && tsc -b && bun run lint && bun run build && bun run check:links"
+    "verify": "bun run registry:validate && bun run audit:claims && bun run test:evidence && tsc -b && bun run lint && bun run build && bun run check:links"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.90",
