@@ -6,6 +6,21 @@
   <meta name="theme-color" content="#171817" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#0e100f" media="(prefers-color-scheme: dark)" />
   <meta name="color-scheme" content="light dark" />
+  <script>
+    (() => {
+      try {
+        const stored = localStorage.getItem("henry-theme");
+        const dark =
+          stored === "dark" ||
+          (stored !== "light" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+      } catch {
+        // Storage can be unavailable in hardened/private contexts. The CSS
+        // light theme remains a safe fallback until React mounts.
+      }
+    })();
+  </script>
 
   <title>Henry Goldsmith — Software, evidence-first</title>
   <meta name="description" content="Projects by Henry Goldsmith, each with a stage label, the numbers behind it and a link to the source. Prototypes are labelled as prototypes." />

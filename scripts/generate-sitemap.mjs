@@ -12,6 +12,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { loadCaseStudies } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
@@ -36,13 +37,8 @@ if (!origin) {
   console.warn("generate-sitemap: writing relative URLs (ALLOW_RELATIVE_SITEMAP).");
 }
 
-const projects = fs.existsSync(caseStudyDir)
-  ? fs
-      .readdirSync(caseStudyDir)
-      .filter((file) => file.endsWith(".json"))
-      .map((file) => JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")))
-      .filter((project) => project.publish !== false)
-  : [];
+const { published } = loadCaseStudies(root);
+const projects = published.map(({ data }) => data);
 
 /**
  * A lastmod that changes on every build trains crawlers to distrust it, and

@@ -115,7 +115,7 @@
   :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
   }
   body { @apply bg-background text-foreground; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   button:not([disabled]), [role="button"]:not([disabled]) { cursor: pointer; }
@@ -139,6 +139,19 @@
 .mobile-nav-link { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 15px 0; font-size: 14px; }
 .theme-toggle, .icon-button { display: inline-flex; height: 34px; width: 34px; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); transition: border-color 180ms ease, color 180ms ease, transform 180ms ease; }
 .theme-toggle:hover, .icon-button:hover { border-color: var(--foreground); color: var(--foreground); transform: translateY(-1px); }
+@keyframes hero-rise-in {
+  from { opacity: 0; transform: translateY(var(--hero-reveal-y, 12px)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes hero-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.hero-reveal { animation-fill-mode: both; animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+.hero-reveal-eyebrow { --hero-reveal-y: 12px; animation-name: hero-rise-in; animation-duration: 550ms; animation-delay: 100ms; }
+.hero-reveal-title { --hero-reveal-y: 20px; animation-name: hero-rise-in; animation-duration: 700ms; animation-delay: 180ms; }
+.hero-reveal-copy { animation-name: hero-fade-in; animation-duration: 550ms; animation-delay: 550ms; }
+.hero-reveal-meta { animation-name: hero-fade-in; animation-duration: 550ms; animation-delay: 800ms; }
 .hero-section { isolation: isolate; }
 .hero-grid { position: absolute; inset: 0; z-index: -1; opacity: 0.48; background-image: linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px); background-position: center; background-size: 72px 72px; mask-image: linear-gradient(to bottom, black, transparent 88%); }
 .hero-grid::after { position: absolute; inset: 0; background: radial-gradient(circle at 56% 35%, color-mix(in oklab, var(--accent) 19%, transparent), transparent 28%); content: ""; }
@@ -193,7 +206,7 @@
 .contact-section .button-secondary:hover { background: color-mix(in oklab, var(--background) 12%, transparent); }
 @media (max-width: 1023px) { .section-grid { grid-template-columns: 1fr; } .interest-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 639px) { .hero-title { font-size: clamp(3.7rem, 19vw, 7rem); } .section-shell { padding: 84px 20px; } .section-grid { gap: 36px; } .section-title { font-size: clamp(3.1rem, 17vw, 5rem); } .info-cell { min-height: 126px; } .info-cell:nth-child(even) { padding-left: 4px; } .interest-grid { grid-template-columns: 1fr; } .interest-card { min-height: 180px; } .button-primary, .button-secondary { padding: 0 14px; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; } }
 
 /* ---------------------------------------------------------------------------
    Case studies, evidence and stage labels

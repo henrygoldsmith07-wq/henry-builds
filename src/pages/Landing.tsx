@@ -1,4 +1,3 @@
-import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { ArrowDown, ArrowUpRight, ExternalLink, Github, MoveUpRight } from "lucide-react";
 import { Link } from "react-router";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
@@ -19,16 +18,12 @@ function SectionLabel({ number, children }: { number: string; children: string }
 }
 
 export default function Landing() {
-  const reduceMotion = useReducedMotion();
-
-  const reveal: Variants = reduceMotion
-    ? { hidden: { opacity: 1, y: 0 }, visible: { opacity: 1, y: 0 } }
-    : { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0, transition: { duration: 0.55 } } };
-
-  const scrollTo = (id: string) =>
+  const scrollTo = (id: string) => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     document
       .getElementById(id)
       ?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  };
 
   return (
     <div className="portfolio-shell min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -40,36 +35,21 @@ export default function Landing() {
         <section className="hero-section relative mx-auto flex min-h-[min(820px,100vh)] max-w-[1380px] flex-col justify-between px-5 pb-12 pt-32 sm:px-8 sm:pb-16 sm:pt-40 lg:px-12">
           <div className="hero-grid" aria-hidden="true" />
           <div className="relative z-10 max-w-5xl">
-            <motion.p
-              initial={reduceMotion ? {} : { opacity: 0, y: 12 }}
-              animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="eyebrow mb-8"
-            >
+            <p className="hero-reveal hero-reveal-eyebrow eyebrow mb-8">
               {profile.name.toUpperCase()}
               <span className="mx-2 text-muted-foreground/40">/</span>
               {profile.role.toUpperCase()}
-            </motion.p>
+            </p>
 
-            <motion.h1
-              initial={reduceMotion ? {} : { opacity: 0, y: 20 }}
-              animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
-              transition={{ delay: 0.18, duration: 0.7 }}
-              className="hero-title"
-            >
+            <h1 className="hero-reveal hero-reveal-title hero-title">
               Build it.
               <br />
               <span className="text-muted-foreground">Measure it.</span>
               <br />
               Say what it does<span className="accent-dot">.</span>
-            </motion.h1>
+            </h1>
 
-            <motion.div
-              initial={reduceMotion ? {} : { opacity: 0 }}
-              animate={reduceMotion ? {} : { opacity: 1 }}
-              transition={{ delay: 0.55 }}
-              className="mt-9 flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between"
-            >
+            <div className="hero-reveal hero-reveal-copy mt-9 flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
               <p className="max-w-md text-base leading-7 text-muted-foreground sm:text-lg">
                 {profile.intro}
               </p>
@@ -81,20 +61,15 @@ export default function Landing() {
                   All {projects.length} projects
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          <motion.div
-            initial={reduceMotion ? {} : { opacity: 0 }}
-            animate={reduceMotion ? {} : { opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="relative z-10 mt-24 flex items-end justify-between border-t border-border pt-5 text-[11px] uppercase tracking-[0.16em] text-muted-foreground"
-          >
+          <div className="hero-reveal hero-reveal-meta relative z-10 mt-24 flex items-end justify-between border-t border-border pt-5 text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             <span>{profile.role}</span>
             <span>
               {featuredProjects.length} featured · {projects.length} total
             </span>
-          </motion.div>
+          </div>
         </section>
 
         {/* ---- about ------------------------------------------------------- */}
@@ -193,12 +168,8 @@ export default function Landing() {
               const lead = project.caseStudy.visuals[0];
 
               return (
-                <motion.article
+                <article
                   key={project.slug}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-80px" }}
-                  variants={reveal}
                   className="project-row group grid gap-8 lg:grid-cols-[0.95fr_1.05fr]"
                 >
                   <div className={flipped ? "lg:order-2" : ""}>
@@ -254,7 +225,7 @@ export default function Landing() {
                       />
                     </Link>
                   </div>
-                </motion.article>
+                </article>
               );
             })}
           </div>

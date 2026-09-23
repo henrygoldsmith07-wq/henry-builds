@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { visualRoutes } from "./routes";
+import { representativeCaseStudy, visualRoutes } from "./routes";
 
 /**
  * Visual regression over the core pages in both colour schemes.
@@ -29,6 +29,18 @@ for (const route of visualRoutes) {
     });
   }
 }
+
+test("a case study renders its key layout surfaces", async ({ page }) => {
+  await page.goto(representativeCaseStudy.path);
+  await page.waitForLoadState("networkidle");
+
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect(page.locator(".verification-row")).toBeVisible();
+  expect(await page.locator(".case-section").count()).toBeGreaterThanOrEqual(4);
+  await expect(
+    page.getByRole("navigation", { name: "More projects" }),
+  ).toBeVisible();
+});
 
 test("the stage badge renders its label and meaning", async ({ page }) => {
   await page.goto("/projects");

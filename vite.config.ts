@@ -28,9 +28,23 @@ const siteUrl =
   (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "") ||
   "https://henry-builds.vercel.app";
 
+/**
+ * Vly's build plugin injects its editor integration into index.html. That is
+ * useful on managed Vly deployments, but it otherwise makes every public
+ * visitor preload hundreds of kilobytes of editor-only JavaScript.
+ *
+ * VITE_VLY_APP_ID is the same opt-in used by src/instrumentation.tsx.
+ */
+const enableVlyBuildTools = Boolean(process.env.VITE_VLY_APP_ID);
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vlyPlugin(), react(), tailwindcss(), absoluteOgImages(siteUrl)],
+  plugins: [
+    ...(enableVlyBuildTools ? [vlyPlugin()] : []),
+    react(),
+    tailwindcss(),
+    absoluteOgImages(siteUrl),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -46,37 +60,7 @@ export default defineConfig({
         manualChunks: {
           // Vendor chunks for large libraries
           'react-vendor': ['react', 'react-dom', 'react-router'],
-          'convex-vendor': ['convex'],
-          // Large UI library chunks
-          'radix-ui': [
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-collapsible',
-            '@radix-ui/react-context-menu',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-hover-card',
-            '@radix-ui/react-label',
-            '@radix-ui/react-menubar',
-            '@radix-ui/react-navigation-menu',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-radio-group',
-            '@radix-ui/react-scroll-area',
-            '@radix-ui/react-select',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toggle',
-            '@radix-ui/react-toggle-group',
-            '@radix-ui/react-tooltip',
-          ],
-          // Heavy optional libraries - separate chunks for better lazy loading
-          'framer-motion': ['framer-motion'],
-          'charts': ['recharts'],
+          // Form libraries stay isolated behind authenticated/editor routes.
           'forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
         },
         // Optimize chunk size
