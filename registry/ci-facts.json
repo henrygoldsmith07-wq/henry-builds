@@ -1,29 +1,29 @@
 {
   "_generated": "Written by scripts/import-registry.mjs --ci. Do not edit by hand.",
-  "importedAt": "2026-09-22T11:45:40.916Z",
+  "importedAt": "2026-09-23T11:45:14.057Z",
   "sourceRepo": "henrygoldsmith07-wq/Claude-Code",
   "sourceRef": "main",
   "facts": {
     "arise": {
       "workflow": ".github/workflows/arise.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/arise/blob/main/.github/workflows/arise.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/35693693046",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/35750812838",
       "conclusion": "success",
-      "lastRunAt": "2026-09-22T06:17:44Z",
-      "lastSuccessfulRunAt": "2026-09-22T06:17:44Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/35693693046",
-      "headSha": "37ff891",
+      "lastRunAt": "2026-09-22T16:05:06Z",
+      "lastSuccessfulRunAt": "2026-09-22T16:05:06Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/35750812838",
+      "headSha": "f5f956c",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "daily-debate": {
       "workflow": ".github/workflows/ops-alert.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/ops-alert.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35707778415",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35840540560",
       "conclusion": "success",
-      "lastRunAt": "2026-09-22T08:59:07Z",
-      "lastSuccessfulRunAt": "2026-09-22T08:59:07Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35707778415",
-      "headSha": "fcd43b9",
+      "lastRunAt": "2026-09-23T09:02:14Z",
+      "lastSuccessfulRunAt": "2026-09-23T09:02:14Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/35840540560",
+      "headSha": "a6d25c5",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "emotion-tracker": {
@@ -40,23 +40,23 @@
     "food-shopping-os": {
       "workflow": ".github/workflows/food-shopping-os.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/blob/main/.github/workflows/food-shopping-os.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/35696552876",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/35750795977",
       "conclusion": "failure",
-      "lastRunAt": "2026-09-22T07:02:01Z",
+      "lastRunAt": "2026-09-22T16:05:17Z",
       "lastSuccessfulRunAt": "2026-09-18T15:35:23Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/35361360170",
-      "headSha": "f5d5c07",
+      "headSha": "81e3c04",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "french-practice": {
       "workflow": ".github/workflows/cross-browser.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/french-practice/blob/main/.github/workflows/cross-browser.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/35707841756",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/35840633874",
       "conclusion": "success",
-      "lastRunAt": "2026-09-22T09:04:12Z",
-      "lastSuccessfulRunAt": "2026-09-22T09:04:12Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/35707841756",
-      "headSha": "637db26",
+      "lastRunAt": "2026-09-23T09:08:00Z",
+      "lastSuccessfulRunAt": "2026-09-23T09:08:00Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/35840633874",
+      "headSha": "8db590d",
       "derivedFrom": "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)"
     },
     "habit-tracker": {
