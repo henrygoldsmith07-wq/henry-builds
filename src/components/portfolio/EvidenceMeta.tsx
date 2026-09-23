@@ -1,4 +1,4 @@
-import { CalendarCheck, FlaskConical, GitCommitHorizontal, ShieldQuestion } from "lucide-react";
+import { CalendarCheck, FlaskConical, GitCommitHorizontal, Lock, ShieldQuestion } from "lucide-react";
 import type {
   Evidence,
   FactsSnapshot,
@@ -108,6 +108,7 @@ export function SourceVerificationRow({
   deploy,
   release,
   vulnerabilities,
+  sourceAccess,
 }: {
   status: SourceState;
   statusReason?: string;
@@ -126,6 +127,7 @@ export function SourceVerificationRow({
   deploy?: FactsSnapshot["deploy"];
   release?: FactsSnapshot["release"];
   vulnerabilities?: FactsSnapshot["vulnerabilities"];
+  sourceAccess?: "public" | "private";
 }) {
   const copy = sourceStateCopy[status];
   const deployedBehind = deploy?.upToDate === false;
@@ -150,6 +152,14 @@ export function SourceVerificationRow({
           )}
         </dd>
       </div>
+      {sourceAccess === "private" && (
+        <div>
+          <dt>Repo access</dt>
+          <dd title="Links point at private repositories. Their existence was verified through the GitHub API at the date shown; sign in to GitHub to open them.">
+            <Lock className="inline size-3" aria-hidden="true" /> private · API-verified
+          </dd>
+        </div>
+      )}
       {deploy && (
         <div>
           <dt>Deployment</dt>
