@@ -61,6 +61,8 @@ const STAGE_EVIDENCE = {
  * must not display a green date from months ago as if it were current.
  */
 const MAX_CI_FACTS_AGE_DAYS = 14;
+/** A green run older than this behind a failed latest run stops being news. */
+const RED_CI_STALE_DAYS = 30;
 /** Time-sensitive claims must be re-verified at least this often. */
 const MAX_CLAIM_AGE_DAYS_DEFAULT = 180;
 
@@ -336,6 +338,27 @@ for (const file of files) {
     ...(cs.metrics ?? []).flatMap((m) => m.evidence ?? []),
     ...(cs.outcomes ?? []).flatMap((o) => o.evidence ?? []),
   ];
+  // --- red upstream CI behind CI-cited claims ------------------------------
+  const currentFact = facts[project.upstreamId];
+  if (
+    project.sourceState === "current-source" &&
+    currentFact?.conclusion === "failure" &&
+    allEvidence.some((item) => item?.kind === "ci")
+  ) {
+    const lastGreenAt =
+      currentFact.lastSuccessfulRunAt ?? currentFact.lastSuccessAt ?? null;
+    const lastGreenDays = lastGreenAt ? daysAgo(lastGreenAt) : NaN;
+    if (!Number.isFinite(lastGreenDays) || lastGreenDays > RED_CI_STALE_DAYS) {
+      warn(
+        `${id}: cites CI evidence but the latest upstream run failed` +
+          (lastGreenAt
+            ? ` and the last green run was ${lastGreenAt.slice(0, 10)} (${Math.round(lastGreenDays)} days ago)`
+            : " with no recorded green run") +
+          " — recapture, repair CI, or lower the claim",
+      );
+    }
+  }
+
   const requiredKind = STAGE_EVIDENCE[project.stage];
   if (requiredKind && !allEvidence.some((e) => e?.kind === requiredKind)) {
     fail(
