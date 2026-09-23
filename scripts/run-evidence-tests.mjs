@@ -230,8 +230,9 @@ test("validate-registry warns when CI-cited evidence sits behind failed runs", a
   if (result.code !== 0) {
     throw new Error(`red-CI rule must warn, not fail - got exit ${result.code}\n${result.stderr}`);
   }
-  if (!/latest upstream\s*run failed/.test(result.stdout)) {
-    throw new Error(`missing red-CI warning:\n${result.stdout}`);
+  const combined = `${result.stdout}\n${result.stderr}`;
+  if (!/latest upstream\s*run failed/.test(combined)) {
+    throw new Error(`missing red-CI warning:\n${combined}`);
   }
 });
 
