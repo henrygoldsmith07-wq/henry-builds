@@ -15,7 +15,7 @@ env:
 
 jobs:
   verify:
-    name: Types, lint, registry, claims, build, links
+    name: Types, lint, registry, claims, evidence tests, build, links
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +51,11 @@ jobs:
         # Deterministic regex bans stay authoritative; classifier assist inside
         # is advisory-only and writes a metadata-only report (no claim text).
         run: bun run audit:claims -- --report classifier-report.json
+
+      # The evidence gates are code too. Exercise them against fixtures so
+      # a threshold or regex change cannot silently weaken the site.
+      - name: Test the evidence machinery
+        run: bun run test:evidence
 
       - name: Classify claims (evidence assist, advisory only)
         # classifier.dev identifies claim TYPE only; it never decides proof.
