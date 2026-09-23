@@ -181,6 +181,7 @@ export default function CaseStudy() {
               deploy={project.facts?.deploy}
               release={project.facts?.release}
               vulnerabilities={project.facts?.vulnerabilities}
+              sourceAccess={project.sourceAccess}
             />
 
             {/* ---- what I built -------------------------------------------- */}
