@@ -59,30 +59,31 @@ export default defineConfig({
         // Manual chunk splitting for better caching and lazy loading
         manualChunks: {
           // Vendor chunks for large libraries
-          'react-vendor': ['react', 'react-dom', 'react-router'],
+          "react-vendor": ["react", "react-dom", "react-router"],
           // Form libraries stay isolated behind authenticated/editor routes.
-          'forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          forms: ["react-hook-form", "@hookform/resolvers", "zod"],
         },
         // Optimize chunk size
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]',
+        chunkFileNames: "assets/[name]-[hash].js",
+        entryFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash].[ext]",
       },
     },
     // Increase chunk size warning limit for better chunking
     chunkSizeWarningLimit: 1000,
-    // Target modern browsers for better optimization
-    target: 'esnext',
+    // Keep the public portfolio compatible with Vite's widely-available browser
+    // baseline instead of shipping unchecked esnext syntax to every visitor.
+    target: "baseline-widely-available",
     // Minify options - using esbuild (faster than terser)
-    minify: 'esbuild',
+    minify: "esbuild",
   },
   // Optimize dependencies
   optimizeDeps: {
     include: [
-      'react',
-      'react-dom',
-      'react-router',
-      '@convex-dev/auth/react',
+      "react",
+      "react-dom",
+      "react-router",
+      "@convex-dev/auth/react",
     ],
   },
   // Keep the managed preview server from injecting HMR into production builds.
