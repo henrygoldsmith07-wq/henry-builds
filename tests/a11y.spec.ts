@@ -138,6 +138,35 @@ test("cross-page hash links reach lazy-loaded landing sections", async ({
     .toBe(true);
 });
 
+test("fragment navigation respects reduced-motion preference", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Desktop header exposes the main navigation directly");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/projects");
+  await page.evaluate(() => {
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (options?: boolean | ScrollIntoViewOptions) {
+      (window as typeof window & { __fragmentScrollBehavior?: ScrollBehavior }).__fragmentScrollBehavior =
+        typeof options === "object" ? options.behavior : undefined;
+      return original.call(this, options);
+    };
+  });
+
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "About" }).click();
+  await expect(page.locator("#about")).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as typeof window & { __fragmentScrollBehavior?: ScrollBehavior })
+            .__fragmentScrollBehavior,
+      ),
+    )
+    .toBe("auto");
+});
+
 test("missing routes tell crawlers not to index them", async ({ page }) => {
   await page.goto("/__missing-page-for-test__");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
