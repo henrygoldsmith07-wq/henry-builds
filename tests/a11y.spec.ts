@@ -116,6 +116,26 @@ test("project discovery filters are shareable and reset cleanly", async ({
   );
 });
 
+test("cross-page hash links reach lazy-loaded landing sections", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Desktop header exposes the main navigation directly");
+
+  await page.goto("/projects");
+  await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "About" }).click();
+
+  await expect(page).toHaveURL(/\/#about$/);
+  await expect(page.locator("#about")).toBeVisible();
+  await expect
+    .poll(() =>
+      page.locator("#about").evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.top >= 0 && rect.top < window.innerHeight;
+      }),
+    )
+    .toBe(true);
+});
+
 test("missing routes tell crawlers not to index them", async ({ page }) => {
   await page.goto("/__missing-page-for-test__");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
@@ -123,7 +143,6 @@ test("missing routes tell crawlers not to index them", async ({ page }) => {
     "noindex, nofollow",
   );
 });
-
 
 test("saved theme preference is applied on navigation", async ({ page }) => {
   await page.addInitScript(() => {
