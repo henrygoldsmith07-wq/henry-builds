@@ -162,6 +162,11 @@ function RouteSyncer() {
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
+      // Only the embedding parent is allowed to drive browser history. Without
+      // this guard, any window holding a reference to the preview could send a
+      // forged navigation message because postMessage events are cross-origin.
+      if (event.source !== window.parent) return;
+
       if (event.data?.type === "navigate") {
         if (event.data.direction === "back") window.history.back();
         if (event.data.direction === "forward") window.history.forward();
