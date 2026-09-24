@@ -40,7 +40,8 @@ export function ProjectPreview({
           <img
             src={visual.src}
             alt={visual.alt}
-            loading="lazy"
+            loading={featured ? "eager" : "lazy"}
+            fetchPriority={featured ? "high" : "auto"}
             decoding="async"
             className="size-full object-cover"
           />
