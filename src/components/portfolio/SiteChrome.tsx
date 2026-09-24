@@ -80,7 +80,16 @@ export function SiteHeader() {
 
   return (
     <header className={`site-nav ${scrolled ? "site-nav-scrolled" : ""}`}>
-      <a href="#main" className="skip-link">
+      <a
+        href="#main"
+        className="skip-link"
+        onClick={() => {
+          const main = document.getElementById("main");
+          if (!main) return;
+          main.tabIndex = -1;
+          main.focus();
+        }}
+      >
         Skip to main content
       </a>
       <div className="mx-auto flex max-w-[1380px] items-center justify-between px-5 py-4 sm:px-8 lg:px-12">

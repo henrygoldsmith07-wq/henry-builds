@@ -92,6 +92,9 @@ test("the skip link is reachable by keyboard and moves focus", async ({
   await page.keyboard.press("Tab");
   await expect(skipLink).toBeFocused();
   await expect(skipLink).toBeVisible();
+
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main")).toBeFocused();
 });
 
 test("project discovery filters are shareable and reset cleanly", async ({
