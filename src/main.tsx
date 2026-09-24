@@ -141,7 +141,7 @@ function ScrollManager() {
       return;
     }
 
-    const targetId = decodeURIComponent(location.hash.slice(1));
+    // A malformed percent escape can arrive through a pasted or external URL.\n    // decodeURIComponent throws for those values, so keep navigation resilient\n    // and treat the raw fragment as a non-matching target instead of crashing.\n    let targetId: string;\n    try {\n      targetId = decodeURIComponent(location.hash.slice(1));\n    } catch {\n      targetId = location.hash.slice(1);\n    }
     const scrollToTarget = () => {
       const target = document.getElementById(targetId);
       if (!target) return false;
