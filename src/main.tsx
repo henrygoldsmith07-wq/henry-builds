@@ -152,7 +152,13 @@ function ScrollManager() {
       const header = document.querySelector<HTMLElement>(".site-nav");
       const headerHeight = header?.getBoundingClientRect().height ?? 0;
       target.style.scrollMarginTop = `${headerHeight + 16}px`;
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      target.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "start",
+      });
       return true;
     };
 
