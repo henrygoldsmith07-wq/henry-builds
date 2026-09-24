@@ -70,14 +70,18 @@ export function VerificationLine({
         <>
           Last code verification (green CI):{" "}
           {verified ? (
-            <a
-              className="underline underline-offset-2 hover:text-foreground"
-              href={ci.runUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {verified}
-            </a>
+            ci.runUrl ? (
+              <a
+                className="underline underline-offset-2 hover:text-foreground"
+                href={ci.runUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {verified}
+              </a>
+            ) : (
+              <span>{verified}</span>
+            )
           ) : (
             <span>none recorded</span>
           )}
