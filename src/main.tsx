@@ -141,7 +141,15 @@ function ScrollManager() {
       return;
     }
 
-    // A malformed percent escape can arrive through a pasted or external URL.\n    // decodeURIComponent throws for those values, so keep navigation resilient\n    // and treat the raw fragment as a non-matching target instead of crashing.\n    let targetId: string;\n    try {\n      targetId = decodeURIComponent(location.hash.slice(1));\n    } catch {\n      targetId = location.hash.slice(1);\n    }
+    // A malformed percent escape can arrive through a pasted or external URL.
+    // decodeURIComponent throws for those values, so keep navigation resilient
+    // and treat the raw fragment as a non-matching target instead of crashing.
+    let targetId: string;
+    try {
+      targetId = decodeURIComponent(location.hash.slice(1));
+    } catch {
+      targetId = location.hash.slice(1);
+    }
     const scrollToTarget = () => {
       const target = document.getElementById(targetId);
       if (!target) return false;
