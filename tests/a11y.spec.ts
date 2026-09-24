@@ -167,6 +167,15 @@ test("fragment navigation respects reduced-motion preference", async ({
     .toBe("auto");
 });
 
+test("malformed fragments do not crash public navigation", async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto("/#%");
+  await expect(page.locator("main")).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
+
 test("missing routes tell crawlers not to index them", async ({ page }) => {
   await page.goto("/__missing-page-for-test__");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
