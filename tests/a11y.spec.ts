@@ -130,7 +130,9 @@ test("cross-page hash links reach lazy-loaded landing sections", async ({
     .poll(() =>
       page.locator("#about").evaluate((element) => {
         const rect = element.getBoundingClientRect();
-        return rect.top >= 0 && rect.top < window.innerHeight;
+        const header = document.querySelector<HTMLElement>(".site-nav");
+        const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+        return rect.top >= headerBottom && rect.top < window.innerHeight;
       }),
     )
     .toBe(true);
