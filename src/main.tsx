@@ -145,6 +145,13 @@ function ScrollManager() {
     const scrollToTarget = () => {
       const target = document.getElementById(targetId);
       if (!target) return false;
+
+      // The site header is fixed. Give fragment targets enough scroll margin
+      // to remain visible below it instead of hiding their first line behind
+      // the navigation after scrollIntoView aligns them with the viewport top.
+      const header = document.querySelector<HTMLElement>(".site-nav");
+      const headerHeight = header?.getBoundingClientRect().height ?? 0;
+      target.style.scrollMarginTop = `${headerHeight + 16}px`;
       target.scrollIntoView({ behavior: "smooth", block: "start" });
       return true;
     };
