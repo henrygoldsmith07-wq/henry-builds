@@ -136,14 +136,30 @@ function ScrollManager() {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.hash) {
-      const target = document.getElementById(location.hash.slice(1));
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
+    if (!location.hash) {
+      window.scrollTo({ top: 0, left: 0 });
+      return;
     }
-    window.scrollTo({ top: 0, left: 0 });
+
+    const targetId = decodeURIComponent(location.hash.slice(1));
+    const scrollToTarget = () => {
+      const target = document.getElementById(targetId);
+      if (!target) return false;
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return true;
+    };
+
+    // Route components are lazy-loaded. On a cross-page hash navigation the
+    // destination section may not exist on the first effect, so wait for the
+    // Suspense boundary to mount it instead of silently falling back to the top.
+    if (scrollToTarget()) return;
+
+    const observer = new MutationObserver(() => {
+      if (scrollToTarget()) observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
   }, [location.pathname, location.hash]);
 
   return null;
