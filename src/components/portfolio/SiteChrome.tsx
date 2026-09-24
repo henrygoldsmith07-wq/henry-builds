@@ -1,6 +1,6 @@
 import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { profile } from "@/data/profile";
 
 const STORAGE_KEY = "henry-theme";
@@ -43,6 +43,21 @@ export function SiteHeader() {
     () => typeof window !== "undefined" && window.scrollY > 24,
   );
   const { isDark, toggle } = useTheme();
+  const location = useLocation();
+
+  const currentFor = (to: string): "page" | "location" | undefined => {
+    if (to === "/projects") {
+      return location.pathname === "/projects" ||
+        location.pathname.startsWith("/projects/")
+        ? "page"
+        : undefined;
+    }
+
+    const hash = to.startsWith("/#") ? to.slice(1) : "";
+    return location.pathname === "/" && location.hash === hash
+      ? "location"
+      : undefined;
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 24);
@@ -78,7 +93,12 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-7 md:flex" aria-label="Main">
           {navItems.map((item) => (
-            <Link key={item.to} to={item.to} className="nav-link">
+            <Link
+              key={item.to}
+              to={item.to}
+              className="nav-link"
+              aria-current={currentFor(item.to)}
+            >
               {item.label}
             </Link>
           ))}
@@ -119,6 +139,7 @@ export function SiteHeader() {
               to={item.to}
               className="mobile-nav-link"
               onClick={() => setMenuOpen(false)}
+              aria-current={currentFor(item.to)}
             >
               {item.label}
               <ArrowUpRight className="size-3.5" aria-hidden="true" />
