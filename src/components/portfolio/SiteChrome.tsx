@@ -19,14 +19,37 @@ export function useTheme() {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
-    } catch {
-      // Theme still works for the current page when storage is unavailable.
-    }
   }, [isDark]);
 
-  return { isDark, toggle: () => setIsDark((current) => !current) };
+  useEffect(() => {
+    let hasStoredPreference = false;
+    try {
+      hasStoredPreference = window.localStorage.getItem(STORAGE_KEY) !== null;
+    } catch {
+      // Storage can be unavailable; continue following the system preference.
+    }
+
+    if (hasStoredPreference) return;
+
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event: MediaQueryListEvent) => setIsDark(event.matches);
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, []);
+
+  const toggle = () => {
+    setIsDark((current) => {
+      const next = !current;
+      try {
+        window.localStorage.setItem(STORAGE_KEY, next ? "dark" : "light");
+      } catch {
+        // Theme still works for the current page when storage is unavailable.
+      }
+      return next;
+    });
+  };
+
+  return { isDark, toggle };
 }
 
 const navItems = [
