@@ -324,7 +324,7 @@ export default function CaseStudy() {
             {/* ---- architecture -------------------------------------------- */}
             {study.architecture && (
               <Section number="06" title="Architecture" id="architecture">
-                <ArchitectureDiagram architecture={study.architecture} />
+                <ArchitectureDiagram architecture={study.architecture} repoHref={project.repo?.href} />
               </Section>
             )}
 
