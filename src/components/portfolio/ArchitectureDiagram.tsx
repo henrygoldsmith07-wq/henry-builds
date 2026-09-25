@@ -2,14 +2,19 @@ import { Lock } from "lucide-react";
 import { EvidenceRow } from "./Evidence";
 import type { Architecture } from "@/data/registry/schema";
 
-const REPO_BASE = "https://github.com/henrygoldsmith07-wq/Claude-Code";
-
 /**
  * Rendered as a semantic ordered list rather than an image: it stays readable
  * at any width, works in a screen reader, and needs no alt text that would
  * immediately go stale when a layer changes.
  */
-export function ArchitectureDiagram({ architecture }: { architecture: Architecture }) {
+export function ArchitectureDiagram({
+  architecture,
+  repoHref,
+}: {
+  architecture: Architecture;
+  repoHref?: string;
+}) {
+  const repoBase = repoHref?.replace(/\/$/, "");
   return (
     <div>
       <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -25,16 +30,19 @@ export function ArchitectureDiagram({ architecture }: { architecture: Architectu
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h4 className="text-sm font-semibold tracking-tight">{layer.name}</h4>
-                {layer.path && (
-                  <a
-                    className="arch-path"
-                    href={`${REPO_BASE}/tree/main/${layer.path}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {layer.path}
-                  </a>
-                )}
+                {layer.path &&
+                  (repoBase ? (
+                    <a
+                      className="arch-path"
+                      href={`${repoBase}/tree/main/${layer.path}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {layer.path}
+                    </a>
+                  ) : (
+                    <span className="arch-path">{layer.path}</span>
+                  ))}
               </div>
               <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{layer.role}</p>
             </div>
