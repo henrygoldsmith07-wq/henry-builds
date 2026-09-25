@@ -172,7 +172,15 @@ function ScrollManager() {
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    return () => observer.disconnect();
+    // Unknown or stale fragments should not leave a document-wide observer
+    // running for the lifetime of the page. Lazy routes mount quickly; five
+    // seconds leaves ample room for a slow chunk while bounding the work.
+    const timeout = window.setTimeout(() => observer.disconnect(), 5_000);
+
+    return () => {
+      window.clearTimeout(timeout);
+      observer.disconnect();
+    };
   }, [location.pathname, location.hash]);
 
   return null;
