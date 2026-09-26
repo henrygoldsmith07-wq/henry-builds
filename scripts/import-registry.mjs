@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Imports the upstream monorepo registry and CI facts into registry/.
+ * Imports the generated project truth consumed by the portfolio into registry/.
  *
- *   node scripts/import-registry.mjs            # upstream snapshot only (no token needed)
+ *   node scripts/import-registry.mjs            # upstream + evidence + source status
  *   node scripts/import-registry.mjs --ci       # also pull test/benchmark facts from CI
  *   node scripts/import-registry.mjs --ci --allow-empty
  *                                               # write ci-facts.json even when nothing
@@ -10,8 +10,10 @@
  *                                               # loudly instead of the import hiding it)
  *
  * Writes:
- *   registry/upstream.json   snapshot of henrygoldsmith07-wq/Claude-Code:apps/registry.json
- *   registry/ci-facts.json   latest workflow facts, keyed by app id
+ *   registry/upstream.json        snapshot of henrygoldsmith07-wq/Claude-Code:apps/registry.json
+ *   registry/evidence-ledger.json snapshot of Claude-Code:evidence/registry.json
+ *   registry/source-status.json   current vs archived source, repo/ref and checked SHA
+ *   registry/ci-facts.json        latest workflow facts, keyed by app id
  *
  * Both files are generated. Never edit them by hand — this script overwrites them.
  * Narrative and evidence live in registry/case-studies/*.json, which this script
@@ -35,9 +37,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
+import { crossRepoReadMode } from "./lib/github-paths.mjs";
 
 const SOURCE_REPO = "henrygoldsmith07-wq/Claude-Code";
 const SOURCE_PATH = "apps/registry.json";
+const EVIDENCE_PATH = "evidence/registry.json";
 const SOURCE_REF = "main";
 
 const root = process.cwd();
@@ -45,6 +49,7 @@ const outDir = path.join(root, "registry");
 const wantCi = process.argv.includes("--ci");
 const allowEmpty = process.argv.includes("--allow-empty");
 const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "";
+const mode = token ? "authenticated" : "anonymous";
 
 function log(msg) {
   process.stdout.write(`import-registry: ${msg}\n`);
@@ -89,6 +94,141 @@ async function fetchJson(url, options = {}) {
 async function fetchText(url) {
   const res = await githubFetch(url);
   return res.text();
+}
+
+function readCaseStudies() {
+  const dir = path.join(root, "registry/case-studies");
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((file) => file.endsWith(".json"))
+    .map((file) => {
+      try {
+        return JSON.parse(fs.readFileSync(path.join(dir, file), "utf8"));
+      } catch (error) {
+        warn(`case-studies/${file}: unreadable (${error.message})`);
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
+const repoInfoCache = new Map();
+
+async function repoInfo(repo) {
+  if (repoInfoCache.has(repo)) return repoInfoCache.get(repo);
+  const promise = fetchJson(`https://api.github.com/repos/${repo}`)
+    .then((data) => ({
+      ok: true,
+      defaultBranch: data.default_branch ?? "main",
+      access: data.private ? "private" : "public",
+    }))
+    .catch((error) => ({ ok: false, error }));
+  repoInfoCache.set(repo, promise);
+  return promise;
+}
+
+async function commitSha(repo, ref) {
+  try {
+    const data = await fetchJson(
+      `https://api.github.com/repos/${repo}/commits/${encodeURIComponent(ref)}`,
+    );
+    return data.sha;
+  } catch {
+    return undefined;
+  }
+}
+
+async function monorepoPathExists(relPath) {
+  const encoded = relPath.split("/").map(encodeURIComponent).join("/");
+  try {
+    await githubFetch(
+      `https://api.github.com/repos/${SOURCE_REPO}/contents/${encoded}?ref=${SOURCE_REF}`,
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function deriveSourceStatuses(entries) {
+  const byId = new Map(entries.map((entry) => [entry.id, entry]));
+  const studies = readCaseStudies();
+  const projects = {};
+  let monorepoSha;
+
+  for (const study of studies) {
+    const entry = byId.get(study.upstreamId);
+
+    if (!entry) {
+      projects[study.slug] = {
+        derived: "archived-source",
+        reason: `'${study.upstreamId}' is no longer in the monorepo registry — renamed, retired, or migrated away.`,
+      };
+      continue;
+    }
+
+    if (entry.repo) {
+      const info = await repoInfo(entry.repo);
+      if (!info.ok) {
+        throw new Error(
+          `could not verify ${entry.repo}; refusing to rewrite source-status from partial access`,
+        );
+      }
+      const ref = info.defaultBranch;
+      const sha = await commitSha(entry.repo, ref);
+      projects[study.slug] = {
+        derived: "current",
+        reason: `Source lives at ${entry.repo}@${ref}.`,
+        repo: entry.repo,
+        ref,
+        access: info.access,
+        ...(sha
+          ? {
+              sha,
+              shaUrl: `https://github.com/${entry.repo}/commit/${sha}`,
+            }
+          : {}),
+      };
+      continue;
+    }
+
+    if (entry.path) {
+      const exists = await monorepoPathExists(entry.path);
+      if (!exists) {
+        projects[study.slug] = {
+          derived: "archived-source",
+          reason: `${SOURCE_REPO}:${entry.path} no longer exists on ${SOURCE_REF}.`,
+        };
+        continue;
+      }
+      monorepoSha ??= await commitSha(SOURCE_REPO, SOURCE_REF);
+      projects[study.slug] = {
+        derived: "current",
+        reason: `Source lives at ${SOURCE_REPO}:${entry.path} on ${SOURCE_REF}.`,
+        repo: SOURCE_REPO,
+        ref: SOURCE_REF,
+        access: "public",
+        ...(monorepoSha
+          ? {
+              sha: monorepoSha,
+              shaUrl: `https://github.com/${SOURCE_REPO}/commit/${monorepoSha}`,
+            }
+          : {}),
+      };
+      continue;
+    }
+
+    projects[study.slug] = {
+      derived: "archived-source",
+      reason: `Upstream entry '${entry.id}' declares neither a repo nor a path to verify.`,
+    };
+  }
+
+  return {
+    checkedAt: new Date().toISOString(),
+    projects,
+  };
 }
 
 /** Flatten the upstream registry's three sections into one list. */
@@ -476,6 +616,87 @@ async function main() {
   );
   log(`wrote registry/upstream.json (${entries.length} entries)`);
 
+  const evidencePath = path.join(outDir, "evidence-ledger.json");
+  const evidenceUrl =
+    `https://raw.githubusercontent.com/${SOURCE_REPO}/${SOURCE_REF}/${EVIDENCE_PATH}`;
+  try {
+    const ledger = JSON.parse(await fetchText(evidenceUrl));
+    const evidenceSnapshot = {
+      _generated: "Written by scripts/import-registry.mjs. Do not edit by hand.",
+      source: { repo: SOURCE_REPO, path: EVIDENCE_PATH, ref: SOURCE_REF },
+      importedAt: new Date().toISOString(),
+      statusValues: ledger.statusValues ?? {},
+      claims: (ledger.claims ?? []).map((claim) => ({
+        id: claim.id,
+        product: claim.product,
+        claim: claim.claim,
+        status: claim.status,
+        evidenceSource: claim.evidenceSource,
+        sampleSize: claim.sampleSize,
+        benchmark: claim.benchmark,
+        lastUpdated: claim.lastUpdated,
+        limitations: claim.limitations,
+      })),
+    };
+    fs.writeFileSync(
+      evidencePath,
+      `${JSON.stringify(evidenceSnapshot, null, 2)}\n`,
+    );
+    log(
+      `wrote registry/evidence-ledger.json (${evidenceSnapshot.claims.length} graded claims)`,
+    );
+  } catch (error) {
+    if (!fs.existsSync(evidencePath)) {
+      fail(`could not fetch evidence ledger and no previous snapshot exists: ${error.message}`);
+      return;
+    }
+    warn(`evidence ledger refresh failed — keeping previous snapshot (${error.message})`);
+  }
+
+  const statusPath = path.join(outDir, "source-status.json");
+  const sourceMode = await crossRepoReadMode();
+  if (sourceMode === "none") {
+    if (!fs.existsSync(statusPath)) {
+      fail(
+        "cannot derive source status and no previous snapshot exists — set REGISTRY_TOKEN to a PAT with sibling-repo read access",
+      );
+      return;
+    }
+    warn("source-status refresh skipped — cross-repo GitHub reads are unavailable");
+  } else {
+    try {
+      const statuses = await deriveSourceStatuses(entries);
+      fs.writeFileSync(
+        statusPath,
+        `${JSON.stringify(
+          {
+            _generated:
+              "Written by scripts/import-registry.mjs. Do not edit by hand.",
+            ...statuses,
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      const archived = Object.values(statuses.projects).filter(
+        (status) => status.derived !== "current",
+      ).length;
+      log(
+        `wrote registry/source-status.json (${Object.keys(statuses.projects).length} projects, ${archived} not-current)`,
+      );
+    } catch (error) {
+      if (!fs.existsSync(statusPath)) {
+        fail(
+          `source-status refresh failed and no previous snapshot exists: ${error.message}`,
+        );
+        return;
+      }
+      warn(
+        `source-status refresh incomplete — keeping previous snapshot (${error.message})`,
+      );
+    }
+  }
+
   if (!wantCi) {
     log("skipping CI facts (pass --ci to include them)");
     return;
@@ -496,6 +717,7 @@ async function main() {
       {
         _generated: "Written by scripts/import-registry.mjs --ci. Do not edit by hand.",
         importedAt: new Date().toISOString(),
+        mode,
         sourceRepo: SOURCE_REPO,
         sourceRef: SOURCE_REF,
         facts,

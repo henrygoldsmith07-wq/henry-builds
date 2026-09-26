@@ -1,8 +1,9 @@
 {
-  "name": "vite-template",
+  "name": "henry-builds",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "bun@1.4.2",
   "scripts": {
     "dev": "vite",
     "build": "bun run prebuild && tsc -b && vite build && bun run route-html",
@@ -13,10 +14,17 @@
 
     "registry:import": "node scripts/import-registry.mjs",
     "registry:import:ci": "node scripts/import-registry.mjs --ci",
+    "registry:refresh": "node scripts/refresh-registry.mjs",
+    "registry:refresh:ci": "node scripts/refresh-registry.mjs --ci",
+    "registry:facts": "node scripts/collect-facts.mjs",
+    "registry:freshness": "node scripts/check-registry-freshness.mjs",
+    "registry:freshness:strict": "node scripts/check-registry-freshness.mjs --strict",
     "registry:validate": "node scripts/validate-registry.mjs",
     "registry:validate:upstream": "node scripts/validate-registry.mjs --upstream",
     "archive:removed": "node scripts/archive-removed.mjs",
     "archive:removed:check": "node scripts/archive-removed.mjs --check",
+    "verify:sources": "node scripts/verify-sources.mjs",
+    "record:bundle": "node scripts/record-bundle.mjs",
     "test:evidence": "node scripts/run-evidence-tests.mjs",
 
     "og": "node scripts/generate-og.mjs",
@@ -31,6 +39,7 @@
     "check:route-html": "node scripts/check-route-html.mjs",
     "check:links": "node scripts/check-links.mjs && node scripts/check-route-html.mjs",
     "check:links:external": "node scripts/check-links.mjs --external",
+    "check:links:github": "node scripts/check-links.mjs --github",
     "check:links:full": "node scripts/check-links.mjs --external --github",
 
     "test:e2e": "playwright test",
@@ -39,13 +48,11 @@
     "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",
     "lighthouse": "lhci autorun",
 
-    "verify": "bun run registry:validate && bun run audit:claims && bun run test:evidence && tsc -b && bun run lint && bun run build && bun run check:links"
+    "verify": "bun run registry:freshness && bun run registry:validate && bun run archive:removed:check && bun run audit:claims && bun run test:evidence && bun run verify:sources && tsc -b && bun run lint && bun run build && bun run check:links"
   },
   "dependencies": {
-    "@convex-dev/auth": "^0.0.90",
     "@hookform/resolvers": "^5.2.2",
     "@jridgewell/trace-mapping": "^0.3.31",
-    "@oslojs/crypto": "^1.0.1",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -75,18 +82,14 @@
     "@tailwindcss/vite": "^4.1.17",
     "@vly-ai/integrations": "^0.6.12",
     "@zumer/snapdom": "^2.0.1",
-    "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
-    "convex": "^1.30.0",
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.25",
     "hono": "^4.10.7",
-    "input-otp": "^1.4.2",
     "lucide-react": "^0.555.0",
-    "next-themes": "^0.4.6",
     "react": "^19.2.0",
     "react-day-picker": "9.13.0",
     "react-dom": "^19.2.0",
@@ -95,7 +98,6 @@
     "react-resizable-panels": "^3.0.6",
     "react-router": "^7.10.0",
     "recharts": "^2.15.4",
-    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
     "vaul": "^1.1.2",

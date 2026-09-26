@@ -30,4 +30,23 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // These files intentionally co-export helpers/variants, or are application
+    // and editor entrypoints rather than Fast Refresh component modules.
+    files: [
+      "src/main.tsx",
+      "vly-toolbar-readonly.tsx",
+      "src/components/portfolio/SiteChrome.tsx",
+      "src/components/ui/badge.tsx",
+      "src/components/ui/button-group.tsx",
+      "src/components/ui/button.tsx",
+      "src/components/ui/form.tsx",
+      "src/components/ui/navigation-menu.tsx",
+      "src/components/ui/sidebar.tsx",
+      "src/components/ui/toggle.tsx",
+    ],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 );

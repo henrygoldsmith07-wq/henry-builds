@@ -226,19 +226,6 @@ for (const project of projects) {
   );
 }
 
-for (const route of ["/auth", "/dashboard"]) {
-  write(
-    `${route.slice(1)}.html`,
-    renderPage({
-      title: `${route === "/auth" ? "Sign in" : "Dashboard"} — Henry Goldsmith`,
-      description: "Private account area for the portfolio.",
-      route,
-      image: "/og/default.png",
-      noIndex: true,
-    }),
-  );
-}
-
 write(
   "404.html",
   renderPage({
@@ -252,5 +239,5 @@ write(
 );
 
 console.log(
-  `generate-route-html: wrote ${projects.length + 5} crawler-visible route files for ${origin}`,
+  `generate-route-html: wrote ${projects.length + 3} crawler-visible route files for ${origin}`,
 );

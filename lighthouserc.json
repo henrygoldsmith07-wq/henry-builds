@@ -3,7 +3,9 @@
     "collect": {
       "staticDistDir": "./dist",
       "url": [
-        "http://localhost/"
+        "http://localhost/",
+        "http://localhost/projects.html",
+        "http://localhost/projects/arise.html"
       ],
       "numberOfRuns": 3,
       "settings": {

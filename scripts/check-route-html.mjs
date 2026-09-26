@@ -125,15 +125,6 @@ for (const { data: project } of published) {
   });
 }
 
-for (const route of ["/auth", "/dashboard"]) {
-  verifyRoute({
-    route,
-    title: `${route === "/auth" ? "Sign in" : "Dashboard"} — Henry Goldsmith`,
-    image: "/og/default.png",
-    noIndex: true,
-  });
-}
-
 const notFoundPath = path.join(distDir, "404.html");
 checked++;
 if (!fs.existsSync(notFoundPath)) {

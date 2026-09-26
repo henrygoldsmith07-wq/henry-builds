@@ -60,8 +60,6 @@ export default defineConfig({
         manualChunks: {
           // Vendor chunks for large libraries
           "react-vendor": ["react", "react-dom", "react-router"],
-          // Form libraries stay isolated behind authenticated/editor routes.
-          forms: ["react-hook-form", "@hookform/resolvers", "zod"],
         },
         // Optimize chunk size
         chunkFileNames: "assets/[name]-[hash].js",
@@ -79,12 +77,7 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: [
-      "react",
-      "react-dom",
-      "react-router",
-      "@convex-dev/auth/react",
-    ],
+    include: ["react", "react-dom", "react-router"],
   },
   // Keep the managed preview server from injecting HMR into production builds.
   server: {

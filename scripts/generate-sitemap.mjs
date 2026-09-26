@@ -113,10 +113,6 @@ fs.writeFileSync(
   `User-agent: *
 Allow: /
 
-# Auth and dashboard are behind a login and hold nothing worth indexing.
-Disallow: /auth
-Disallow: /dashboard
-
 Sitemap: ${origin}/sitemap.xml
 `,
 );

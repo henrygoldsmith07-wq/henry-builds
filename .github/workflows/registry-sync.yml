@@ -1,9 +1,9 @@
 name: Registry sync
 
-# Re-imports the monorepo registry and CI facts daily, auto-archives projects
-# whose source has disappeared, validates everything (including upstream repo
-# paths), then either commits generated-only changes straight to main or opens
-# a PR when something needs a human decision.
+# Refreshes the complete generated evidence layer daily, auto-archives projects
+# whose source has disappeared, validates everything, then either commits
+# generated-only changes straight to main or opens a PR when something needs a
+# human decision.
 #
 # This is what makes the portfolio track the source of truth instead of
 # drifting from it: a project renamed, retired or promoted upstream shows up
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
 
       - run: bun install --frozen-lockfile
 
@@ -41,13 +41,11 @@ jobs:
           ts=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('registry/ci-facts.json','utf8')).importedAt||'')}catch{console.log('')}")
           echo "imported_at=$ts" >> "$GITHUB_OUTPUT"
 
-      - name: Import registry and CI facts
+      - name: Refresh registry, evidence, source status, CI and facts history
         env:
-          # A PAT with actions:read on the monorepo. Without it the import still
-          # succeeds — it records run metadata only and omits test counts rather
-          # than inventing them.
+          # A PAT with Contents/Actions read access to sibling repositories.
           GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
-        run: bun run registry:import:ci
+        run: bun run registry:refresh:ci
 
       - name: Fail if the import ran without repository access
         env:
@@ -55,13 +53,15 @@ jobs:
           PREVIOUS_FACTS_IMPORTED_AT: ${{ steps.prev-facts.outputs.imported_at }}
         run: node scripts/check-pipeline-health.mjs
 
-      - name: Auto-archive projects whose source disappeared
-        run: bun run archive:removed
-
-      - name: Regenerate OG cards and sitemap
+      - name: Build generated site surfaces and record bundle history
         env:
           SITE_URL: ${{ vars.SITE_URL }}
-        run: bun run prebuild
+        run: |
+          bun run build
+          bun run record:bundle
+
+      - name: Require freshly generated truth
+        run: bun run registry:freshness:strict
 
       - name: Validate before proposing anything
         env:
@@ -69,8 +69,9 @@ jobs:
         run: |
           bun run registry:validate
           bun run audit:claims
+          bun run verify:sources
 
-      - name: Verify evidence paths exist upstream
+      - name: Check external evidence links
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
@@ -96,7 +97,7 @@ jobs:
             generated_only=true
             for f in $(git diff --name-only); do
               case "$f" in
-                registry/ci-facts.json|registry/upstream.json|public/og/*|public/sitemap.xml|public/robots.txt)
+                registry/upstream.json|registry/evidence-ledger.json|registry/source-status.json|registry/ci-facts.json|registry/facts-history.json|registry/bundle-history.json|public/og/*|public/sitemap.xml|public/robots.txt)
                   ;;
                 *)
                   generated_only=false
@@ -112,7 +113,7 @@ jobs:
           git config user.name "registry-sync bot"
           git config user.email "actions@users.noreply.github.com"
           git add -A
-          git commit -m "chore: refresh CI facts and registry snapshot"
+          git commit -m "chore: refresh generated portfolio evidence"
           git push
 
       - name: Open a pull request for anything needing review
@@ -125,7 +126,8 @@ jobs:
           delete-branch: true
           draft: true
           body: |
-            Automated import from `henrygoldsmith07-wq/Claude-Code:apps/registry.json`.
+            Automated refresh of the upstream registry, evidence ledger, source
+            status, CI/operational facts and generated site assets.
 
             This PR touches more than generated files — likely a project was
             added, removed or re-lifecycle'd upstream, which changes what this

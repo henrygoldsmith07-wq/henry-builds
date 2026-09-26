@@ -17,14 +17,47 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const Projects = lazy(() => import("./pages/Projects.tsx"));
 const CaseStudy = lazy(() => import("./pages/CaseStudy.tsx"));
 
-const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
-const PrivateRoute = convexUrl
-  ? lazy(() => import("@/components/PrivateRoute"))
-  : null;
-
 const isVlyDeployment =
   typeof window !== "undefined" &&
   window.location.hostname.endsWith(".vly.sh");
+
+function isTrustedVlyParent(hostname: string) {
+  return (
+    hostname === "vly.sh" ||
+    hostname.endsWith(".vly.sh") ||
+    hostname === "freebuff.com" ||
+    hostname.endsWith(".freebuff.com")
+  );
+}
+
+function resolveVlyParentOrigin() {
+  if (
+    typeof window === "undefined" ||
+    window.parent === window ||
+    !isVlyDeployment
+  ) {
+    return null;
+  }
+
+  try {
+    const referrer = document.referrer ? new URL(document.referrer) : null;
+    if (!referrer) return null;
+
+    const configured = import.meta.env.VITE_VLY_PARENT_ORIGIN as
+      | string
+      | undefined;
+    if (configured) {
+      const allowed = new URL(configured).origin;
+      return referrer.origin === allowed ? allowed : null;
+    }
+
+    return isTrustedVlyParent(referrer.hostname) ? referrer.origin : null;
+  } catch {
+    return null;
+  }
+}
+
+const vlyParentOrigin = resolveVlyParentOrigin();
 
 const VlyToolbar = isVlyDeployment
   ? lazy(async () => {
@@ -46,25 +79,6 @@ function RouteLoading() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="animate-pulse text-muted-foreground">Loading...</div>
-    </div>
-  );
-}
-
-function BackendNotConfigured() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6 text-center">
-      <div className="max-w-md">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Sign-in is unavailable
-        </h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          This deployment has no backend configured, so accounts are switched
-          off. Everything public still works.
-        </p>
-        <a href="/" className="inline-link mt-8">
-          Back to the site
-        </a>
-      </div>
     </div>
   );
 }
@@ -183,9 +197,10 @@ function RouteSyncer() {
   const location = useLocation();
 
   useEffect(() => {
+    if (!vlyParentOrigin) return;
     window.parent.postMessage(
       { type: "iframe-route-change", path: location.pathname },
-      "*",
+      vlyParentOrigin,
     );
   }, [location.pathname]);
 
@@ -194,7 +209,13 @@ function RouteSyncer() {
       // Only the embedding parent is allowed to drive browser history. Without
       // this guard, any window holding a reference to the preview could send a
       // forged navigation message because postMessage events are cross-origin.
-      if (event.source !== window.parent) return;
+      if (
+        !vlyParentOrigin ||
+        event.source !== window.parent ||
+        event.origin !== vlyParentOrigin
+      ) {
+        return;
+      }
 
       if (event.data?.type === "navigate") {
         if (event.data.direction === "back") window.history.back();
@@ -211,33 +232,13 @@ function RouteSyncer() {
 function AppRoutes() {
   return (
     <BrowserRouter>
-      {isVlyDeployment && <RouteSyncer />}
+      {vlyParentOrigin && <RouteSyncer />}
       <ScrollManager />
       <Suspense fallback={<RouteLoading />}>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:slug" element={<CaseStudy />} />
-          <Route
-            path="/auth"
-            element={
-              PrivateRoute ? (
-                <PrivateRoute page="auth" />
-              ) : (
-                <BackendNotConfigured />
-              )
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              PrivateRoute ? (
-                <PrivateRoute page="dashboard" />
-              ) : (
-                <BackendNotConfigured />
-              )
-            }
-          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

@@ -21,12 +21,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
 
       - run: bun install --frozen-lockfile
 
       # The registry gates everything else: if a claim has no evidence, or a
       # stage label is not earned, nothing downstream is worth running.
+      - name: Reject stale generated evidence
+        run: bun run registry:freshness
+
       - name: Validate registry
         run: bun run registry:validate
 
@@ -56,6 +59,11 @@ jobs:
       # a threshold or regex change cannot silently weaken the site.
       - name: Test the evidence machinery
         run: bun run test:evidence
+
+      - name: Verify cited source paths
+        env:
+          GITHUB_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: bun run verify:sources
 
       - name: Classify claims (evidence assist, advisory only)
         # classifier.dev identifies claim TYPE only; it never decides proof.
@@ -116,7 +124,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
 
       - run: bun install --frozen-lockfile
       - run: bun run build
@@ -139,7 +147,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
 
       - run: bun install --frozen-lockfile
       - run: bun run build
@@ -164,7 +172,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: 1.4.2
 
       - run: bun install --frozen-lockfile
       - run: bun run build

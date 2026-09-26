@@ -54,8 +54,6 @@ const {
 const routes = new Set([
   "/",
   "/projects",
-  "/auth",
-  "/dashboard",
   ...published.map((p) => `/projects/${p.data.slug}`),
 ]);
 
