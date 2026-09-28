@@ -175,6 +175,43 @@ test("missing routes tell crawlers not to index them", async ({ page }) => {
   );
 });
 
+test("crawler-visible .html URLs still resolve to their real route", async ({
+  page,
+}) => {
+  // The build emits /projects.html and /projects/<slug>.html. A static host
+  // (or Lighthouse CI's server) hands the browser that URL verbatim, and the
+  // router used to fall through to NotFound — which then marked the portfolio's
+  // own case studies noindex and failed the Lighthouse SEO budget.
+  await page.goto("/projects.html");
+  await expect(page.getByRole("heading", { name: "Revise" })).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "index, follow",
+  );
+  // The clean path is what the visitor is left on, matching cleanUrls.
+  await expect(page).toHaveURL(/\/projects$/);
+
+  await page.goto("/projects/revise.html");
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "index, follow",
+  );
+  await expect(page).toHaveURL(/\/projects\/revise$/);
+});
+
+test("the generated 404 page stays noindex after the .html rewrite", async ({
+  page,
+}) => {
+  // /404.html normalises to /404, which must still land on NotFound rather than
+  // becoming indexable.
+  await page.goto("/404.html");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    "noindex, nofollow",
+  );
+});
+
 test("saved theme preference is applied on navigation", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("henry-theme", "dark");

@@ -226,6 +226,18 @@ normally, but a crawler that never executes JavaScript now receives the correct
 title, description, canonical URL, OpenGraph/Twitter card and structured data
 for `/projects` and each case study. It also emits a noindex `404.html`.
 
+Those files are named with an `.html` extension, so any host that serves `dist/`
+as plain static files hands the browser `/projects/arise.html` verbatim. The
+router used to match on the full pathname, fall through to the `*` NotFound
+route, and that page's `noIndex` rewrote the served robots meta to
+"noindex, nofollow" — the portfolio declared its own case studies unindexable,
+and the Lighthouse SEO budget failed on routes meant to be indexable. `main.tsx`
+now drops the extension with `history.replaceState` before mounting, which
+resolves the real route and leaves the visitor on the clean canonical path
+(`cleanUrls` does the same on Vercel). `/404.html` becomes `/404`, still hits
+NotFound, and stays deliberately noindex. `tests/a11y.spec.ts` covers all three
+cases.
+
 All generated surfaces use the same publication gate as the runtime registry:
 an authored `publish: false` study becomes public when its upstream lifecycle
 moves to `active` or `maintenance`. `check:route-html` enforces that no

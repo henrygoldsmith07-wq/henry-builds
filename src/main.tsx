@@ -59,6 +59,36 @@ function resolveVlyParentOrigin() {
 
 const vlyParentOrigin = resolveVlyParentOrigin();
 
+/**
+ * The build emits one static HTML file per route (`/projects.html`,
+ * `/projects/arise.html`) so crawlers that never run JavaScript still get
+ * correct metadata. Anything serving `dist/` as-is — a plain static host, or
+ * Lighthouse CI's own server — hands the browser that .html URL.
+ *
+ * React Router matches on the full pathname, so `/projects/arise.html` matched
+ * no route, fell through to the `*` NotFound page, and that page's
+ * `noIndex` rewrote the served `<meta name="robots">` to "noindex, nofollow".
+ * The result: the portfolio declared its own case studies unindexable, and the
+ * Lighthouse SEO budget failed on routes that are supposed to be indexable.
+ *
+ * Dropping the extension makes those URLs resolve to the real routes. This is
+ * a `replaceState` rather than a redirect so the address bar shows the clean
+ * canonical path — the same thing `cleanUrls` does on Vercel. Nothing is
+ * re-requested; only the router's idea of the path changes.
+ *
+ * `/404.html` becomes `/404`, which still matches no route and still renders
+ * NotFound, so the deliberate noindex on the 404 page is preserved.
+ */
+function normalizeCleanUrlPathname(): void {
+  if (typeof window === "undefined") return;
+  const { pathname, search, hash } = window.location;
+  if (!pathname.endsWith(".html")) return;
+  const clean = pathname.replace(/\.html$/, "") || "/";
+  window.history.replaceState(null, "", `${clean}${search}${hash}`);
+}
+
+normalizeCleanUrlPathname();
+
 const VlyToolbar = isVlyDeployment
   ? lazy(async () => {
       await import("@vly-ai/integrations");
