@@ -45,9 +45,10 @@ which grades every capability claim from `insufficient-evidence` to
 - Evidence that rots (screenshots, videos, benchmarks) carries `capturedAt`;
   captures older than 90 days fail validation, and `expiresAt` sets an explicit
   shelf life.
-- Citing CI evidence when the importer found no workflow **fails** in
-  authenticated mode — empty facts are treated as a broken promise, not shrunk
-  from.
+- Citing CI evidence when the importer found no CI fact for that project
+  **fails** — empty facts are treated as a broken promise, not shrunk from. A
+  project that has a repo but no imported fact and never cites CI evidence only
+  warns, since a repo with no workflows legitimately produces no run.
 - Citing CI evidence while the latest upstream run failed draws a validator
   warning once the last green run is older than 30 days (or none exists), so
   stale-green claims surface where someone is editing copy.
@@ -117,6 +118,7 @@ bun run test:evidence           # regression-test the evidence gates themselves
 bun run check:links            # internal assets, sitemap, built output
 bun run check:links:external   # also HEAD every external evidence link
 bun run check:links:github     # also verify GitHub blob/tree paths exist in their repos
+bun run check:csp              # assert vercel.json's CSP still allows index.html's inline script
 
 bun run test:a11y              # axe over every published route, light and dark
 bun run test:visual            # visual regression
@@ -164,8 +166,27 @@ study.
 and can be dispatched manually. Generated-only refreshes land directly; anything
 touching authored narrative opens a PR. A strict two-day freshness gate makes a
 dead token or broken collector fail visibly instead of leaving old facts labelled
-current. `deploy-monitor.yml` probes the live site every six hours and also raises
-its alarm when evidence facts go stale; the combined issue closes itself on recovery.
+current. Normal CI allows 14 days — the same window `registry:validate` applies to
+CI facts — so a brief scheduled-workflow outage does not block a pull request but
+a genuinely dead token cannot stay green. `deploy-monitor.yml` probes the live site
+every six hours and also raises its alarm when evidence facts go stale; the
+combined issue closes itself on recovery.
+
+## Security headers
+
+`vercel.json` sets `X-Content-Type-Options`, `Referrer-Policy`,
+`Permissions-Policy`, `Strict-Transport-Security` and a
+`Content-Security-Policy`. The policy allows only same-origin scripts plus a
+sha256 hash for the one inline script in `index.html` (the theme bootstrap that
+prevents a light-mode flash). `style-src` keeps `'unsafe-inline'` because React
+and Framer Motion write inline styles at runtime; the Vly editor origins are
+allowed for `frame-ancestors` and `connect-src` so the preview bridge still
+works on managed `.vly.sh` deployments.
+
+Because `script-src` is pinned to a hash rather than `'unsafe-inline'`, editing
+that inline script would break the deployed page while leaving local dev green.
+`bun run check:csp` compares the two and fails with the value to paste; CI runs
+it on every push.
 
 ## Configuration
 

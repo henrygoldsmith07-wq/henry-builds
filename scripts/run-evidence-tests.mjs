@@ -236,6 +236,117 @@ test("validate-registry warns when CI-cited evidence sits behind failed runs", a
   }
 });
 
+/**
+ * Rewrite the fixture's upstream snapshot so entries carry a `repo`, the shape
+ * the real registry uses for standalone apps. The importer resolves CI facts
+ * from `repo` as well as `workflow`, and the coverage gate must count both.
+ */
+function writeRepoShapedUpstream(dir, studies) {
+  writeJson(path.join(dir, "registry", "upstream.json"), {
+    _generated: true,
+    importedAt: new Date().toISOString(),
+    lifecycleStates: {},
+    entries: studies.map((s) => ({
+      id: s.upstreamId,
+      name: s.name,
+      repo: `henrygoldsmith07-wq/${s.upstreamId}`,
+    })),
+  });
+}
+
+test("validate-registry counts repo-shaped upstream entries as CI coverage", async () => {
+  // Regression: the gate used to require entry.workflow, which no upstream
+  // entry carries any more, so expectedCiCount stayed 0 and the site-wide
+  // "expected CI evidence but collected none" rule could never fire. This
+  // asserts the expected/present tally is no longer structurally zero.
+  const dir = tempDir("evm-reposhape");
+  const studies = minimalRegistry();
+  writeRegistry(dir, studies);
+  writeRepoShapedUpstream(dir, studies);
+  writeJson(path.join(dir, "registry", "ci-facts.json"), {
+    _generated: true,
+    importedAt: new Date().toISOString(),
+    mode: "authenticated",
+    facts: Object.fromEntries(
+      studies.map((s) => [
+        s.upstreamId,
+        { workflow: `${s.upstreamId}.yml`, conclusion: "success" },
+      ]),
+    ),
+  });
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 0) {
+    throw new Error(`expected exit 0, got ${result.code}\n${result.stderr}`);
+  }
+  if (!/CI facts 5\/5 expected/.test(`${result.stdout}\n${result.stderr}`)) {
+    throw new Error(
+      `expected all 5 repo-shaped entries to be counted:\n${result.stdout}\n${result.stderr}`,
+    );
+  }
+});
+
+test("validate-registry fails the site-wide rule when repo-shaped facts are all missing", async () => {
+  // The same coverage tally, empty on the facts side. This is the rule that was
+  // dead while the registry used `workflow`: a token that cannot read Actions
+  // now fails loudly instead of looking like a registry with no CI.
+  const dir = tempDir("evm-reposhape-empty");
+  const studies = minimalRegistry();
+  writeRegistry(dir, studies);
+  writeRepoShapedUpstream(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/expected CI evidence for 5 project\(s\) but collected none/.test(result.stderr)) {
+    throw new Error(`missing site-wide coverage failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry fails when CI-cited evidence has no imported fact", async () => {
+  const dir = tempDir("evm-nofact");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.metrics[0].evidence.push({
+    kind: "ci",
+    label: "workflow run",
+    href: "https://github.com/x/y/actions/runs/1",
+  });
+  writeRegistry(dir, studies);
+  writeRepoShapedUpstream(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/cites CI evidence but no CI fact/.test(result.stderr)) {
+    throw new Error(`missing missing-fact failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry only warns when no CI evidence is cited", async () => {
+  // A repo with no workflows legitimately yields no fact, so absence must not
+  // hard-fail a study that never promised CI evidence. The other four projects
+  // keep their facts so the site-wide "collected none" rule stays out of it.
+  const dir = tempDir("evm-nofact-nocite");
+  const studies = minimalRegistry();
+  writeRegistry(dir, studies);
+  writeRepoShapedUpstream(dir, studies);
+  writeJson(path.join(dir, "registry", "ci-facts.json"), {
+    _generated: true,
+    importedAt: new Date().toISOString(),
+    mode: "authenticated",
+    facts: Object.fromEntries(
+      studies
+        .filter((s) => s.upstreamId !== "proj-0")
+        .map((s) => [
+          s.upstreamId,
+          { workflow: `${s.upstreamId}.yml`, conclusion: "success" },
+        ]),
+    ),
+  });
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 0) {
+    throw new Error(`expected exit 0, got ${result.code}\n${result.stderr}`);
+  }
+  if (!/no CI fact for 'proj-0'/.test(`${result.stdout}\n${result.stderr}`)) {
+    throw new Error(`missing advisory warning:\n${result.stdout}\n${result.stderr}`);
+  }
+});
+
 // --- audit-claims -----------------------------------------------------------
 
 test("audit-claims fails banned superlatives in user-facing copy", async () => {

@@ -56,6 +56,12 @@ for (const claim of evidenceLedger.claims ?? []) {
  * A `publish: false` project publishes itself once the monorepo registry
  * promotes it out of `incubating`. This is how Pulse reaches the site: when
  * its upstream lifecycle becomes `active`, the gate opens on the next import.
+ *
+ * This mirrors `isPublishedCaseStudy` in scripts/lib/published-projects.mjs,
+ * which every Node-side consumer uses. It cannot be imported from there —
+ * that module is plain JS reading the filesystem with node:fs, and this one
+ * runs in the browser under Vite — so the two must be kept in step by hand.
+ * If you change the rule, change it there too.
  */
 function isPublished(project: Project): boolean {
   if (project.publish) return true;
@@ -276,7 +282,6 @@ export const registryMeta = {
   publishedCount: allProjects.length,
   currentCount: allProjects.filter((p) => p.sourceState === "current-source").length,
   archivedSourceCount: allProjects.filter((p) => p.sourceState !== "current-source").length,
-  ciMode: undefined,
   ciImportedAt: ciFactsFile.importedAt,
   ledgerImportedAt: evidenceLedger.importedAt,
   ledgerClaimCount: evidenceLedger.claims?.length ?? 0,

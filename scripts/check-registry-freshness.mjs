@@ -13,8 +13,14 @@ import path from "node:path";
 
 const root = process.cwd();
 const strict = process.argv.includes("--strict");
-const maxAgeDays = strict ? 2 : 45;
-const bundleMaxAgeDays = strict ? 2 : 45;
+// Normal CI allows a wider window so pull requests are not blocked by a brief
+// scheduled-workflow outage, but it must not be so wide that a dead
+// REGISTRY_TOKEN reads as healthy. validate-registry.mjs already expires CI
+// facts at 14 days; matching that here means one number governs staleness
+// instead of two that disagree. The previous 45-day window let the evidence
+// layer rot for five weeks while every CI run stayed green.
+const maxAgeDays = strict ? 2 : 14;
+const bundleMaxAgeDays = strict ? 2 : 14;
 const now = Date.now();
 const DAY = 24 * 60 * 60 * 1000;
 

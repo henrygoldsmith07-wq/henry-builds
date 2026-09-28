@@ -51,7 +51,8 @@ export default defineConfig({
     },
   },
   build: {
-    // Enable source maps for better debugging (disable in production if needed)
+    // No source maps in production: the site ships its own source in public
+    // repos, so a map would only add weight and expose build internals.
     sourcemap: false,
     // Optimize chunk splitting
     rollupOptions: {

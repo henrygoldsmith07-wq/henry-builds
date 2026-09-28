@@ -1,44 +1,24 @@
-import fs from "node:fs";
-import path from "node:path";
-
 /**
  * Routes are read from the registry rather than hardcoded, so adding a case
  * study automatically adds it to the accessibility and visual suites. A new
  * project cannot ship unaudited.
+ *
+ * The publication gate is imported from the one definition in
+ * scripts/lib/published-projects.mjs rather than reimplemented. This file used
+ * to carry its own copy, which meant a third place to update and no guarantee
+ * the tests audited the same routes the site actually serves.
  */
-const root = process.cwd();
-const caseStudyDir = path.join(root, "registry/case-studies");
-const upstream = JSON.parse(
-  fs.readFileSync(path.join(root, "registry/upstream.json"), "utf8"),
-);
-const upstreamById = new Map(
-  (upstream.entries ?? []).map((entry: { id: string; lifecycle?: string }) => [
-    entry.id,
-    entry,
-  ]),
-);
+import { loadCaseStudies } from "../scripts/lib/published-projects.mjs";
 
-const published = fs
-  .readdirSync(caseStudyDir)
-  .filter((file) => file.endsWith(".json"))
-  .map((file) =>
-    JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")),
-  )
-  .filter((project) => {
-    if (project.publish === true) return true;
-    const lifecycle = (
-      upstreamById.get(project.upstreamId) as { lifecycle?: string } | undefined
-    )?.lifecycle;
-    return lifecycle === "active" || lifecycle === "maintenance";
-  });
+const { published } = loadCaseStudies(process.cwd());
 
 export const projectSlugs: string[] = published
-  .map((project) => project.slug)
+  .map(({ data }) => data.slug)
   .sort();
 
 export const featuredSlugs: string[] = published
-  .filter((project) => project.featured)
-  .map((project) => project.slug)
+  .filter(({ data }) => data.featured)
+  .map(({ data }) => data.slug)
   .sort();
 
 export const coreRoutes = [

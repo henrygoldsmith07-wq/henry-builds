@@ -2,11 +2,23 @@ import fs from "node:fs";
 import path from "node:path";
 
 /**
- * Load case studies with the same publication gate used by src/data/registry.
+ * The publication gate: does this case study appear on the site?
  *
- * Authored publish:true always publishes. publish:false is a gate that opens
- * automatically when the upstream lifecycle is promoted to active/maintenance.
+ * Authored `publish: true` always publishes. `publish: false` is a gate that
+ * opens automatically when the upstream lifecycle is promoted to
+ * active/maintenance.
+ *
+ * This is the single definition. It is imported by every Node-side consumer
+ * (sitemap, OG cards, route HTML, link checks, the Playwright suites). The
+ * browser copy in src/data/registry/index.ts must keep the same semantics;
+ * that module cannot import this file because it is plain JS running in Vite.
  */
+export function isPublishedCaseStudy(project, upstreamById) {
+  if (project.publish === true) return true;
+  const lifecycle = upstreamById.get(project.upstreamId)?.lifecycle;
+  return lifecycle === "active" || lifecycle === "maintenance";
+}
+
 export function loadCaseStudies(root = process.cwd()) {
   const caseStudyDir = path.join(root, "registry/case-studies");
   const upstreamPath = path.join(root, "registry/upstream.json");
@@ -31,11 +43,7 @@ export function loadCaseStudies(root = process.cwd()) {
         }))
     : [];
 
-  const isPublished = ({ data }) => {
-    if (data.publish === true) return true;
-    const lifecycle = upstreamById.get(data.upstreamId)?.lifecycle;
-    return lifecycle === "active" || lifecycle === "maintenance";
-  };
+  const isPublished = ({ data }) => isPublishedCaseStudy(data, upstreamById);
 
   return {
     all,

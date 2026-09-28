@@ -312,16 +312,47 @@ for (const file of files) {
   if (!cs.approach) fail(`${id}: caseStudy.approach is required`);
 
   // --- CI facts coverage: expected vs present ------------------------------
+  // Which upstream entries the importer was asked to look up CI for. The
+  // registry migrated standalone apps to a `repo` field (post-2026-08) and kept
+  // `workflow` for monorepo-style entries; import-registry.mjs handles BOTH.
+  // This gate used to test `entry.workflow` alone, which no entry carries any
+  // more — so expectedCiCount stayed 0 and the coverage rule below could never
+  // run. Both shapes must be counted or the guarantee is decorative.
   const entry = upstreamById.get(project.upstreamId);
   const publishedHere = project.publish !== false;
-  if (publishedHere && project.sourceState === "current-source" && entry?.workflow) {
+  const ciLookupTarget = entry?.workflow
+    ? `${entry.workflow} on ${SOURCE_REPO}`
+    : entry?.repo
+      ? `the ${entry.repo} default branch`
+      : null;
+
+  // Does this study actually promise CI evidence anywhere? A repo with no
+  // workflows legitimately produces no fact, so absence is only a broken
+  // promise when the copy points at a run.
+  const citesCiEvidence = [
+    ...(cs?.architecture?.evidence ?? []),
+    ...(cs?.metrics ?? []).flatMap((m) => m.evidence ?? []),
+    ...(cs?.outcomes ?? []).flatMap((o) => o.evidence ?? []),
+  ].some((item) => item?.kind === "ci");
+
+  if (publishedHere && project.sourceState === "current-source" && ciLookupTarget) {
     expectedCiCount++;
     const fact = facts[project.upstreamId];
     if (!fact) {
-      fail(
-        `${id}: no CI fact for '${project.upstreamId}' even though its workflow ` +
-          `(${entry.workflow}) should have been imported — CI evidence unexpectedly empty`,
-      );
+      // Citing a CI run that the importer could not find is a broken promise
+      // and fails. Having a repo with no recorded runs is only suspicious: the
+      // importer skips entries whose repo has no completed runs at all.
+      if (citesCiEvidence) {
+        fail(
+          `${id}: cites CI evidence but no CI fact was imported for ` +
+            `'${project.upstreamId}' — the importer found no run for ${ciLookupTarget}`,
+        );
+      } else {
+        warn(
+          `${id}: no CI fact for '${project.upstreamId}' (${ciLookupTarget}). ` +
+            "Harmless if that repo has no workflows; re-run `bun run registry:refresh:ci` if it does",
+        );
+      }
     } else if (fact.carriedForward) {
       warn(`${id}: CI fact carried forward from an earlier import (${fact.carriedReason ?? "unknown reason"})`);
     } else {
