@@ -35,6 +35,7 @@
     "classify:claims": "node scripts/classify-claims.mjs",
     "classify:claims:offline": "node scripts/classify-claims.mjs --offline",
     "classify:validate": "node scripts/validate-classifier.mjs",
+    "classify:report": "node scripts/print-classifier-report.mjs",
     "test:claim-cache": "node scripts/test-claim-cache.mjs",
     "check:route-html": "node scripts/check-route-html.mjs",
     "check:csp": "node scripts/check-csp-inline-hash.mjs",

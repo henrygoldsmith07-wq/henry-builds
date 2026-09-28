@@ -18,7 +18,7 @@ Seven layers, six of them generated:
 | `registry/source-status.json` | `registry:refresh` | Per project: current vs archived-source, why, and the commit SHA the source sits at right now |
 | `registry/ci-facts.json` | `registry:refresh:ci` | Latest workflow conclusion per app, the last green run, and test counts pulled from Actions artifacts or job logs |
 | `registry/facts-history.json` | `registry:refresh` | Per project: deployment state and deployed SHA vs HEAD, latest release/tag, Dependabot alerts — plus a dated history powering trend charts |
-| `registry/bundle-history.json` | `record:bundle` | This site's own dist weight over time; warns past 10% growth |
+| `registry/bundle-history.json` | `record:bundle` | This site's own dist weight over time, raw and gzipped; warns past 10% growth and past 80% of the Lighthouse size budget |
 | `registry/case-studies/*.json` | a human | Narrative, architecture, trade-offs, evidence |
 
 `src/data/registry/index.ts` merges the generated project facts and exports typed projects. Adding a
@@ -161,6 +161,23 @@ study.
   first, because an empty page has no violations.
 - **visual regression** — desktop and mobile, both colour schemes.
 - **Lighthouse budgets** — see `lighthouserc.json`.
+
+`record:bundle` records two sizes per point, because they answer different
+questions. `totalKb`/`jsKb` are raw bytes on disk and drive the 10% growth
+warning. `totalGzipKb`/`jsGzipKb` are what a visitor actually downloads, and
+they are the only figures comparable to the Lighthouse `resource-summary`
+budgets: lhci serves `staticDistDir` behind express `compression()`, so
+Lighthouse reports gzipped transfer size. Comparing raw bytes to a transfer-size
+budget is a category error — minified JS typically transfers at a quarter to a
+third of its size, so a raw-vs-budget reading can look like a large overrun when
+the real figure is comfortable. The script prints both and warns at 80% of
+budget, reading the thresholds from `lighthouserc.json` rather than restating
+them. Note its figure sums every chunk including lazily-loaded routes, so it is
+an upper bound on any single page; the Lighthouse job is the gate.
+
+The first entry to carry gzip figures is the next `record:bundle` run, so the
+history will mix raw-only and raw+gzip points until then. The growth warning
+keeps comparing raw to raw, so the existing series stays valid.
 
 `registry-sync.yml` refreshes the generated evidence layer daily at 06:20 UTC
 and can be dispatched manually. Generated-only refreshes land directly; anything
