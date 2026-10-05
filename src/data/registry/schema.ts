@@ -32,6 +32,20 @@ export type SourceState =
   | "concept"
   | "historical-case-study";
 
+/**
+ * Where a project's source lives.
+ *
+ * A removed source is represented explicitly rather than by deleting the field.
+ * The four studies whose monorepo path no longer exists used to carry an `href`
+ * to a 404, which rendered a "View source" button on a page whose whole
+ * argument is that its links resolve. `removed: true` renders provenance instead
+ * of a link, so a project with no source to show says so rather than pretending
+ * there is something to open.
+ */
+export type SourceRef =
+  | { label: string; href: string; path?: string }
+  | { label: string; removed: true; note: string };
+
 export const sourceStateCopy: Record<SourceState, { label: string; meaning: string }> = {
   "current-source": {
     label: "Current source",
@@ -352,7 +366,16 @@ export type Project = {
   /** Stamped when a project's source disappears from the monorepo. */
   sourceRemoved?: { detectedAt: string; note: string };
   authorship: Authorship;
-  repo?: { label: string; href: string; path?: string };
+  /**
+   * Where the source lives.
+   *
+   * A removed source is represented explicitly rather than by deleting the
+   * field. The four studies whose monorepo path no longer exists used to carry
+   * an `href` pointing at a 404, which rendered a "View source" button on a
+   * page whose whole argument is that its links resolve. `removed: true` renders
+   * provenance instead, so a project with no source to show says so plainly.
+   */
+  repo?: SourceRef;
   liveUrl?: string;
   caseStudy: CaseStudy;
 };

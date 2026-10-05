@@ -125,11 +125,39 @@ function renderPage({
   return html;
 }
 
+const written = [];
+
+/**
+ * Writes a crawler-visible route file and records it, so the count reported at
+ * the end is what was actually written rather than an arithmetic guess.
+ */
 function write(relativePath, html) {
   const target = path.join(distDir, relativePath);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.writeFileSync(target, html);
+  written.push(relativePath);
   console.log(`  ${relativePath}`);
+}
+
+/**
+ * Removes the page of any case study that is no longer published.
+ *
+ * Writing the published set is not enough on its own: `dist/` survives between
+ * builds, so closing a project's publication gate leaves its previous HTML in
+ * place. `check-route-html.mjs` then fails — correctly — because a gated
+ * project still has a crawlable page, which is exactly the state this site
+ * exists to avoid. Deleting here keeps the two in step automatically.
+ */
+function pruneGatedRoutes(publishedSlugs) {
+  const projectsDir = path.join(distDir, "projects");
+  if (!fs.existsSync(projectsDir)) return;
+  for (const file of fs.readdirSync(projectsDir)) {
+    if (!file.endsWith(".html")) continue;
+    const slug = file.replace(/\.html$/, "");
+    if (publishedSlugs.has(slug)) continue;
+    fs.rmSync(path.join(projectsDir, file), { force: true });
+    console.log(`  projects/${file} (removed — publication gate is closed)`);
+  }
 }
 
 const siteDescription =
@@ -268,6 +296,8 @@ write(
   }),
 );
 
+pruneGatedRoutes(new Set(projects.map((project) => project.data.slug)));
+
 console.log(
-  `generate-route-html: wrote ${projects.length + 4} crawler-visible route files for ${origin}`,
+  `generate-route-html: wrote ${written.length} crawler-visible route files for ${origin}`,
 );

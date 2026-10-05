@@ -177,7 +177,11 @@ export default function CaseStudy() {
                       Visit live <ExternalLink className="size-4" aria-hidden="true" />
                     </a>
                   )}
-                  {project.repo && (
+                  {/* A removed source renders provenance, not a link. The four historical
+                      studies point at monorepo paths that no longer exist, and a
+                      "View source" button leading to a 404 would undercut the
+                      one promise this site makes. */}
+                  {project.repo && "href" in project.repo ? (
                     <a
                       className="button-secondary"
                       href={project.repo.href}
@@ -186,6 +190,17 @@ export default function CaseStudy() {
                     >
                       {project.repo.label} <Github className="size-4" aria-hidden="true" />
                     </a>
+                  ) : (
+                    project.repo && (
+                      <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Github className="size-4 shrink-0" aria-hidden="true" />
+                        <span>
+                          <span className="font-medium text-foreground">{project.repo.label}</span>
+                          {" — "}
+                          {project.repo.note}
+                        </span>
+                      </p>
+                    )
                   )}
                 </div>
                 <div className="mt-6 flex flex-wrap gap-2">

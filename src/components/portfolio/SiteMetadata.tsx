@@ -119,7 +119,13 @@ export function SiteMetadata({
           name: project.name,
           description: project.summary,
           url: pageUrl,
-          codeRepository: project.repo?.href,
+          // Only emitted when the source actually exists. A removed source must not
+          // produce a `codeRepository` pointing at a repository that no longer
+          // holds the project — asserting one in structured data is a claim a
+          // crawler cannot check but a reader will believe.
+          ...(project.repo && "href" in project.repo
+            ? { codeRepository: project.repo.href }
+            : {}),
           programmingLanguage: project.upstream?.stack,
           author: { "@type": "Person", name: profile.name, url: origin },
           keywords: project.tags.join(", "),

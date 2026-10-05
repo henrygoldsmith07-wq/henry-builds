@@ -15,7 +15,7 @@
   "accent": "#dceadf",
   "featured": false,
   "publish": false,
-  "publishGate": "Upstream lifecycle is `incubating`. This entry publishes automatically once apps/registry.json marks Pulse `active`; `bun run registry:validate` reports the gate on every run.",
+  "publishGate": "Upstream lifecycle is `external`, which is not one of the lifecycles that opens this gate (`active` and `maintenance` do), so publishing this requires setting `publish: true` deliberately. It stays unpublished until the event schema and the statistics behind it are validated against real data rather than synthetic fixtures.",
   "authorship": {
     "role": "Sole author — event schema, statistics, discovery, experiments and connector SDK.",
     "built": [

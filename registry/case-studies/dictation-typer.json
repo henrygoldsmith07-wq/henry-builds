@@ -27,8 +27,8 @@
   },
   "repo": {
     "label": "apps/dictation-typer",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/dictation-typer",
-    "path": "apps/dictation-typer"
+    "removed": true,
+    "note": "The repository this lived in no longer contains it. The 2026-08 migration removed these apps from the shared monorepo, so there is no source to link to and no claim on this page can currently be re-verified against code."
   },
   "caseStudy": {
     "problem": "Dictation is built into most operating systems and is consistently worse than hosted Whisper. The gap is not the model, it is the plumbing: getting audio to a good model and the text back into whatever application currently has focus, fast enough that it beats typing.",

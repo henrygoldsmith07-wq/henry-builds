@@ -25,8 +25,8 @@
   },
   "repo": {
     "label": "apps/agent-os-control-room",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/agent-os-control-room",
-    "path": "apps/agent-os-control-room"
+    "removed": true,
+    "note": "The repository this lived in no longer contains it. The 2026-08 migration removed these apps from the shared monorepo, so there is no source to link to and no claim on this page can currently be re-verified against code."
   },
   "caseStudy": {
     "problem": "Running several agents at once is hard to supervise from a terminal. Without a view of what is in flight, the failure mode is discovering an hour later that three agents did the same thing.",

@@ -3,7 +3,7 @@
   "upstreamId": "habit-tracker",
   "name": "Habit",
   "tagline": "A quiet habit tracker using weekly targets and 8-week history instead of daily chains",
-  "summary": "Habit is a single-person check-in log built with Next.js route handlers and Postgres (with PGlite for local dev). It uses weekly targets rather than daily streaks, archives habits instead of deleting them, and shows an 8-week history table. Auth is first-party with salted scrypt and opaque session t",
+  "summary": "Habit is a single-person check-in log built with Next.js route handlers and Postgres (with PGlite for local dev). It uses weekly targets rather than daily streaks, archives habits instead of deleting them, and shows an 8-week history table. Auth is first-party with salted scrypt and opaque session tokens. Auth is first-party, with salted scrypt and httpOnly cookies that store only a hash of the session token rather than the token itself.",
   "stage": "research",
   "category": "Personal productivity tool",
   "tags": [
@@ -15,8 +15,8 @@
   ],
   "accent": "#dce9ec",
   "featured": false,
-  "publish": true,
-  "publishGate": "AI-drafted scaffold — a human must author the narrative, verify every claim against the code, and earn a stage label before this publishes.",
+  "publish": false,
+  "publishGate": "Held back from the site. The case study was drafted by an AI and its authorship statement has not been written by a human yet — the role field still says so. Publishing an unverified authorship claim would break the one rule this site is built on, so it stays gated until a human writes it and checks every claim against the code.",
   "aiDraft": {
     "model": "nvidia/nemotron-3-ultra-550b-a55b",
     "provider": "nvidia",

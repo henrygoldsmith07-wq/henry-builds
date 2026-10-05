@@ -27,8 +27,8 @@
   },
   "repo": {
     "label": "apps/meeting-recorder",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/meeting-recorder",
-    "path": "apps/meeting-recorder"
+    "removed": true,
+    "note": "The repository this lived in no longer contains it. The 2026-08 migration removed these apps from the shared monorepo, so there is no source to link to and no claim on this page can currently be re-verified against code."
   },
   "caseStudy": {
     "problem": "Meeting recorders are priced per seat and keep your recordings. The interesting question is how much of that product is actually irreducible once hosted transcription is cheap and object storage is nearly free.",

@@ -30,8 +30,8 @@
   },
   "repo": {
     "label": "apps/world-news",
-    "href": "https://github.com/henrygoldsmith07-wq/Claude-Code/tree/main/apps/world-news",
-    "path": "apps/world-news"
+    "removed": true,
+    "note": "The repository this lived in no longer contains it. The 2026-08 migration removed these apps from the shared monorepo, so there is no source to link to and no claim on this page can currently be re-verified against code."
   },
   "caseStudy": {
     "problem": "News summarisers flatten a story into one authoritative-sounding paragraph, which is exactly the wrong output when the interesting information is that accounts disagree. A summary that reads cleanly has usually erased the disagreement, the uncertainty, and the fact that only three countries covered it at all.",
@@ -106,7 +106,7 @@
     ],
     "outcomes": [
       {
-        "statement": "Because the model only organises real retrieved articles, it cannot fabricate a news event — the README states this constraint explicitly for the OpenRouter path.",
+        "statement": "Because the model only organises real retrieved articles, it cannot invent a news event that the retrieved set does not contain — the guarantee holds on the primary OpenRouter path, where it structures data it was given.",
         "evidence": [
           {
             "kind": "doc",
