@@ -12,7 +12,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { loadCaseStudies } from "./lib/published-projects.mjs";
+import { buildRouteManifest, loadCaseStudies } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
@@ -74,20 +74,13 @@ try {
   fallbackLastmod = new Date().toISOString().slice(0, 10);
 }
 
-const routes = [
-  { path: "/", changefreq: "monthly", priority: "1.0", lastmod: fallbackLastmod },
-  { path: "/projects", changefreq: "monthly", priority: "0.8", lastmod: fallbackLastmod },
-  { path: "/compare", changefreq: "monthly", priority: "0.7", lastmod: fallbackLastmod },
-  ...projects
-    .sort((a, b) => a.slug.localeCompare(b.slug))
-    .map((project) => ({
-      path: `/projects/${project.slug}`,
-      changefreq: "monthly",
-      priority: project.featured ? "0.7" : "0.5",
-      lastmod:
-        lastmodFor(`${project.slug}.json`) ?? fallbackLastmod,
-    })),
-];
+// The route list is not written here. It comes from the canonical manifest in
+// src/data/registry/publication.mjs, which the sitemap, the route-HTML
+// generator, the link checker, the deploy probe and the React router all read.
+const routes = buildRouteManifest(projects).map((route) => ({
+  ...route,
+  lastmod: route.slug ? (lastmodFor(`${route.slug}.json`) ?? fallbackLastmod) : fallbackLastmod,
+}));
 
 const urls = routes
   .map(

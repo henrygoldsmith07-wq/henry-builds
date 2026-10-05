@@ -18,6 +18,12 @@ import type {
   UpstreamEntry,
   UpstreamSnapshot,
 } from "./schema";
+import {
+  buildRouteManifest,
+  buildRoutePaths,
+  isPublishedCaseStudy,
+  needsHistoricalDisclosure,
+} from "./publication.mjs";
 import upstreamRaw from "../../../registry/upstream.json";
 import ciFactsRaw from "../../../registry/ci-facts.json";
 import evidenceLedgerRaw from "../../../registry/evidence-ledger.json";
@@ -56,21 +62,17 @@ for (const claim of evidenceLedger.claims ?? []) {
 }
 
 /**
- * A `publish: false` project publishes itself once the monorepo registry
+ * A `publish: false` project publishes itself once the upstream lifecycle
  * promotes it out of `incubating`. This is how Pulse reaches the site: when
  * its upstream lifecycle becomes `active`, the gate opens on the next import.
  *
- * This mirrors `isPublishedCaseStudy` in scripts/lib/published-projects.mjs,
- * which every Node-side consumer uses. It cannot be imported from there —
- * that module is plain JS reading the filesystem with node:fs, and this one
- * runs in the browser under Vite — so the two must be kept in step by hand.
- * If you change the rule, change it there too.
+ * The rule is not restated here. It lives in `./publication.mjs`, a plain ESM
+ * module with no `node:` imports, which means Vite and the Node scripts load
+ * the identical file. Every consumer — sitemap, route HTML, link checks, the
+ * deploy probe and this page — reads one definition, so they cannot disagree
+ * about which projects are published.
  */
-function isPublished(project: Project): boolean {
-  if (project.publish) return true;
-  const lifecycle = upstreamById.get(project.upstreamId)?.lifecycle;
-  return lifecycle === "active" || lifecycle === "maintenance";
-}
+const isPublished = isPublishedCaseStudy;
 
 /** Local-only shim: the importer is plain JS and this module runs in Vite. */
 const basename = (p: string) => p.split("/").pop() ?? p;
@@ -379,7 +381,7 @@ const stageRank: Record<Stage, number> = {
 
 const allProjects: HydratedProject[] = Object.values(caseStudyModules)
   .map((module) => module.default)
-  .filter(isPublished)
+  .filter((project) => isPublished(project, upstreamById))
   .map(hydrate)
   .sort((a, b) => {
     // Dead sources go to the bottom of every list, whatever their stage says.

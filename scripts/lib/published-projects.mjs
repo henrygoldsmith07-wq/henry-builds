@@ -1,23 +1,23 @@
 import fs from "node:fs";
 import path from "node:path";
+import {
+  buildRouteManifest,
+  buildRoutePaths,
+  isPublishedCaseStudy,
+} from "../../src/data/registry/publication.mjs";
 
 /**
- * The publication gate: does this case study appear on the site?
+ * Filesystem loading for the publication rule.
  *
- * Authored `publish: true` always publishes. `publish: false` is a gate that
- * opens automatically when the upstream lifecycle is promoted to
- * active/maintenance.
+ * The rule itself lives in `src/data/registry/publication.mjs` and is re-exported
+ * here for the many existing `from "scripts/lib/published-projects.mjs"` call
+ * sites. That module is pure ESM with no `node:` imports, so the browser and
+ * Node load the identical file — the rule is no longer written down twice.
  *
- * This is the single definition. It is imported by every Node-side consumer
- * (sitemap, OG cards, route HTML, link checks, the Playwright suites). The
- * browser copy in src/data/registry/index.ts must keep the same semantics;
- * that module cannot import this file because it is plain JS running in Vite.
+ * Re-exported rather than removed so the change stays reviewable: consumers can
+ * migrate to the canonical path one at a time.
  */
-export function isPublishedCaseStudy(project, upstreamById) {
-  if (project.publish === true) return true;
-  const lifecycle = upstreamById.get(project.upstreamId)?.lifecycle;
-  return lifecycle === "active" || lifecycle === "maintenance";
-}
+export { isPublishedCaseStudy, buildRouteManifest, buildRoutePaths };
 
 export function loadCaseStudies(root = process.cwd()) {
   const caseStudyDir = path.join(root, "registry/case-studies");

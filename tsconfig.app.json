@@ -14,6 +14,16 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
+    /*
+     * `allowJs` exists for one file: src/data/registry/publication.mjs, the
+     * canonical publication rule shared byte-for-byte between the Node scripts
+     * and the browser bundle. It has to stay plain .mjs so `node script.mjs` can
+     * load it unbuilt; TypeScript still has to type-check the import. `checkJs`
+     * stays off because the JSDoc types are for Node's benefit, and the browser
+     * side gets its types from the TS wrapper in index.ts.
+     */
+    "allowJs": true,
+    "checkJs": false,
 
     /* Linting */
     "strict": true,

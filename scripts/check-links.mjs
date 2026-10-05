@@ -16,7 +16,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { loadCaseStudies } from "./lib/published-projects.mjs";
+import { buildRoutePaths, loadCaseStudies } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
 const publicDir = path.join(root, "public");
@@ -50,13 +50,13 @@ const {
   unpublished,
 } = loadCaseStudies(root);
 
-/** Every route the app can serve. */
-const routes = new Set([
-  "/",
-  "/projects",
-  "/compare",
-  ...published.map((p) => `/projects/${p.data.slug}`),
-]);
+/**
+ * Every route the app can serve.
+ *
+ * Derived from the canonical manifest, so a route added there is checked here
+ * without anyone remembering to edit this file.
+ */
+const routes = new Set(buildRoutePaths(published));
 
 // --- 1. local assets referenced by the registry ---------------------------
 for (const { file, data } of projects) {
@@ -101,13 +101,9 @@ if (!fs.existsSync(sitemapPath)) {
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   const paths = new Set(locs.map((loc) => loc.replace(/^https?:\/\/[^/]+/, "") || "/"));
 
-  const shouldBeListed = [
-    "/",
-    "/projects",
-    "/compare",
-    ...published.map((p) => `/projects/${p.data.slug}`),
-  ];
-  for (const route of shouldBeListed) {
+  // Same manifest, so the sitemap and the checker cannot disagree about what
+  // the site is supposed to serve.
+  for (const route of routes) {
     checked++;
     if (!paths.has(route)) fail(`sitemap.xml is missing ${route} — run \`bun run sitemap\``);
   }

@@ -11,6 +11,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { buildRoutePaths } from "./lib/published-projects.mjs";
 
 const origin = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
 
@@ -77,7 +78,9 @@ async function assertReachable() {
 await assertReachable();
 
 // --- routes ---------------------------------------------------------------
-const routes = ["/", "/projects", ...published.map((p) => `/projects/${p.slug}`)];
+// The routes to probe come from the canonical manifest, so this check cannot
+// pass by probing a list that quietly fell behind the router.
+const routes = buildRoutePaths(published.map((project) => project.data));
 
 for (const route of routes) {
   try {
