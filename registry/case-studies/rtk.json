@@ -70,12 +70,6 @@
         "caption": "Captured from the running app. Captured 2026-09-01."
       },
       {
-        "kind": "screenshot",
-        "src": "/media/rtk/screenshot.png",
-        "alt": "RTK test output with collapsed passing suites and kept critical failures",
-        "caption": "Captured from the running app. Captured 2026-09-01."
-      },
-      {
         "kind": "illustration",
         "preview": "rtk",
         "alt": "Illustration of a terminal showing a large raw log collapsing to a single summary line",
@@ -189,6 +183,19 @@
     "video": {
       "src": "/media/rtk/demo.webm",
       "caption": "Scroll-through of the running app, captured 2026-09-01."
+    },
+    "demonstrates": {
+      "technical": [
+        "Per-tool parsers for vitest, tsc and Next build, each defining what must never be dropped",
+        "Structural compression: JSON schema-aware collapsing, diff, stack and dedup passes for unhandled output",
+        "A benchmark harness over deterministic fixtures that measures reduction and critical-line retention together",
+        "A CI gate that fails the build if retention ever regresses — the guarantee is enforced, not promised"
+      ],
+      "product": [
+        "Cuts tool-call tokens for agents and humans without ever losing the failure line",
+        "Reports 0% reduction honestly when compression is not possible, rather than massaging the number",
+        "Pairs every reduction figure with a retention figure, which is what makes the number trustworthy"
+      ]
     }
   },
   "sourceState": "current-source"

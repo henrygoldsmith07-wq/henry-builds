@@ -71,7 +71,21 @@
     "lessons": [],
     "limitations": [
       "A personal utility, never hardened for distribution; its source was removed during the 2026-08 ecosystem migration."
-    ]
+    ],
+    "lastVerifiedAt": "2026-08-23",
+    "demonstrates": {
+      "technical": [
+        "A hold-hotkey capture loop with in-memory WAV streaming and no disk writes",
+        "Transcription routing across hosted Whisper with an offline fallback",
+        "Privacy mode that requires confirmation before audio leaves the machine when no offline model is set",
+        "Paste-into-focused-window handling, Windows-native with documented fallbacks"
+      ],
+      "product": [
+        "Dictation that types into whatever currently has focus — the plumbing, not the model, was the gap",
+        "Hold to speak, release to paste: no mode switching",
+        "Privacy-first by construction, with the boundary made explicit"
+      ]
+    }
   },
   "sourceState": "historical-case-study",
   "sourceRemoved": {

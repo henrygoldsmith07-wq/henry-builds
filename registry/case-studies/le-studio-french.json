@@ -103,7 +103,20 @@
       "Groq STT/TTS correction accuracy has never been benchmarked.",
       "The API key lives in localStorage by design for a private tool — not hardened for public deployment."
     ],
-    "lastVerifiedAt": "2026-08-09"
+    "lastVerifiedAt": "2026-08-09",
+    "demonstrates": {
+      "technical": [
+        "A CEFR placement test that calibrates a twelve-unit, sixty-lesson roadmap",
+        "Seven activity types (conversation, dictation, spaced cards, quick fire, grammar, reading, listening) on one shared progress model",
+        "Mock mode, which makes the entire app explorable offline with no API key",
+        "Key validation against the provider's models endpoint before anything is stored"
+      ],
+      "product": [
+        "A language path, not a drill or a free-chat: something that knows roughly where you are and takes you onward",
+        "English-first interface with French-only material, so the scaffolding never competes with the target language",
+        "Fully client-side PWA"
+      ]
+    }
   },
   "sourceState": "current-source"
 }

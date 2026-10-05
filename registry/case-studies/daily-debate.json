@@ -114,6 +114,19 @@
     "video": {
       "src": "/media/daily-debate/demo.webm",
       "caption": "Scroll-through of the running app, captured 2026-09-01."
+    },
+    "demonstrates": {
+      "technical": [
+        "A five-dimension scoring rubric and per-round feedback loop that scores evidence and rebuttal rather than who won",
+        "An argument graph with grounded-evidence tests, so a claim without support is visibly unsupported",
+        "Player-versus-player matchmaking with alternating turns over Realtime, and a neutral judge scoring the full transcript",
+        "Rate limiting with its regression tests"
+      ],
+      "product": [
+        "A daily critical-thinking habit: one motion, one opponent, one clear weakness",
+        "Scores the argument, not the winner — losing for a good reason is the useful outcome",
+        "Works head-to-head against another person as well as against the AI"
+      ]
     }
   },
   "sourceState": "current-source"

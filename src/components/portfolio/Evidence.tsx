@@ -9,10 +9,21 @@ import {
   Lock,
   Video,
 } from "lucide-react";
-import type { Claim, Evidence, LedgerClaim, Metric } from "@/data/registry/schema";
+import type { Claim, Evidence, HydratedProject, LedgerClaim, Metric } from "@/data/registry";
+import { evidenceHrefFor, MONOREPO_BASE } from "@/data/registry";
 import { FreshnessChip, LedgerBadge } from "@/components/portfolio/EvidenceMeta";
 
 const FRESH_KINDS = new Set(["screenshot", "video", "benchmark"]);
+
+/**
+ * The project whose case study is being rendered. Evidence chips resolve a bare
+ * `path` against the repository that owns that project today, so a link written
+ * before the monorepo split still opens the right code today.
+ *
+ * Optional because a chip can be rendered outside a case study (the comparison
+ * view). With no project in context it falls back to the monorepo base.
+ */
+const ProjectContext = createContext<HydratedProject | null>(null);
 
 /**
  * Set once per case study: when the source repository is private, every
@@ -20,8 +31,6 @@ const FRESH_KINDS = new Set(["screenshot", "video", "benchmark"]);
  * know why before they click.
  */
 const PrivateSourceContext = createContext(false);
-
-const REPO_BASE = "https://github.com/henrygoldsmith07-wq/Claude-Code";
 
 const evidenceIcon = {
   repo: FolderGit2,
@@ -43,16 +52,13 @@ const evidenceNoun = {
   live: "Live",
 } as const;
 
-function evidenceHref(item: Evidence): string | undefined {
-  if (item.href) return item.href;
-  if (item.path) return `${REPO_BASE}/blob/main/${item.path}`;
-  return item.src;
-}
-
 /** A single "go and check this yourself" pointer. */
 export function EvidenceChip({ item }: { item: Evidence }) {
   const Icon = evidenceIcon[item.kind];
-  const href = evidenceHref(item);
+  const project = useContext(ProjectContext);
+  const href = project
+    ? evidenceHrefFor(project, item)
+    : (item.href ?? item.src ?? (item.path ? `${MONOREPO_BASE}/blob/main/${item.path}` : undefined));
   const privateSource = useContext(PrivateSourceContext);
   const label = `${evidenceNoun[item.kind]}: ${item.label}${privateSource ? " (private source)" : ""}`;
 
@@ -82,7 +88,7 @@ export function EvidenceChip({ item }: { item: Evidence }) {
   );
 }
 
-export { PrivateSourceContext as SourceAccessContext };
+export { PrivateSourceContext as SourceAccessContext, ProjectContext as EvidenceProjectContext };
 
 export function EvidenceRow({ items }: { items: Evidence[] }) {
   if (!items?.length) return null;

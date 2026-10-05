@@ -137,6 +137,19 @@
     "video": {
       "src": "/media/arise/demo.webm",
       "caption": "Scroll-through of the running app, captured 2026-09-01."
+    },
+    "demonstrates": {
+      "technical": [
+        "A progression engine implementing conservative double progression, plateau and deload detection, with Epley 1RM as a single source of truth",
+        "Attribute derivation from logged history rather than from what a program is named",
+        "Versioned export/restore with de-duplication by session id",
+        "Runnable content validation over the exercise and program data"
+      ],
+      "product": [
+        "Offline-first training with progress that is earned — a level rises because you trained, not because you opened the app",
+        "Strength, endurance, consistency and technique computed from logged volume and loads",
+        "Accessible and installable as a PWA"
+      ]
     }
   },
   "sourceState": "current-source"

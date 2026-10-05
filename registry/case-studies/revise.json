@@ -176,6 +176,19 @@
     "video": {
       "src": "/media/revise/demo.webm",
       "caption": "Scroll-through of the running app, captured 2026-09-01."
+    },
+    "demonstrates": {
+      "technical": [
+        "A recommendation scorer that ranks due reviews, mistake repair, weak-topic practice, first-pass learning and timed papers on one scale",
+        "Point-by-point marking against real mark schemes, with mistakes automatically becoming flashcards",
+        "A board-agnostic curriculum module format with a validator enforcing per-statement provenance on every spec point",
+        "An adaptive timetable that rolls missed blocks forward instead of resetting"
+      ],
+      "product": [
+        "Revision-first study: every screen exists to raise a grade, and opening the app yields one recommended task",
+        "Targets UK A-level and GCSE rather than being a generic note-taking app",
+        "Turns each marked mistake into scheduled repair rather than a list you never revisit"
+      ]
     }
   },
   "sourceState": "current-source"

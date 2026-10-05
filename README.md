@@ -29,6 +29,39 @@ Generated files are never edited by hand. `registry:refresh` is the canonical
 orchestrator: it imports upstream/evidence/source truth, reconciles archive state
 and records operational history. `registry:refresh:ci` also refreshes Actions facts.
 
+## The reading surfaces
+
+Four routes, all fed from the same merged registry:
+
+| Route | What it is for |
+|---|---|
+| `/` | The story, the principles, and **the receipts** — a proof summary counted from the registry as the page loads |
+| `/projects` | Every project, filterable, with evidence counts and what each one demonstrates |
+| `/compare` | All projects on one table: stage, source state, CI health, evidence density, measured numbers, ledger grade, claim freshness, and what each demonstrates |
+| `/projects/<slug>` | The full case study |
+
+The proof summary and the comparison table are the two surfaces that make this a
+proof-driven portfolio rather than a gallery. **Both are computed from the
+registry at load time** (`buildProofSummary`, `evidenceDensityOf`), never typed
+into a component. That is the whole point: remove a project's evidence and the
+count falls with it, so the arithmetic cannot flatter the work.
+
+The comparison view sorts on five axes. It leads with **evidence honesty** —
+stated limitations, declared trade-offs and recorded dead ends weighted against
+how far the work got — because that is the axis a portfolio like this should
+lead with, and because ranking on stage alone would just reproduce the landing
+page.
+
+### Evidence links resolve against the owning repository
+
+The projects left the `Claude-Code` monorepo during the 2026-08 migration and now
+live in standalone repositories. A bare `path` on an evidence item or an
+architecture layer therefore resolves through `source-status.json` to whichever
+repository owns that project **today** (`repoBaseFor` in
+`src/data/registry/index.ts`), not to a hardcoded monorepo base. An explicit
+`href` always wins, because it was authored against a known repository. This is
+why each case study renders inside an `EvidenceProjectContext.Provider`.
+
 ### The evidence layer
 
 The portfolio is the reading surface for the ecosystem's
@@ -41,7 +74,16 @@ which grades every capability claim from `insufficient-evidence` to
 - A case study that claims a capability whose grade is `insufficient-evidence`
   **fails validation** — link a passing claim or rewrite the copy.
 - Every case study must state its `limitations` (rendered as "What this does not
-  prove", next to the claims they bound) and a `lastVerifiedAt` date.
+  prove", next to the claims they bound) and a `lastVerifiedAt` date. The date
+  is **required** and is rendered next to the generated CI and deployment facts,
+  so "when did a human last check this?" has one visible answer. A study whose
+  source no longer exists (`historical-case-study`) must anchor that date to
+  `sourceRemoved.detectedAt` and may not claim a verification **after** the code
+  was deleted.
+- A `demonstrates` block (optional, but warned about when absent) splits what a
+  project exercises technically from the product problem it is pointed at. Every
+  entry must be a concrete capability or consequence; a minimum length keeps
+  topic words like "React" or "PWA" out of the comparison view.
 - Evidence that rots (screenshots, videos, benchmarks) carries `capturedAt`;
   captures older than 90 days fail validation, and `expiresAt` sets an explicit
   shelf life.
@@ -52,6 +94,23 @@ which grades every capability claim from `insufficient-evidence` to
 - Citing CI evidence while the latest upstream run failed draws a validator
   warning once the last green run is older than 30 days (or none exists), so
   stale-green claims surface where someone is editing copy.
+
+### What the site does with stale truth
+
+A portfolio that only looks honest when everything is fresh is not honest. The
+generated layers rot on their own schedule — a repo moves, a token dies, a
+workflow starts failing — so the three states that matter are rendered as
+themselves rather than smoothed over:
+
+- **Newest CI run is red.** The verification strip marks the green date with
+  "newest run red" and the case study opens with a banner saying the green date
+  describes the last passing revision, not the current default branch.
+- **CI facts were carried forward.** When the importer could not reach a
+  repository's Actions data, the fact keeps a `carriedForward` flag and the case
+  study says the run shown is from an earlier import rather than a fresh check.
+- **Claims have not been re-checked recently.** `lastVerifiedAt` renders with
+  its age once it passes `FRESH_CLAIM_WINDOW_DAYS`, so a stale number labels
+  itself.
 
 ### Source truth and automatic archiving
 
@@ -210,7 +269,7 @@ it on every push.
 | Variable | Where | Purpose |
 |---|---|---|
 | `SITE_URL` / `VITE_SITE_URL` | optional env | Overrides the build-time origin for sitemap URLs and OG images. Defaults to the production alias (`https://henry-builds.vercel.app`, see `PRODUCTION_ORIGIN` in `generate-sitemap.mjs`) so deploys without variables stay correct; `ALLOW_RELATIVE_SITEMAP=1` opts out locally. |
-| `REGISTRY_TOKEN` | repo secret | PAT with Contents/Actions read access to every sibling repo the portfolio cites. A classic token needs `repo` if any cited repo is private; public-only portfolios can use `public_repo`. Without it cross-repo checks degrade loudly instead of pretending stale data is current. Scheduled sync fails on an unusable token, and deploy-monitor alarms if the facts stop refreshing. |
+| `REGISTRY_TOKEN` | repo secret | PAT with Contents/Actions read access to every sibling repo the portfolio cites. A classic token needs `repo` if any cited repo is private; public-only portfolios can use `public_repo`. Without it cross-repo checks degrade loudly instead of pretending stale data is current. Scheduled sync fails on an unusable token, and deploy-monitor alarms if the facts stop refreshing. Every repo this portfolio currently cites is **private** (`access: "private"` in `registry/source-status.json`), so the token needs `repo` scope and the site says so rather than implying the source is public. |
 | `VITE_VLY_PARENT_ORIGIN` | optional editor env | Explicitly allow one parent origin for the Vly preview route bridge. Without it, only Vly/Freebuff parent hosts from the document referrer are accepted. |
 
 The portfolio has no application backend or account surface.

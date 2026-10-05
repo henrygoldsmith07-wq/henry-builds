@@ -24,6 +24,7 @@ export const featuredSlugs: string[] = published
 export const coreRoutes = [
   { name: "landing", path: "/" },
   { name: "projects", path: "/projects" },
+  { name: "compare", path: "/compare" },
 ];
 
 export const notFoundRoute = {
@@ -46,9 +47,14 @@ export const representativeCaseStudy = {
 };
 
 /**
- * Full-page pixel snapshots stay on routes whose content is stable. Case-study
- * pages intentionally contain generated CI/source facts that refresh without a
- * UI change, so pixel-diffing an entire 5,000+ px page turns data freshness into
- * false visual regressions. Case-study structure is asserted separately.
+ * Full-page pixel snapshots stay on routes whose content is stable and small.
+ * Case-study pages intentionally contain generated CI/source facts that refresh
+ * without a UI change, so pixel-diffing an entire 5,000+ px page turns data
+ * freshness into false visual regressions; case-study structure is asserted
+ * separately. `/compare` is a wide table whose cell contents are generated, so
+ * it is audited for accessibility but not pixel-diffed for the same reason.
  */
-export const visualRoutes = [...coreRoutes];
+export const visualRoutes = [
+  { name: "landing", path: "/" },
+  { name: "projects", path: "/projects" },
+];

@@ -152,7 +152,21 @@
       "Offline queue is per-browser; multi-device offline edits converge only when each device comes online.",
       "Pulse mirror is localStorage-bound to one origin and one browser; clearing site data breaks the mirror until re-enabled."
     ],
-    "lastVerifiedAt": "2026-08-23"
+    "lastVerifiedAt": "2026-08-23",
+    "demonstrates": {
+      "technical": [
+        "Weekly-target streak semantics with DST-immune Sunday–Saturday week arithmetic",
+        "First-party auth: salted scrypt, opaque 32-byte session tokens, SHA-256 storage and per-IP rate limiting",
+        "An offline replay engine with queue supersession and a five-retry drop policy",
+        "PGlite in-process fallback for zero-config local development and test isolation",
+        "An opt-in data mirror with schema versioning, placeholder-free rows and timezone provenance"
+      ],
+      "product": [
+        "Weekly targets instead of daily chains, so a single miss does not trigger abandonment",
+        "Archives habits rather than deleting them, keeping the record honest",
+        "Shows an eight-week history table rather than optimising for daily engagement"
+      ]
+    }
   },
   "sourceState": "current-source"
 }

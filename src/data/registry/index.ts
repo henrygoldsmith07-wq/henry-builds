@@ -1,6 +1,8 @@
 import type {
   CiFacts,
   CiFactsFile,
+  Demonstrates,
+  Evidence,
   EvidenceLedgerFile,
   FactsHistoryFile,
   FactsSnapshot,
@@ -8,6 +10,7 @@ import type {
   LedgerStatus,
   Metric,
   Project,
+  ProofSummary,
   SourceState,
   SourceStatusEntry,
   SourceStatusSnapshot,
@@ -239,6 +242,105 @@ export function ledgerGradeRank(status: string): number {
   return index === -1 ? -1 : index;
 }
 
+/** The pre-migration monorepo. A fallback, not the default owner of any path. */
+export const MONOREPO_BASE = "https://github.com/henrygoldsmith07-wq/Claude-Code";
+
+/**
+ * Resolve a repo-relative path to a URL in whichever repository owns it today.
+ *
+ * The portfolio migrated out of the `Claude-Code` monorepo in August 2026; each
+ * project now lives in its own standalone repository. `source-status.json` is
+ * the generated record of where each one went, so it — not a hardcoded base —
+ * decides which repository a bare `path` resolves against. Falling back to the
+ * monorepo only when the importer found no entry keeps a visible link for the
+ * handful of projects with no resolvable source instead of a silent blank.
+ */
+export function repoBaseFor(project: HydratedProject): string {
+  const repo = project.sourceRepo;
+  if (repo) return `https://github.com/${repo}`;
+  return MONOREPO_BASE;
+}
+
+/** Same resolution for a directory-style path (architecture layers). */
+export function repoTreeHrefFor(project: HydratedProject, path: string): string {
+  return `${repoBaseFor(project)}/tree/main/${path}`;
+}
+
+/**
+ * Turn one evidence item into the URL a reader should actually follow. An
+ * explicit `href` always wins — it was authored against a known repository.
+ * A bare `path` is resolved against the project that owns it today.
+ */
+export function evidenceHrefFor(project: HydratedProject, item: Evidence): string | undefined {
+  if (item.href) return item.href;
+  if (item.path) return `${repoBaseFor(project)}/blob/main/${item.path}`;
+  return item.src;
+}
+
+/**
+ * The `demonstrates` block, falling back to the project's tags so the
+ * comparison view always has two axes to sort by. The fallback is a single
+ * generic string rather than a silent copy of the tags, because a tag list is
+ * a topic index, not a claim about what the work demonstrates.
+ */
+export function demonstratesOf(project: HydratedProject): Demonstrates {
+  const declared = project.caseStudy.demonstrates;
+  if (declared) return declared;
+  return {
+    technical: project.tags.filter(Boolean),
+    product: [project.category].filter(Boolean),
+  };
+}
+
+/** Every evidence pointer a case study carries, for counting and density. */
+export function allEvidenceOf(project: HydratedProject): Evidence[] {
+  const cs = project.caseStudy;
+  const fromClaims = cs.outcomes.flatMap((o) => o.evidence);
+  const fromMetrics = cs.metrics.flatMap((m) => m.evidence);
+  const fromArchitecture = cs.architecture?.evidence ?? [];
+  const fromLifecycle = cs.insightLifecycle?.evidence ?? [];
+  const fromBenchmark = cs.benchmarkChart?.evidence ?? [];
+  return [
+    ...fromClaims,
+    ...fromMetrics,
+    ...fromArchitecture,
+    ...fromLifecycle,
+    ...fromBenchmark,
+  ];
+}
+
+/** Evidence pointers that are not just the local repository's own README. */
+export function evidenceDensityOf(project: HydratedProject): number {
+  const all = allEvidenceOf(project);
+  // Deduplicate on the resolved target, so three chips pointing at one README
+  // count once rather than inflating the portfolio's apparent evidence base.
+  const unique = new Set(
+    all
+      .map((item) => evidenceHrefFor(project, item) ?? `${item.kind}:${item.label}`)
+      .filter(Boolean),
+  );
+  return unique.size;
+}
+
+/** True when the newest tracked CI run for this project is not green. */
+export function hasRedCi(project: HydratedProject): boolean {
+  return project.ci?.conclusion === "failure";
+}
+
+/** True when CI facts for this project were carried forward rather than refreshed. */
+export function hasCarriedCi(project: HydratedProject): boolean {
+  return project.ci?.carriedForward === true;
+}
+
+/** Days since the human last checked these claims, or null when unknown. */
+export function daysSinceVerified(project: HydratedProject): number | null {
+  const stamp = project.caseStudy.lastVerifiedAt;
+  if (!stamp) return null;
+  const then = new Date(stamp).getTime();
+  if (!Number.isFinite(then)) return null;
+  return Math.floor((Date.now() - then) / 86_400_000);
+}
+
 const stageRank: Record<Stage, number> = {
   shipped: 0,
   beta: 1,
@@ -288,5 +390,88 @@ export const registryMeta = {
   sourcesCheckedAt: sourceStatuses.checkedAt,
   factsGeneratedAt: factsFile.generatedAt,
 };
+
+/** How recently a claim check still counts as current, in days. */
+export const FRESH_CLAIM_WINDOW_DAYS = 180;
+
+/**
+ * Count the site's own evidence base at load time.
+ *
+ * This is deliberately computed rather than written down. A scoreboard typed
+ * into a component would drift the moment a case study changed; counted here,
+ * it cannot flatter the work — remove a project's evidence and the number falls
+ * with it. It is the one statistic on the site that audits the site.
+ */
+export function buildProofSummary(list: HydratedProject[] = allProjects): ProofSummary {
+  const technical = new Set<string>();
+  const product = new Set<string>();
+  let evidenceLinks = 0;
+  let measuredMetrics = 0;
+  let evidencedClaims = 0;
+  let ledgerGradedClaims = 0;
+  let strongestGrade: LedgerStatus | undefined;
+  let ciGreen = 0;
+  let ciTracked = 0;
+  let recentlyVerified = 0;
+  let statedLimitations = 0;
+
+  for (const project of list) {
+    const cs = project.caseStudy;
+    const shows = demonstratesOf(project);
+    for (const item of shows.technical) technical.add(item.trim().toLowerCase());
+    for (const item of shows.product) product.add(item.trim().toLowerCase());
+
+    evidenceLinks += evidenceDensityOf(project);
+    measuredMetrics += cs.metrics.length;
+    evidencedClaims += cs.outcomes.filter((o) => o.evidence.length > 0).length;
+    statedLimitations += cs.limitations.length;
+
+    for (const claim of project.ledgerClaims) {
+      ledgerGradedClaims++;
+      if (ledgerGradeRank(claim.status) > ledgerGradeRank(strongestGrade ?? "")) {
+        strongestGrade = claim.status;
+      }
+    }
+
+    if (project.ci) {
+      ciTracked++;
+      if (project.ci.conclusion === "success") ciGreen++;
+    }
+
+    const age = daysSinceVerified(project);
+    if (age !== null && age <= FRESH_CLAIM_WINDOW_DAYS) recentlyVerified++;
+  }
+
+  return {
+    projects: list.length,
+    evidenceLinks,
+    measuredMetrics,
+    evidencedClaims,
+    ledgerGradedClaims,
+    strongestGrade,
+    technicalCapabilities: technical.size,
+    productCapabilities: product.size,
+    ciGreen,
+    ciTracked,
+    recentlyVerified,
+    freshWithinDays: FRESH_CLAIM_WINDOW_DAYS,
+    statedLimitations,
+  };
+}
+
+/** The portfolio's own arithmetic, computed once. */
+export const proofSummary = buildProofSummary();
+
+/**
+ * Whether every cited repository is private. The landing page once asserted the
+ * source was public; this is the generated truth that has to agree with any
+ * claim the copy makes about access.
+ */
+export const allSourcesPrivate =
+  allProjects.length > 0 &&
+  allProjects.every((p) => p.sourceRepo && p.sourceAccess === "private");
+
+/** Whether at least one cited repository is publicly readable. */
+export const anySourcePublic = allProjects.some((p) => p.sourceAccess === "public");
 
 export * from "./schema";

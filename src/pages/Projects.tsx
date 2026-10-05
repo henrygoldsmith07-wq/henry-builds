@@ -1,11 +1,18 @@
-import { ArrowUpRight, Search, X } from "lucide-react";
+import { ArrowUpRight, GitCompareArrows, Search, X } from "lucide-react";
 import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { SourceStateBadge } from "@/components/portfolio/SourceState";
 import { StageBadge, StageLegend } from "@/components/portfolio/StageBadge";
-import { featuredProjects, projects, registryMeta } from "@/data/registry";
+import {
+  demonstratesOf,
+  evidenceDensityOf,
+  featuredProjects,
+  hasRedCi,
+  projects,
+  registryMeta,
+} from "@/data/registry";
 import { stageOrder, type Stage } from "@/data/registry/schema";
 
 const ALL = "all" as const;
@@ -75,12 +82,15 @@ export default function Projects() {
         return false;
       if (!needle) return true;
 
+      const shows = demonstratesOf(project);
       const searchable = [
         project.name,
         project.tagline,
         project.summary,
         project.category,
         ...project.tags,
+        ...shows.technical,
+        ...shows.product,
         project.upstream?.stack,
       ]
         .filter(Boolean)
@@ -133,6 +143,10 @@ export default function Projects() {
             {registryMeta.upstreamCount} entries upstream,{" "}
             {registryMeta.publishedCount} published here.
           </p>
+          <Link to="/compare" className="inline-link mt-6 w-fit">
+            <GitCompareArrows className="size-3.5" aria-hidden="true" />
+            Compare all {projects.length} on one table
+          </Link>
         </section>
 
         <section className="mx-auto max-w-[1380px] px-5 pb-12 sm:px-8 lg:px-12">
@@ -245,15 +259,9 @@ export default function Projects() {
 
           <ul className="grid gap-px overflow-hidden border border-border bg-border">
             {visible.map((project) => {
-              const evidenceCount =
-                project.caseStudy.outcomes.reduce(
-                  (sum, o) => sum + o.evidence.length,
-                  0,
-                ) +
-                project.caseStudy.metrics.reduce(
-                  (sum, m) => sum + m.evidence.length,
-                  0,
-                );
+              const shows = demonstratesOf(project);
+              const evidenceCount = evidenceDensityOf(project);
+              const redCi = hasRedCi(project);
 
               return (
                 <li key={project.slug} className="bg-background">
@@ -267,6 +275,14 @@ export default function Projects() {
                       <span className="text-xs text-muted-foreground">
                         {project.category}
                       </span>
+                      {redCi && (
+                        <span
+                          className="freshness-stale"
+                          title="The newest tracked CI run for this project did not succeed."
+                        >
+                          CI red
+                        </span>
+                      )}
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -276,6 +292,16 @@ export default function Projects() {
                       <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
                         {project.tagline}
                       </p>
+
+                      {shows.technical.length > 0 && (
+                        <p className="mt-2.5 line-clamp-2 text-xs leading-5 text-muted-foreground/90">
+                          <span className="font-medium text-foreground/60">
+                            Demonstrates:{" "}
+                          </span>
+                          {shows.technical.slice(0, 3).join(" · ")}
+                        </p>
+                      )}
+
                       {project.ci && (
                         <p className="mt-2 text-xs leading-5 text-muted-foreground">
                           Last code verification (green CI):{" "}

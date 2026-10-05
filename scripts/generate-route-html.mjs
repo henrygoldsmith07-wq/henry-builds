@@ -192,6 +192,36 @@ write(
   }),
 );
 
+const compareDescription =
+  "Every project side by side: stage, source state, CI health, evidence density, measured numbers, ledger grades and what each one demonstrates.";
+
+write(
+  "compare.html",
+  renderPage({
+    title: "Compare the work — Henry Goldsmith",
+    description: compareDescription,
+    route: "/compare",
+    image: "/og/default.png",
+    imageAlt: "Henry Goldsmith — all projects compared",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Compare the work — Henry Goldsmith",
+      url: `${origin}/compare`,
+      description: compareDescription,
+      mainEntity: {
+        "@type": "ItemList",
+        itemListElement: projects.map((project, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: project.name,
+          url: `${origin}/projects/${project.slug}`,
+        })),
+      },
+    },
+  }),
+);
+
 for (const project of projects) {
   const route = `/projects/${project.slug}`;
   const upstreamEntry = upstreamById.get(project.upstreamId);
@@ -239,5 +269,5 @@ write(
 );
 
 console.log(
-  `generate-route-html: wrote ${projects.length + 3} crawler-visible route files for ${origin}`,
+  `generate-route-html: wrote ${projects.length + 4} crawler-visible route files for ${origin}`,
 );

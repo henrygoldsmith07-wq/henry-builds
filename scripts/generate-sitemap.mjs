@@ -77,6 +77,7 @@ try {
 const routes = [
   { path: "/", changefreq: "monthly", priority: "1.0", lastmod: fallbackLastmod },
   { path: "/projects", changefreq: "monthly", priority: "0.8", lastmod: fallbackLastmod },
+  { path: "/compare", changefreq: "monthly", priority: "0.7", lastmod: fallbackLastmod },
   ...projects
     .sort((a, b) => a.slug.localeCompare(b.slug))
     .map((project) => ({

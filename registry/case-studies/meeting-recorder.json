@@ -66,7 +66,18 @@
     "lessons": [],
     "limitations": [
       "Built for personal meetings and never operated at scale; its source was removed during the 2026-08 ecosystem migration."
-    ]
+    ],
+    "lastVerifiedAt": "2026-08-23",
+    "demonstrates": {
+      "technical": [
+        "An Electron capture path for screen, system audio and microphone, uploading directly to object storage",
+        "A dashboard with a clickable transcript synced to playback, search, status filtering and public share links"
+      ],
+      "product": [
+        "Splits a per-seat, recording-keeping product into cheap capture plus a useful dashboard",
+        "Follows a published build guide — implementation, not original design"
+      ]
+    }
   },
   "sourceState": "historical-case-study",
   "sourceRemoved": {

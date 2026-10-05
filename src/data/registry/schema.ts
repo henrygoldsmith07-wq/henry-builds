@@ -235,6 +235,28 @@ export type InsightLifecycle = {
   evidence: Evidence[];
 };
 
+/**
+ * What this project demonstrates, split by what it actually proves. A reader
+ * deciding whether the work is relevant needs two different questions answered
+ * at once — "can the engineering hold up?" and "does this solve a real product
+ * problem?" — and a single tag list conflates them.
+ *
+ * Each item is one concrete, checkable capability rather than a topic word, so
+ * the list is comparable across projects and does the work a vague tag cannot.
+ */
+export type Demonstrates = {
+  /**
+   * Engineering capabilities the project exercises, stated as something that
+   * can be judged from the source or the evidence behind it.
+   */
+  technical: string[];
+  /**
+   * The product problem it is pointed at and the user-facing decision it
+   * changes — what breaks in someone's life if this does not exist.
+   */
+  product: string[];
+};
+
 export type CaseStudy = {
   problem: string;
   approach: string;
@@ -252,8 +274,16 @@ export type CaseStudy = {
    * its own prominent section, not a footnote.
    */
   limitations: string[];
+  /**
+   * The date a human last checked these claims against the source. ISO date.
+   * The validator requires it and the case study renders it next to the
+   * generated CI facts, so "when was this verified?" has one answer.
+   */
+  lastVerifiedAt: string;
   /** Only where genuine committed benchmark data exists; never decoration. */
   benchmarkChart?: BenchmarkChart;
+  /** Optional; the comparison view falls back to tags when it is absent. */
+  demonstrates?: Demonstrates;
 };
 
 /**
@@ -462,4 +492,43 @@ export const stageRequirements: Record<Stage, string> = {
   prototype: "requires at least one `repo` evidence item",
   research: "requires at least one evidence item of any kind",
   archived: "requires the upstream lifecycle to be archived or superseded",
+};
+
+/**
+ * A single, self-audited snapshot of how much of this portfolio is actually
+ * checkable. Every field is counted from the registry at load time rather than
+ * typed in, so the scoreboard can never flatter the work — if a project stops
+ * carrying evidence, the number falls with it.
+ *
+ * The landing page and the comparison view both render this. For a portfolio
+ * whose premise is "nothing appears without a source", the strongest opening is
+ * the arithmetic itself.
+ */
+export type ProofSummary = {
+  /** Projects published on the site. */
+  projects: number;
+  /** Distinct external evidence pointers across every case study. */
+  evidenceLinks: number;
+  /** Numbers shown, each of which states the method that produced it. */
+  measuredMetrics: number;
+  /** Claims in `outcomes`, each required to carry at least one evidence item. */
+  evidencedClaims: number;
+  /** Claims graded against the monorepo evidence ledger. */
+  ledgerGradedClaims: number;
+  /** The best grade reached by any ledger claim on the site. */
+  strongestGrade?: LedgerStatus;
+  /** Capabilities in `demonstrates.technical`, deduplicated across projects. */
+  technicalCapabilities: number;
+  /** Capabilities in `demonstrates.product`, deduplicated across projects. */
+  productCapabilities: number;
+  /** Projects whose newest CI run succeeded. */
+  ciGreen: number;
+  /** Projects with any tracked CI at all. */
+  ciTracked: number;
+  /** Projects whose claims a human re-checked within `freshWithinDays`. */
+  recentlyVerified: number;
+  /** The window used for `recentlyVerified`, in days. */
+  freshWithinDays: number;
+  /** Honest limitations stated across every case study. */
+  statedLimitations: number;
 };

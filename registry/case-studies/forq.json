@@ -177,6 +177,19 @@
     "video": {
       "src": "/media/forq/demo.webm",
       "caption": "Scroll-through of the running app, captured 2026-09-01."
+    },
+    "demonstrates": {
+      "technical": [
+        "A multi-factor recommender that explains itself — every suggestion is rendered as five concrete sentences rather than a score",
+        "An uncertainty model for a pantry that is never fully known: approximate quantities, expiry buckets, running-low detection and fuzzy ingredient matching",
+        "Versioned export/restore that recovers from invalid saved data instead of silently replacing it",
+        "Progressive disclosure as a product constraint — hidden modules keep their records visible rather than disappearing"
+      ],
+      "product": [
+        "Meal planning that starts genuinely empty — no demo user, no pretend pantry, no invented spending history",
+        "Turns “what should I cook and what do I need to buy” into one weekly loop rather than five disconnected screens",
+        "Spends trust on explainability: the user can always see why something was suggested"
+      ]
     }
   },
   "sourceState": "current-source"

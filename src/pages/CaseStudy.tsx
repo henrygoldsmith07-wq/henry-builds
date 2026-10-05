@@ -1,9 +1,10 @@
-import { ArrowLeft, ArrowRight, ExternalLink, Github, Minus, Plus, TriangleAlert } from "lucide-react";
+import { ArrowLeft, ArrowRight, Cpu, ExternalLink, Github, Minus, Plus, TriangleAlert, Users } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { ArchitectureDiagram } from "@/components/portfolio/ArchitectureDiagram";
 import { BenchmarkChart } from "@/components/portfolio/BenchmarkChart";
 import {
   ClaimItem,
+  EvidenceProjectContext,
   EvidenceRow,
   MetricCard,
   SourceAccessContext,
@@ -16,7 +17,63 @@ import { SourceStateBadge, VerificationLine } from "@/components/portfolio/Sourc
 import { StageBadge } from "@/components/portfolio/StageBadge";
 import { TestTrend } from "@/components/portfolio/TestTrend";
 import NotFound from "@/pages/NotFound";
-import { getProject, ledgerClaimOf, projects, registryMeta } from "@/data/registry";
+import {
+  daysSinceVerified,
+  demonstratesOf,
+  FRESH_CLAIM_WINDOW_DAYS,
+  getProject,
+  hasCarriedCi,
+  hasRedCi,
+  ledgerClaimOf,
+  projects,
+  registryMeta,
+} from "@/data/registry";
+
+/**
+ * Section numbers are assigned from the sections that actually render, not
+ * hardcoded per branch. Several sections are optional — a project without an
+ * insight lifecycle or without a demo simply has one fewer — and hardcoded
+ * numbers left visible gaps in the sequence (04, then 06) on exactly the
+ * thinner case studies a reader is most likely to doubt.
+ *
+ * `Section` itself owns the formatting; each call site just takes the next
+ * number from this counter, which is re-created on every render so it always
+ * reflects the sections that survived this render's conditions.
+ */
+function formatSectionNumber(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** One column of the "what this demonstrates" pair, with a matching icon. */
+function DemonstratesColumn({
+  heading,
+  items,
+  tone,
+}: {
+  heading: string;
+  items: string[];
+  tone: "technical" | "product";
+}) {
+  const Icon = tone === "technical" ? Cpu : Users;
+  return (
+    <div className="bg-background p-6">
+      <p className="eyebrow flex items-center gap-2">
+        <Icon className="size-3.5" aria-hidden="true" /> {heading}
+      </p>
+      <ul className="mt-4 space-y-3">
+        {items.map((item) => (
+          <li key={item} className="flex gap-3 text-sm leading-6 text-muted-foreground">
+            <span
+              aria-hidden="true"
+              className="mt-2 size-1.5 shrink-0 rounded-full bg-foreground/30"
+            />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 function Section({
   number,
@@ -54,6 +111,13 @@ export default function CaseStudy() {
 
   const { caseStudy: study, authorship } = project;
   const lead = study.visuals[0];
+  const demonstrates = demonstratesOf(project);
+  const verifiedAgeDays = daysSinceVerified(project);
+
+  // Assigned in render order, so the numbering always matches the sections a
+  // reader actually sees on this particular case study.
+  let sectionCounter = 0;
+  const nextSection = () => formatSectionNumber(++sectionCounter);
 
   return (
     <div className="portfolio-shell min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -68,6 +132,7 @@ export default function CaseStudy() {
 
       <main id="main">
         <SourceAccessContext.Provider value={project.sourceAccess === "private"}>
+        <EvidenceProjectContext.Provider value={project}>
         <article>
           {/* ---- header ---------------------------------------------------- */}
           <header className="mx-auto max-w-[1380px] px-5 pb-12 pt-28 sm:px-8 sm:pt-36 lg:px-12">
@@ -182,10 +247,48 @@ export default function CaseStudy() {
               release={project.facts?.release}
               vulnerabilities={project.facts?.vulnerabilities}
               sourceAccess={project.sourceAccess}
+              claimsCheckedAt={study.lastVerifiedAt}
+              claimsAgeDays={verifiedAgeDays}
+              freshWithinDays={FRESH_CLAIM_WINDOW_DAYS}
             />
 
+            {/* ---- live-status caveat: shown when the generated facts and the
+                   code disagree, so the reader is never quietly misled ----- */}
+            {(hasRedCi(project) || hasCarriedCi(project)) && (
+              <div
+                className="mt-4 flex gap-3 rounded-[1rem] border border-amber-500/40 bg-amber-500/10 p-4"
+                role="note"
+              >
+                <TriangleAlert
+                  className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                  aria-hidden="true"
+                />
+                <div className="text-xs leading-5 text-foreground/80">
+                  {hasRedCi(project) ? (
+                    <p>
+                      <strong className="font-semibold">The newest CI run for this project
+                      failed.</strong>{" "}
+                      The green date above is the last run that passed
+                      {project.ci?.lastVerifiedAt
+                        ? ` (${project.ci.lastVerifiedAt.slice(0, 10)})`
+                        : ""}
+                      , not the current state of the default branch. Treat the measurements
+                      below as describing that last passing revision.
+                    </p>
+                  ) : (
+                    <p>
+                      <strong className="font-semibold">These CI facts are carried forward.</strong>{" "}
+                      The importer could not reach this repository&apos;s Actions data on the
+                      last refresh, so the run shown above is from an earlier import rather
+                      than a fresh check.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* ---- what I built -------------------------------------------- */}
-            <Section number="01" title="What I built" id="authorship">
+            <Section number={nextSection()} title="What I built" id="authorship">
               <p className="text-sm leading-6 text-foreground/85">{authorship.role}</p>
               <div className="mt-8 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
                 <div className="bg-background p-6">
@@ -221,12 +324,41 @@ export default function CaseStudy() {
               </div>
             </Section>
 
+            {/* ---- what this demonstrates ----------------------------------- */}
+            {(demonstrates.technical.length > 0 || demonstrates.product.length > 0) && (
+              <Section number={nextSection()} title="What this demonstrates" id="demonstrates">
+                <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                  Two different questions, answered separately: what the engineering has to hold
+                  up, and what changes for the person using it.
+                </p>
+                <div className="mt-7 grid gap-px overflow-hidden border border-border bg-border md:grid-cols-2">
+                  <DemonstratesColumn
+                    heading="Technically"
+                    items={demonstrates.technical}
+                    tone="technical"
+                  />
+                  <DemonstratesColumn
+                    heading="Product-wise"
+                    items={demonstrates.product}
+                    tone="product"
+                  />
+                </div>
+                <p className="mt-4 text-xs leading-5 text-muted-foreground">
+                  Compare these side by side across every project on the{" "}
+                  <Link to="/compare" className="underline underline-offset-2 hover:text-foreground">
+                    comparison view
+                  </Link>
+                  .
+                </p>
+              </Section>
+            )}
+
             {/* ---- problem / approach -------------------------------------- */}
-            <Section number="02" title="The problem" id="problem">
+            <Section number={nextSection()} title="The problem" id="problem">
               <p className="large-copy max-w-3xl">{study.problem}</p>
             </Section>
 
-            <Section number="03" title="The approach" id="approach">
+            <Section number={nextSection()} title="The approach" id="approach">
               <p className="max-w-3xl text-base leading-7 text-muted-foreground">
                 {study.approach}
               </p>
@@ -237,7 +369,7 @@ export default function CaseStudy() {
               <section id="limitations" className="case-section">
                 <div className="case-section-head">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/40">
-                    04
+                    {nextSection()}
                   </span>
                   <h2 className="flex items-center gap-2 text-xl font-semibold tracking-[-0.03em]">
                     <TriangleAlert
@@ -269,7 +401,7 @@ export default function CaseStudy() {
             {/* ---- insight lifecycle states -------------------------------- */}
             {study.insightLifecycle && (
               <Section
-                number="05"
+                number={nextSection()}
                 title="Insight Lifecycle States"
                 id="insight-lifecycle"
               >
@@ -323,14 +455,14 @@ export default function CaseStudy() {
 
             {/* ---- architecture -------------------------------------------- */}
             {study.architecture && (
-              <Section number="06" title="Architecture" id="architecture">
+              <Section number={nextSection()} title="Architecture" id="architecture">
                 <ArchitectureDiagram architecture={study.architecture} />
               </Section>
             )}
 
             {/* ---- demo video ---------------------------------------------- */}
             {study.video && (
-              <Section number="07" title="Demo" id="demo">
+              <Section number={nextSection()} title="Demo" id="demo">
                 <video
                   className="w-full rounded-[1.25rem] border border-border"
                   src={study.video.src}
@@ -344,7 +476,7 @@ export default function CaseStudy() {
 
             {/* ---- measurements + benchmark chart --------------------------- */}
             {(study.metrics.length > 0 || study.benchmarkChart) && (
-              <Section number="08" title="Measurements" id="measurements">
+              <Section number={nextSection()} title="Measurements" id="measurements">
                 {study.metrics.length > 0 && (
                   <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2">
                     {study.metrics.map((metric) => (
@@ -413,7 +545,7 @@ export default function CaseStudy() {
 
             {/* ---- outcomes ------------------------------------------------ */}
             {study.outcomes.length > 0 && (
-              <Section number="09" title="What holds up" id="outcomes">
+              <Section number={nextSection()} title="What holds up" id="outcomes">
                 <p className="mb-7 max-w-2xl text-sm leading-6 text-muted-foreground">
                   Each statement links to the thing that backs it. Nothing appears here without one.
                 </p>
@@ -431,7 +563,7 @@ export default function CaseStudy() {
 
             {/* ---- trade-offs ---------------------------------------------- */}
             {study.tradeoffs.length > 0 && (
-              <Section number="10" title="Trade-offs" id="tradeoffs">
+              <Section number={nextSection()} title="Trade-offs" id="tradeoffs">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
                   {study.tradeoffs.map((tradeoff) => (
                     <div key={tradeoff.choice} className="bg-background p-6">
@@ -458,7 +590,7 @@ export default function CaseStudy() {
 
             {/* ---- failed approaches --------------------------------------- */}
             {study.failedApproaches.length > 0 && (
-              <Section number="11" title="What did not work" id="failed">
+              <Section number={nextSection()} title="What did not work" id="failed">
                 <div className="space-y-px overflow-hidden border border-border bg-border">
                   {study.failedApproaches.map((failure) => (
                     <div key={failure.approach} className="bg-background p-6">
@@ -485,7 +617,7 @@ export default function CaseStudy() {
 
             {/* ---- lessons -------------------------------------------------- */}
             {study.lessons.length > 0 && (
-              <Section number="12" title="What I took from it" id="lessons">
+              <Section number={nextSection()} title="What I took from it" id="lessons">
                 <ul className="space-y-6">
                   {study.lessons.map((lesson, i) => (
                     <li key={lesson} className="flex gap-5">
@@ -500,6 +632,7 @@ export default function CaseStudy() {
             )}
           </div>
         </article>
+        </EvidenceProjectContext.Provider>
         </SourceAccessContext.Provider>
 
         {/* ---- prev / next ------------------------------------------------- */}

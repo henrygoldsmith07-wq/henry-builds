@@ -116,6 +116,13 @@ verifyRoute({
   structuredType: "CollectionPage",
 });
 
+verifyRoute({
+  route: "/compare",
+  title: "Compare the work — Henry Goldsmith",
+  image: "/og/default.png",
+  structuredType: "CollectionPage",
+});
+
 for (const { data: project } of published) {
   verifyRoute({
     route: `/projects/${project.slug}`,

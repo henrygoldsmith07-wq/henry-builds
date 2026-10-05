@@ -15,6 +15,7 @@ import "./types/global.d.ts";
 const Landing = lazy(() => import("./pages/Landing.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 const Projects = lazy(() => import("./pages/Projects.tsx"));
+const Compare = lazy(() => import("./pages/Compare.tsx"));
 const CaseStudy = lazy(() => import("./pages/CaseStudy.tsx"));
 
 const isVlyDeployment =
@@ -268,6 +269,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/compare" element={<Compare />} />
           <Route path="/projects/:slug" element={<CaseStudy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -173,6 +173,18 @@
     "video": {
       "src": "/media/reflect/demo.webm",
       "caption": "Scroll-through of the running app, captured 2026-09-01."
+    },
+    "demonstrates": {
+      "technical": [
+        "A hedged-language contract enforced in code: every bias flag must carry evidence for, evidence against and a confidence, and is dropped below 0.45",
+        "A validator that rejects a model response violating the contract rather than trusting the prompt to hold",
+        "An eight-stage pipeline from event through observation, assumption and emotion to a dated follow-up"
+      ],
+      "product": [
+        "Structured reflection that challenges an interpretation instead of merely logging a mood",
+        "Never states “you have catastrophizing bias” — a tentative reading of one account is not presented as a diagnosis",
+        "Local-first: the reflection stays on the device"
+      ]
     }
   },
   "sourceState": "current-source"

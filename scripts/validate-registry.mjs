@@ -311,6 +311,83 @@ for (const file of files) {
   if (!cs.problem) fail(`${id}: caseStudy.problem is required`);
   if (!cs.approach) fail(`${id}: caseStudy.approach is required`);
 
+  // --- lastVerifiedAt ------------------------------------------------------
+  // Every case study claims a date a human last re-checked its claims against
+  // the source, and the site renders that date next to the generated CI and
+  // deployment facts. A missing or malformed date would render an empty cell in
+  // the one place a reader looks to judge whether a number is current, so it
+  // fails rather than quietly rendering blank.
+  //
+  // A historical case study is the exception that proves the rule: its source no
+  // longer exists, so its claims cannot be re-verified against code at all. For
+  // those, the date must exist and must fall on or before the recorded removal
+  // date — claiming a verification that happened after the code was deleted
+  // would be exactly the kind of unfalsifiable assertion this site exists to
+  // avoid.
+  //
+  // This rule is new. The field existed in eleven case-study files and was
+  // consumed only by generate-sitemap.mjs; nothing checked it, so it could rot
+  // unnoticed in both directions.
+  const verified = cs.lastVerifiedAt;
+  const historical = project.sourceState === "historical-case-study";
+  const removedAt = project.sourceRemoved?.detectedAt;
+
+  if (!verified) {
+    fail(`${id}: caseStudy.lastVerifiedAt is required — the date a human last checked these claims`);
+  } else if (!/^\d{4}-\d{2}-\d{2}$/.test(verified)) {
+    fail(`${id}: caseStudy.lastVerifiedAt must be an ISO date (YYYY-MM-DD), got '${verified}'`);
+  } else if (Number.isNaN(new Date(verified).getTime())) {
+    fail(`${id}: caseStudy.lastVerifiedAt '${verified}' is not a real date`);
+  } else if (historical) {
+    if (!removedAt) {
+      fail(
+        `${id}: sourceState is historical-case-study but there is no sourceRemoved.detectedAt to anchor lastVerifiedAt to`,
+      );
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(removedAt)) {
+      fail(`${id}: sourceRemoved.detectedAt must be an ISO date (YYYY-MM-DD), got '${removedAt}'`);
+    } else if (verified > removedAt) {
+      fail(
+        `${id}: lastVerifiedAt ${verified} is after the source was removed (${removedAt}) — a historical study cannot be verified against code that no longer exists`,
+      );
+    }
+  } else {
+    const age = daysAgo(verified);
+    if (age > MAX_CLAIM_AGE_DAYS_DEFAULT) {
+      warn(
+        `${id}: claims last checked ${Math.floor(age)} days ago, beyond the ${MAX_CLAIM_AGE_DAYS_DEFAULT}-day window — re-verify or lower the claim`,
+      );
+    }
+  }
+
+  // --- demonstrates --------------------------------------------------------
+  // The comparison view sorts on this block, so an empty side would leave a
+  // project incomparable on one of the two axes it claims to answer. Each item
+  // must be a concrete capability or product consequence, not a topic word —
+  // which is what the minimum length is here to catch.
+  if (cs.demonstrates) {
+    for (const [key, minLength] of [
+      ["technical", 2],
+      ["product", 1],
+    ]) {
+      const items = cs.demonstrates[key];
+      if (!Array.isArray(items) || items.length < minLength) {
+        fail(`${id}: caseStudy.demonstrates.${key} needs at least ${minLength} entr${minLength === 1 ? "y" : "ies"}`);
+        continue;
+      }
+      for (const item of items) {
+        if (typeof item !== "string" || item.trim().length < 20) {
+          fail(
+            `${id}: caseStudy.demonstrates.${key} entry is too short to be specific — say what it demonstrates, got '${String(item).slice(0, 40)}'`,
+          );
+        }
+      }
+    }
+  } else {
+    warn(
+      `${id}: no caseStudy.demonstrates block — the comparison view falls back to tags for this project`,
+    );
+  }
+
   // --- CI facts coverage: expected vs present ------------------------------
   // Which upstream entries the importer was asked to look up CI for. The
   // registry migrated standalone apps to a `repo` field (post-2026-08) and kept

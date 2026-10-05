@@ -54,6 +54,7 @@ const {
 const routes = new Set([
   "/",
   "/projects",
+  "/compare",
   ...published.map((p) => `/projects/${p.data.slug}`),
 ]);
 
@@ -100,7 +101,12 @@ if (!fs.existsSync(sitemapPath)) {
   const locs = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
   const paths = new Set(locs.map((loc) => loc.replace(/^https?:\/\/[^/]+/, "") || "/"));
 
-  const shouldBeListed = ["/", "/projects", ...published.map((p) => `/projects/${p.data.slug}`)];
+  const shouldBeListed = [
+    "/",
+    "/projects",
+    "/compare",
+    ...published.map((p) => `/projects/${p.data.slug}`),
+  ];
   for (const route of shouldBeListed) {
     checked++;
     if (!paths.has(route)) fail(`sitemap.xml is missing ${route} — run \`bun run sitemap\``);

@@ -76,7 +76,19 @@
       "Invitation tokens are hashed but brute-force resistance is not load-tested.",
       "Two-person scope is a product decision, not an enforced guarantee — any household member sees everything."
     ],
-    "lastVerifiedAt": "2026-08-09"
+    "lastVerifiedAt": "2026-08-09",
+    "demonstrates": {
+      "technical": [
+        "A realtime shared board with household-scoped state",
+        "A join-code household model with no accounts and device-local identity",
+        "A deliberately neutral weekly comparison that presents two people's noticing side by side"
+      ],
+      "product": [
+        "Addresses the real driver of household friction — unequal noticing — rather than unfinished chores",
+        "One-field capture: log what you notice, with no category, assignee or due date to maintain",
+        "No score and no leaderboard, on purpose — the product refuses to turn shared work into competition"
+      ]
+    }
   },
   "sourceState": "current-source"
 }

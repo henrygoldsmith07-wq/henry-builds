@@ -172,7 +172,21 @@
       "Free-tier API quotas capped freshness — country pages could be six hours stale by design.",
       "A strict Content-Security-Policy was abandoned because three.js cannot run under one.",
       "The source was removed during the 2026-08 ecosystem migration; no further verification of these claims is possible."
-    ]
+    ],
+    "lastVerifiedAt": "2026-08-23",
+    "demonstrates": {
+      "technical": [
+        "Story clustering across sources, with source-mix and perspective panels built on top",
+        "Explicit conflicting-claims, agreed-facts, uncertainty and coverage-gap sections per country",
+        "Multi-key rotation that fails over to the next API key on a daily quota error",
+        "A 3D globe interface in Three.js, with per-country/day caching for a historical timeline"
+      ],
+      "product": [
+        "Answers “where do accounts differ, and who is reporting them” rather than flattening a story into one summary",
+        "Makes coverage gaps visible — what is not reported is part of the story",
+        "Grounded generation with provenance rather than an authoritative-sounding paragraph"
+      ]
+    }
   },
   "sourceState": "historical-case-study",
   "sourceRemoved": {

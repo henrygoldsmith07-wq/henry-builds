@@ -197,6 +197,19 @@
     "video": {
       "src": "/media/rapport/demo.webm",
       "caption": "Scroll-through of the running app, captured 2026-09-01."
+    },
+    "demonstrates": {
+      "technical": [
+        "A skill graph with enforced acyclicity and behavioural definitions, so progression cannot silently cycle",
+        "A Kalman-style mastery model that tracks mastery and confidence separately, each carrying its own uncertainty",
+        "A deterministic core: every number is computed in code, and the model is only ever allowed to write sentences",
+        "An event-log projection that stamps the scoring-model version and recomputes history when the model changes"
+      ],
+      "product": [
+        "Communication training whose goal is needing the app less over time, not more engagement",
+        "Replaces the chatbot/personality-test split with assess → rehearse → practise for real → reflect",
+        "Adapts what it drills next from demonstrated behaviour, not from a fixed curriculum"
+      ]
     }
   },
   "sourceState": "current-source"

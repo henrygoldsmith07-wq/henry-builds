@@ -1,15 +1,22 @@
 import { Lock } from "lucide-react";
-import { EvidenceRow } from "./Evidence";
+import { useContext } from "react";
+import { EvidenceRow, EvidenceProjectContext } from "./Evidence";
+import { repoTreeHrefFor, MONOREPO_BASE } from "@/data/registry";
 import type { Architecture } from "@/data/registry/schema";
-
-const REPO_BASE = "https://github.com/henrygoldsmith07-wq/Claude-Code";
 
 /**
  * Rendered as a semantic ordered list rather than an image: it stays readable
  * at any width, works in a screen reader, and needs no alt text that would
  * immediately go stale when a layer changes.
+ *
+ * A layer's `path` resolves against the repository that owns the project today
+ * (see repoTreeHrefFor), not against a fixed monorepo the projects left behind.
  */
 export function ArchitectureDiagram({ architecture }: { architecture: Architecture }) {
+  const project = useContext(EvidenceProjectContext);
+  const layerHref = (path: string) =>
+    project ? repoTreeHrefFor(project, path) : `${MONOREPO_BASE}/tree/main/${path}`;
+
   return (
     <div>
       <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -28,7 +35,7 @@ export function ArchitectureDiagram({ architecture }: { architecture: Architectu
                 {layer.path && (
                   <a
                     className="arch-path"
-                    href={`${REPO_BASE}/tree/main/${layer.path}`}
+                    href={layerHref(layer.path)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

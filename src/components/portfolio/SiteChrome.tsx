@@ -31,6 +31,7 @@ export function useTheme() {
 
 const navItems = [
   { label: "Work", to: "/projects" },
+  { label: "Compare", to: "/compare" },
   { label: "About", to: "/#about" },
   { label: "Approach", to: "/#approach" },
   { label: "Contact", to: "/#contact" },
@@ -51,6 +52,10 @@ export function SiteHeader() {
         location.pathname.startsWith("/projects/")
         ? "page"
         : undefined;
+    }
+
+    if (to === "/compare") {
+      return location.pathname === "/compare" ? "page" : undefined;
     }
 
     const hash = to.startsWith("/#") ? to.slice(1) : "";
@@ -165,6 +170,9 @@ export function SiteFooter() {
         <nav className="flex flex-wrap gap-5 text-xs text-muted-foreground" aria-label="Footer">
           <Link to="/projects" className="hover:text-foreground">
             All work
+          </Link>
+          <Link to="/compare" className="hover:text-foreground">
+            Compare
           </Link>
           <Link to="/#about" className="hover:text-foreground">
             About

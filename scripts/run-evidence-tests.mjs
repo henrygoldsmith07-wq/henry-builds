@@ -89,7 +89,9 @@ function validStudy(slug, overrides = {}) {
       ],
       visuals: [],
       limitations: ["known limit"],
-      lastVerifiedAt: daysAgoIso(1),
+      // Date-only, like every real case study. The validator requires a
+      // YYYY-MM-DD string, not a full timestamp.
+      lastVerifiedAt: daysAgoIso(1).slice(0, 10),
     },
   };
   return { ...study, ...overrides };
@@ -205,6 +207,97 @@ test("validate-registry rejects illustrations captioned as screenshots", async (
   if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
   if (!/not a screenshot/.test(result.stderr)) {
     throw new Error(`missing illustration caption failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects a case study with no claim-verification date", async () => {
+  const dir = tempDir("evm-unverified");
+  const studies = minimalRegistry();
+  delete studies[0].caseStudy.lastVerifiedAt;
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/lastVerifiedAt is required/.test(result.stderr)) {
+    throw new Error(`missing lastVerifiedAt failure message:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects a malformed claim-verification date", async () => {
+  const dir = tempDir("evm-baddate");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.lastVerifiedAt = "last Tuesday";
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/must be an ISO date/.test(result.stderr)) {
+    throw new Error(`missing ISO-date failure message:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects a historical study verified after its source was removed", async () => {
+  const dir = tempDir("evm-historical");
+  const studies = minimalRegistry();
+  studies[0].sourceState = "historical-case-study";
+  studies[0].sourceRemoved = {
+    detectedAt: "2026-01-01",
+    note: "removed upstream",
+  };
+  // Verified a year after the code was deleted: a claim that cannot have been
+  // checked against source must not be allowed to claim it was.
+  studies[0].caseStudy.lastVerifiedAt = "2027-01-01";
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/after the source was removed/.test(result.stderr)) {
+    throw new Error(`missing post-removal verification failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry accepts a historical study verified before its source was removed", async () => {
+  const dir = tempDir("evm-historical-ok");
+  const studies = minimalRegistry();
+  studies[0].sourceState = "historical-case-study";
+  studies[0].sourceRemoved = {
+    detectedAt: "2026-01-01",
+    note: "removed upstream",
+  };
+  studies[0].caseStudy.lastVerifiedAt = "2025-12-01";
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 0) {
+    throw new Error(`expected exit 0, got ${result.code}\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects a vacuous demonstrates entry", async () => {
+  const dir = tempDir("evm-demonstrates");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.demonstrates = {
+    technical: ["React", "TypeScript"],
+    product: ["A better life"],
+  };
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/demonstrates\.technical entry is too short/.test(result.stderr)) {
+    throw new Error(`missing demonstrates specificity failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects a demonstrates block missing a whole axis", async () => {
+  const dir = tempDir("evm-demonstrates-empty");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.demonstrates = {
+    technical: [
+      "A hedged-language contract enforced in code, rejected rather than prompted",
+    ],
+    product: [],
+  };
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/demonstrates\.product needs at least 1 entry/.test(result.stderr)) {
+    throw new Error(`missing demonstrates.product failure:\n${result.stderr}`);
   }
 });
 

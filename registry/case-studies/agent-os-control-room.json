@@ -46,7 +46,18 @@
     "lessons": [],
     "limitations": [
       "Never progressed past a prototype; the source was removed from the ecosystem during the 2026-08 migration and this write-up survives as provenance."
-    ]
+    ],
+    "lastVerifiedAt": "2026-08-23",
+    "demonstrates": {
+      "technical": [
+        "An orchestration dashboard over agent swarm state — what is running, what each agent is doing, and what it produced",
+        "Surfacing in-flight work so a supervising agent can act before a run finishes rather than after"
+      ],
+      "product": [
+        "Makes running several agents at once supervisable, so failures surface in minutes rather than an hour later",
+        "Watches agent swarms in the workspace rather than adding another orchestration layer to manage"
+      ]
+    }
   },
   "sourceState": "historical-case-study",
   "sourceRemoved": {

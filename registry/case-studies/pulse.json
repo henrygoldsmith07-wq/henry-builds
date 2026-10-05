@@ -302,7 +302,20 @@
       "The validation ledger is empty by design until months of real use accrue.",
       "Confounder control is proven against synthetic ground truth only."
     ],
-    "lastVerifiedAt": "2026-08-09"
+    "lastVerifiedAt": "2026-08-09",
+    "demonstrates": {
+      "technical": [
+        "A versioned universal event schema with DST-safe time maths, migrations and de-duplication",
+        "A statistics and discovery layer: effect sizes, multiple-testing correction within families, confounder adjustment and confidence grading",
+        "Experiment design and analysis, with synthetic benchmark users carrying planted true and null effects",
+        "A connector SDK and sync engine with consent enforcement, paging, cursors, backfill and health checks"
+      ],
+      "product": [
+        "Makes “no action is justified yet” a first-class output instead of always finding something",
+        "Refuses causal language for non-experimental findings — enforced by a type and a validator, not a convention",
+        "Privacy-first personal analytics that grades its own findings by evidence"
+      ]
+    }
   },
   "sourceState": "current-source"
 }

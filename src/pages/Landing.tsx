@@ -1,11 +1,18 @@
 import { ArrowDown, ArrowUpRight, ExternalLink, Github, MoveUpRight } from "lucide-react";
 import { Link } from "react-router";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
+import { ProofSummaryBar } from "@/components/portfolio/ProofSummary";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { StageBadge } from "@/components/portfolio/StageBadge";
 import { profile } from "@/data/profile";
-import { archivedProjects, featuredProjects, projects } from "@/data/registry";
+import {
+  archivedProjects,
+  featuredProjects,
+  projects,
+  proofSummary,
+  registryMeta,
+} from "@/data/registry";
 
 function SectionLabel({ number, children }: { number: string; children: string }) {
   return (
@@ -114,11 +121,47 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* ---- proof summary ----------------------------------------------- */}
+        <section id="proof" className="section-shell border-t border-border">
+          <div className="section-grid">
+            <div>
+              <SectionLabel number="02">The receipts</SectionLabel>
+              <h2 className="section-title">
+                The whole point,
+                <br />
+                <span className="text-muted-foreground">counted.</span>
+              </h2>
+              <p className="mt-7 max-w-md text-sm leading-6 text-muted-foreground">
+                A portfolio that asks you to trust its claims should be willing to
+                publish its own arithmetic. Every figure below is counted from the
+                registry as the site loads — none of it is typed in, so the count
+                falls the moment a project stops carrying evidence.
+              </p>
+              <Link to="/compare" className="inline-link mt-7 w-fit">
+                Compare all {projects.length} projects <ArrowUpRight className="size-3.5" aria-hidden="true" />
+              </Link>
+            </div>
+            <div className="section-copy">
+              <ProofSummaryBar summary={proofSummary} />
+              <p className="mt-5 text-xs leading-5 text-muted-foreground">
+                <span className="font-medium text-foreground/70">Where these numbers come from: </span>
+                the case-study files in{" "}
+                <code className="text-foreground/70">registry/case-studies/</code>, merged with the
+                generated upstream, evidence-ledger, CI and source-status snapshots imported{" "}
+                {registryMeta.importedAt ? registryMeta.importedAt.slice(0, 10) : "on every build"}.
+                {" "}
+                <code className="text-foreground/70">registry:validate</code> refuses to publish a
+                claim that does not carry one of these pointers.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* ---- principles -------------------------------------------------- */}
         <section id="approach" className="philosophy-section border-y border-border">
           <div className="mx-auto grid max-w-[1380px] gap-12 px-5 py-24 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:px-12 lg:py-32">
             <div>
-              <SectionLabel number="02">Approach</SectionLabel>
+              <SectionLabel number="03">Approach</SectionLabel>
               <h2 className="section-title">
                 Three rules
                 <br />
@@ -149,7 +192,7 @@ export default function Landing() {
         <section id="work" className="section-shell">
           <div className="mb-14 flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
             <div>
-              <SectionLabel number="03">Selected work</SectionLabel>
+              <SectionLabel number="04">Selected work</SectionLabel>
               <h2 className="section-title">
                 {featuredProjects.length} projects,
                 <br />
@@ -268,7 +311,7 @@ export default function Landing() {
         {/* ---- contact ----------------------------------------------------- */}
         <section id="contact" className="contact-section border-t border-border">
           <div className="mx-auto max-w-[1380px] px-5 py-28 sm:px-8 lg:px-12 lg:py-40">
-            <SectionLabel number="04">Contact</SectionLabel>
+            <SectionLabel number="05">Contact</SectionLabel>
             <div className="flex flex-col justify-between gap-12 lg:flex-row lg:items-end">
               <div>
                 <h2 className="section-title max-w-3xl">
@@ -276,8 +319,16 @@ export default function Landing() {
                   <span className="text-muted-foreground">any of it.</span>
                 </h2>
                 <p className="mt-7 max-w-md text-base leading-7 text-muted-foreground">
-                  The source for everything here is public. If a claim on this site does not hold
-                  up against it, I would rather know.
+                  Every claim on this site points at something checkable, and each case
+                  study says plainly what it does <em>not</em> establish. If a claim here
+                  does not hold up against the evidence behind it, I would rather know.
+                </p>
+                <p className="mt-4 max-w-md text-xs leading-5 text-muted-foreground">
+                  A note on access: the repositories behind these projects are private,
+                  so evidence links that point at source will ask you to sign in to
+                  GitHub. What is verifiable without an account — CI runs, deployments,
+                  benchmarks and the numbers on each case study — is what the claims
+                  here actually rest on.
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">

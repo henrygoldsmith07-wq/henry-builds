@@ -96,7 +96,13 @@ export function FreshnessChip({ item }: { item: Evidence }) {
 /**
  * The per-project verification strip: where the source sits right now, what is
  * actually deployed, when CI last went green against it, and when a human last
- * checked the claims. Every value on it is generated; none is hand-written.
+ * checked the claims. Every generated value on it comes from the registry;
+ * none is hand-written.
+ *
+ * It is built to be read sceptically. A green date from months ago, a carried
+ * forward fact the importer could not refresh, and a failing newest run are all
+ * surfaced as themselves rather than smoothed over — a reader deciding whether to
+ * trust a number needs to know how fresh the thing backing it is.
  */
 export function SourceVerificationRow({
   status,
@@ -109,6 +115,9 @@ export function SourceVerificationRow({
   release,
   vulnerabilities,
   sourceAccess,
+  claimsCheckedAt,
+  claimsAgeDays,
+  freshWithinDays = 180,
 }: {
   status: SourceState;
   statusReason?: string;
@@ -128,9 +137,17 @@ export function SourceVerificationRow({
   release?: FactsSnapshot["release"];
   vulnerabilities?: FactsSnapshot["vulnerabilities"];
   sourceAccess?: "public" | "private";
+  /** Authored date a human last re-checked these claims. */
+  claimsCheckedAt?: string;
+  /** How old that check is, so a stale date can say so in words. */
+  claimsAgeDays?: number | null;
+  freshWithinDays?: number;
 }) {
   const copy = sourceStateCopy[status];
   const deployedBehind = deploy?.upToDate === false;
+  const newestRunRed = ci?.conclusion === "failure";
+  const claimsStale =
+    typeof claimsAgeDays === "number" && claimsAgeDays > freshWithinDays;
   return (
     <dl className="verification-row" aria-label="Source verification state">
       <div>
@@ -211,8 +228,37 @@ export function SourceVerificationRow({
           ) : (
             <span className="text-muted-foreground">not tracked</span>
           )}
+          {newestRunRed && (
+            <span
+              className="freshness-stale"
+              title="The newest run for this project did not succeed. The green date above is the last run that passed, not the current state of main."
+            >
+              {" "}
+              · newest run red
+            </span>
+          )}
         </dd>
       </div>
+      {claimsCheckedAt && (
+        <div>
+          <dt>Claims checked</dt>
+          <dd
+            title={
+              claimsStale
+                ? `A human last re-checked these claims ${claimsAgeDays} days ago, beyond the ${freshWithinDays}-day window this site treats as current.`
+                : "The date a human last re-checked the claims in this case study against the source."
+            }
+          >
+            {formatDate(claimsCheckedAt)}
+            {claimsStale && (
+              <span className="freshness-stale">
+                {" "}
+                · {claimsAgeDays}d old
+              </span>
+            )}
+          </dd>
+        </div>
+      )}
       {release && (
         <div>
           <dt>Release</dt>
