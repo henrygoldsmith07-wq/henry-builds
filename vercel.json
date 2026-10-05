@@ -28,7 +28,8 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self' https://vly.sh https://*.vly.sh https://freebuff.com https://*.freebuff.com; form-action 'self'; script-src 'self' 'sha256-fdsZYgJtgybHz8Z1IS4lp9aeri6Y2FBCqkZyPe19u+0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self' data:; connect-src 'self' https://vly.sh https://*.vly.sh https://freebuff.com https://*.freebuff.com; upgrade-insecure-requests"
+          "comment": "frame-ancestors is 'self' only. It previously allowed vly.sh and freebuff.com so the managed-editor toolbar could be framed, but that editor is opt-in behind VITE_VLY_APP_ID and its bundle is now stripped from a normal build (see vite.config.ts). On the production origin those entries granted frame and network access to two third-party origins for a feature that cannot run here. A managed Vly deployment sets its own headers.",
+          "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'sha256-fdsZYgJtgybHz8Z1IS4lp9aeri6Y2FBCqkZyPe19u+0='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; font-src 'self' data:; connect-src 'self'; upgrade-insecure-requests"
         }
       ]
     }

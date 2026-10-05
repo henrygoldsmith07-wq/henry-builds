@@ -46,9 +46,30 @@ export default defineConfig({
     absoluteOgImages(siteUrl),
   ],
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+    alias: [
+      /**
+       * The specific entry must come before the general `@` one: Vite matches
+       * alias entries in order, so a bare `@` prefix would rewrite
+       * `@/lib/vly-optional` to `src/lib/vly-optional` and the more specific
+       * rule would never be reached.
+       *
+       * Aliasing rather than a runtime check is deliberate: a `lazy(() =>
+       * import("@vly-ai/integrations"))` guarded by `if (!import.meta.env.X)`
+       * still emits its chunk, because the dynamic import is reachable through
+       * `lazy()` and the branch is only known to be false at runtime. That left
+       * ~289 KB of toolbar plus ~73 KB of instrumentation in `dist/`, written
+       * on every production build and executable by nobody, since the toolbar
+       * only renders on a `.vly.sh` hostname.
+       */
+      {
+        find: "@/lib/vly-optional",
+        replacement: path.resolve(
+          __dirname,
+          enableVlyBuildTools ? "./src/lib/vly-optional.ts" : "./src/lib/vly-disabled.ts",
+        ),
+      },
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+    ],
   },
   build: {
     // No source maps in production: the site ships its own source in public

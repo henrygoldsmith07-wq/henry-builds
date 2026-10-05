@@ -11,6 +11,10 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 import "./types/global.d.ts";
+// Imported through the `@/` specifier so the build-time alias in
+// `vite.config.ts` matches it; a relative "./lib/vly-optional" would resolve to
+// the real module and defeat the whole point.
+import * as vlyOptional from "@/lib/vly-optional";
 
 const Landing = lazy(() => import("./pages/Landing.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
@@ -91,21 +95,20 @@ function normalizeCleanUrlPathname(): void {
 
 normalizeCleanUrlPathname();
 
-const VlyToolbar = isVlyDeployment
-  ? lazy(async () => {
-      await import("@vly-ai/integrations");
-      const module = await import("../vly-toolbar-readonly.tsx");
-      return { default: module.VlyToolbar };
-    })
-  : null;
-
-const vlyInstrumentationEnabled = Boolean(import.meta.env.VITE_VLY_APP_ID);
-const VlyInstrumentation = vlyInstrumentationEnabled
-  ? lazy(async () => {
-      const module = await import("@/instrumentation.tsx");
-      return { default: module.InstrumentationProvider };
-    })
-  : null;
+/**
+ * Vly's editor integration.
+ *
+ * Resolved through `@/lib/vly-optional`, which `vite.config.ts` aliases to a
+ * stub unless `VITE_VLY_APP_ID` is set. A `lazy(() => import(...))` written
+ * inline here would still emit its chunk — the dynamic import stays reachable
+ * through `lazy()` and the dead branch is only known at runtime — so `dist/`
+ * carried ~289 KB of toolbar and ~73 KB of instrumentation that no visitor on
+ * the production domain could ever execute.
+ *
+ * The same flag decides whether `vlyPlugin()` is registered in the Vite config,
+ * so the toolbar cannot appear without the editor that drives it.
+ */
+const { VlyToolbar, VlyInstrumentation } = vlyOptional;
 
 function RouteLoading() {
   return (
