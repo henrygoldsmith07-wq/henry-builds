@@ -197,7 +197,8 @@
         "Reports 0% reduction honestly when compression is not possible, rather than massaging the number",
         "Pairs every reduction figure with a retention figure, which is what makes the number trustworthy"
       ]
-    }
+    },
+    "whyItMatters": "This is the most technically legible proof of engineering here: an agent reading raw tool output pays for thousands of lines confirming that nothing went wrong, and this reduces that to something small without dropping the line the reader needed. The reduction strategies are published with their percentages and their failure modes, which is rare. It is also the honest counter-example on this site — its CI is currently red, the benchmark's 99% figure was measured on synthetic fixtures rather than captured production transcripts, and both are stated on the case study rather than smoothed over."
   },
   "sourceState": "current-source"
 }

@@ -205,7 +205,8 @@
         "Replaces the chatbot/personality-test split with assess → rehearse → practise for real → reflect",
         "Adapts what it drills next from demonstrated behaviour, not from a fixed curriculum"
       ]
-    }
+    },
+    "whyItMatters": "Social-skills apps tend to become either a chatbot you talk to forever or a personality test that hands you a label, and both make the app the destination rather than the conversation. Rapport is a prototype of the version that does not — but it is a prototype, and it is labelled as one. What it demonstrates is scoping: a narrow model role with a stated language contract, and a recommendation that degrades to a deterministic fallback rather than failing when no provider is configured."
   },
   "sourceState": "current-source"
 }

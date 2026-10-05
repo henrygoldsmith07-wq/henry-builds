@@ -190,7 +190,8 @@
         "Targets UK A-level and GCSE rather than being a generic note-taking app",
         "Turns each marked mistake into scheduled repair rather than a list you never revisit"
       ]
-    }
+    },
+    "whyItMatters": "Revision tools get built as note-taking apps, which optimises for capture and leaves the only question that matters the week before an exam — what do I do right now — unanswered. Revise starts from that question instead: a mark scheme you can edit, double-marking against it, and a queue of weak areas rather than a pile of notes. It is the clearest evidence here of working on someone else's actual constraint, and of recording a decision that turned out to be wrong rather than quietly dropping it."
   },
   "sourceState": "current-source"
 }

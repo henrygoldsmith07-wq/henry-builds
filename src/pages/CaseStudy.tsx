@@ -117,6 +117,32 @@ export default function CaseStudy() {
   // labels itself, so a mockup is never read as a screenshot.
   const gallery = study.visuals.slice(1);
   const demonstrates = demonstratesOf(project);
+
+  /**
+   * What this page actually establishes, counted from the case study rather
+   * than asserted in prose.
+   *
+   * "Built" and "not built" already come from the authorship record. This adds
+   * the distinction that matters most and was missing: an outcome carrying
+   * evidence is *proven*, and an outcome with none is *claimed*. Both are
+   * legitimate things for a case study to contain — but a reader has to be able
+   * to tell which is which, and until now nothing on the page said so.
+   */
+  const outcomesWithEvidence = study.outcomes.filter((o) => o.evidence.length > 0).length;
+  const outcomesWithoutEvidence = study.outcomes.length - outcomesWithEvidence;
+  const metricsWithEvidence = study.metrics.filter((m) => (m.evidence?.length ?? 0) > 0).length;
+
+  /**
+   * A project with no outcomes at all is a different situation from one whose
+   * outcomes are all evidenced, and the copy must not blur them. "Every stated
+   * outcome is backed" is false for a page that states none.
+   */
+  const claimsSummary =
+    study.outcomes.length === 0
+      ? `This case study states no outcomes at all, so there is nothing here that a source link could back. Read the sections below as design notes, not as verified results.`
+      : outcomesWithoutEvidence === 0
+        ? "Every stated outcome on this page is backed by something you can open."
+        : `${outcomesWithoutEvidence} of ${study.outcomes.length} outcomes are stated without a source link. They are believed, not demonstrated — treat them accordingly.`;
   const verifiedAgeDays = daysSinceVerified(project);
   const deployAgeDays = deploySnapshotAgeDays(project);
 
@@ -413,7 +439,60 @@ export default function CaseStudy() {
               </Section>
             )}
 
-            {/* ---- problem / approach -------------------------------------- */}
+            {/* Why this is here, before any of the technical detail. A reader deciding
+                whether this person can do what they need should not have to
+                scroll past architecture and metrics to find out. */}
+            {study.whyItMatters && (
+              <Section number={nextSection()} title="Why this matters" id="why-it-matters">
+                <p className="large-copy max-w-3xl">{study.whyItMatters}</p>
+              </Section>
+            )}
+
+            <Section number={nextSection()} title="What this establishes" id="establishes">
+              {/*
+                Four buckets, all counted from this case study's own fields.
+                A project with nothing in "claimed" is genuinely stronger, and a
+                project with entries there is not being quietly hidden — they are
+                named so a reader can weigh them.
+              */}
+              <dl className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+                <div className="bg-background p-5">
+                  <dt className="eyebrow">Built</dt>
+                  <dd className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {authorship.built.length} of {authorship.built.length + authorship.notBuilt.length}{" "}
+                    claimed as mine, listed under{" "}
+                    <Link to="#authorship" className="underline underline-offset-2 hover:text-foreground">
+                      what I built
+                    </Link>
+                    .
+                  </dd>
+                </div>
+                <div className="bg-background p-5">
+                  <dt className="eyebrow">Supplied</dt>
+                  <dd className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {authorship.notBuilt.length === 0
+                      ? "Nothing substantial borrowed beyond the language and its standard library."
+                      : `${authorship.notBuilt.length} ${authorship.notBuilt.length === 1 ? "piece" : "pieces"} of third-party or existing work, named rather than folded into the result.`}
+                  </dd>
+                </div>
+                <div className="bg-background p-5">
+                  <dt className="eyebrow">Proven</dt>
+                  <dd className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {outcomesWithEvidence === 0 && study.outcomes.length === 0
+                      ? `No outcomes are stated, so nothing on this page is presented as proven. ${metricsWithEvidence} of ${study.metrics.length} measured figures carry a source.`
+                      : `${outcomesWithEvidence} of ${study.outcomes.length} stated outcomes carry a source link, plus ${metricsWithEvidence} of ${study.metrics.length} measured figures.`}
+                  </dd>
+                </div>
+                <div className="bg-background p-5">
+                  <dt className="eyebrow">Claimed</dt>
+                  <dd className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {claimsSummary}
+                  </dd>
+                </div>
+              </dl>
+            </Section>
+
+            {/* ---- problem / approach-------------------------------------- */}
             <Section number={nextSection()} title="The problem" id="problem">
               <p className="large-copy max-w-3xl">{study.problem}</p>
             </Section>

@@ -185,7 +185,8 @@
         "Turns “what should I cook and what do I need to buy” into one weekly loop rather than five disconnected screens",
         "Spends trust on explainability: the user can always see why something was suggested"
       ]
-    }
+    },
+    "whyItMatters": "Most meal-planning apps fail on their first real user: they ship with a pretend pantry, so the numbers on screen belong to the demo rather than to the person looking at them. Forq is an attempt at the harder version — an app whose first-run state is genuinely empty and says so, where the pantry is a ledger the user actually owns. It shows the product judgement of someone who would rather build something small and honest than something that demos well and dies in week two."
   },
   "sourceState": "current-source"
 }

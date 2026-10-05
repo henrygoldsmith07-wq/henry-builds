@@ -285,6 +285,16 @@ export type Demonstrates = {
 
 export type CaseStudy = {
   problem: string;
+  /**
+   * Why this project is worth a reader's attention, aimed at someone deciding
+   * whether this person can do the thing they need.
+   *
+   * Deliberately optional and deliberately short. `problem` explains what the
+   * project was up against; this explains what finishing it proves, which is a
+   * different question and the one a visitor actually has. Projects without it
+   * are not padded with filler — the page simply does not show the section.
+   */
+  whyItMatters?: string;
   approach: string;
   architecture?: Architecture;
   insightLifecycle?: InsightLifecycle;

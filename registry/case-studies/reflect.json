@@ -180,7 +180,8 @@
         "Never states “you have catastrophizing bias” — a tentative reading of one account is not presented as a diagnosis",
         "Local-first: the reflection stays on the device"
       ]
-    }
+    },
+    "whyItMatters": "Mood trackers record that you felt bad on Tuesday and leave the interpretation — the part that is actually available to change — untouched. Reflect is an attempt at the version that pushes back, and the interesting part is the boundary: the model writes the language, but the score that decides whether anything is flagged is computed in code so it stays reproducible and testable. Four recorded limitations and two trade-offs, with every outcome carrying a source link."
   },
   "sourceState": "current-source"
 }
