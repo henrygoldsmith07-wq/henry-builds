@@ -9,6 +9,7 @@ import {
   demonstratesOf,
   evidenceDensityOf,
   featuredProjects,
+  hasCarriedCi,
   hasRedCi,
   projects,
   registryMeta,
@@ -262,6 +263,7 @@ export default function Projects() {
               const shows = demonstratesOf(project);
               const evidenceCount = evidenceDensityOf(project);
               const redCi = hasRedCi(project);
+              const carriedCi = hasCarriedCi(project);
 
               return (
                 <li key={project.slug} className="bg-background">
@@ -275,12 +277,33 @@ export default function Projects() {
                       <span className="text-xs text-muted-foreground">
                         {project.category}
                       </span>
+                      {/* Absence of a "CI red" badge previously read as "CI is fine" for the five
+                          projects whose CI facts were carried forward rather
+                          than refreshed. Those are not-green-and-not-verified,
+                          and the archive said nothing. */}
+                      {carriedCi && (
+                        <span
+                          className="freshness-stale"
+                          title="The last CI refresh could not reach this repository, so this result has not been re-verified."
+                        >
+                          CI unverified
+                          <span className="sr-only">
+                            {" "}
+                            — the last CI refresh could not reach this repository, so this
+                            result has not been re-verified.
+                          </span>
+                        </span>
+                      )}
                       {redCi && (
                         <span
                           className="freshness-stale"
                           title="The newest tracked CI run for this project did not succeed."
                         >
                           CI red
+                          <span className="sr-only">
+                            {" "}
+                            — the newest tracked CI run for this project did not succeed.
+                          </span>
                         </span>
                       )}
                     </div>
@@ -310,6 +333,24 @@ export default function Projects() {
                           ) : (
                             <span>none recorded</span>
                           )}
+                        </p>
+                      )}
+
+                      {/*
+                        A carried-forward record is not a green build. It means
+                        the last refresh could not reach the repository — here
+                        because the repo moved during the 2026-08 migration — so
+                        the date above is a snapshot nobody can currently
+                        re-verify. Saying so beats letting a stale result read
+                        as current.
+                      */}
+                      {carriedCi && (
+                        <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+                          Carried forward{" "}
+                          <span className="text-muted-foreground/70">
+                            — the last refresh could not reach this repository, so this
+                            result has not been re-verified since.
+                          </span>
                         </p>
                       )}
                     </div>

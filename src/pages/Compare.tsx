@@ -8,6 +8,7 @@ import { StageBadge } from "@/components/portfolio/StageBadge";
 import { ProofSummaryBar } from "@/components/portfolio/ProofSummary";
 import {
   daysSinceVerified,
+  hasCarriedCi,
   demonstratesOf,
   evidenceDensityOf,
   ledgerGradeRank,
@@ -85,11 +86,27 @@ function Cell({ children, tone }: { children: React.ReactNode; tone?: "muted" | 
 
 function CiCell({ project }: { project: HydratedProject }) {
   if (!project.ci) return <Cell tone="muted">not tracked</Cell>;
-  const green = project.ci.conclusion === "success";
   const last = project.ci.lastVerifiedAt?.slice(0, 10) ?? "—";
+
+  // A carried-forward record must not render as "green". This is the column a
+  // reader scans to decide which work is currently verified, and the five
+  // migrated repositories were showing a pass for a result that has not been
+  // reachable since the 2026-08 migration.
+  if (hasCarriedCi(project)) {
+    return (
+      <span>
+        <Cell tone="warn">unverified</Cell>
+        <span className="mt-0.5 block text-[11px] text-muted-foreground">
+          carried forward · {last}
+        </span>
+      </span>
+    );
+  }
+
+  const green = project.ci.conclusion === "success";
   if (!green) {
     return (
-      <span title="The newest tracked run for this project did not succeed.">
+      <span>
         <Cell tone="warn">red newest run</Cell>
         <span className="mt-0.5 block text-[11px] text-muted-foreground">
           last green {last}

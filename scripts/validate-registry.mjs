@@ -23,6 +23,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { isPublishedCaseStudy } from "./lib/published-projects.mjs";
+import * as canonicalFreshness from "../src/data/registry/freshness.mjs";
 
 const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
@@ -61,17 +62,22 @@ const STAGE_EVIDENCE = {
  * Generated-evidence freshness. CI facts older than this are expired: the site
  * must not display a green date from months ago as if it were current.
  */
-const MAX_CI_FACTS_AGE_DAYS = 14;
-/** A green run older than this behind a failed latest run stops being news. */
-const RED_CI_STALE_DAYS = 30;
 /**
- * A screenshot of a running product goes stale when the product moves on. Past
- * this, the capture is history: it may not keep presenting itself as evidence
- * of what the project does today.
+ * Every freshness window the site enforces, read from one module.
+ *
+ * These four numbers were previously declared here, restated in
+ * `EvidenceMeta.tsx`, and hard-coded again as a bare `3` inside a workflow.
+ * Three implementations of "how old may a capture be" is how a gate and the UI
+ * come to disagree — the page showing evidence as current while CI fails it.
+ * `src/data/registry/freshness.mjs` is a plain ES module with no Node or DOM
+ * imports precisely so this file and the browser bundle can load the same bytes.
  */
-const MAX_CAPTURE_AGE_DAYS = 90;
-/** Time-sensitive claims must be re-verified at least this often. */
-const MAX_CLAIM_AGE_DAYS_DEFAULT = 180;
+const {
+  GENERATED_LAYER_MAX_AGE_DAYS: MAX_CI_FACTS_AGE_DAYS,
+  RED_CI_STALE_DAYS,
+  MAX_CAPTURE_AGE_DAYS,
+  MAX_CLAIM_AGE_DAYS: MAX_CLAIM_AGE_DAYS_DEFAULT,
+} = canonicalFreshness;
 
 const MAX_FEATURED = 6;
 const MIN_FEATURED = 5;

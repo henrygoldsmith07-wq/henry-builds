@@ -19,6 +19,7 @@ import type {
   UpstreamSnapshot,
 } from "./schema";
 import { isPublishedCaseStudy, needsHistoricalDisclosure } from "./publication.mjs";
+import { MAX_CLAIM_AGE_DAYS } from "./freshness.mjs";
 import upstreamRaw from "../../../registry/upstream.json";
 import ciFactsRaw from "../../../registry/ci-facts.json";
 import evidenceLedgerRaw from "../../../registry/evidence-ledger.json";
@@ -428,8 +429,15 @@ export const registryMeta = {
   factsGeneratedAt: factsFile.generatedAt,
 };
 
-/** How recently a claim check still counts as current, in days. */
-export const FRESH_CLAIM_WINDOW_DAYS = 180;
+/**
+ * How recently a claim check still counts as current, in days.
+ *
+ * Re-exported from the canonical freshness module rather than restated: this
+ * number previously had a second copy in `EvidenceMeta.tsx`, a third in
+ * `validate-registry.mjs` and a fourth as a bare number inside a workflow file.
+ * Four answers to "how old may a claim stay verified" is how they drift apart.
+ */
+export const FRESH_CLAIM_WINDOW_DAYS = MAX_CLAIM_AGE_DAYS;
 
 /**
  * Count the site's own evidence base at load time.
@@ -472,11 +480,20 @@ export function buildProofSummary(list: HydratedProject[] = allProjects): ProofS
 
     if (project.ci) {
       ciTracked++;
-      if (project.ci.conclusion === "success") ciGreen++;
+      // A carried-forward record is not evidence that CI is green — it is a
+      // record that the last refresh could not reach the repository. Counting
+      // it as a pass would let a migrated repo keep reporting green on the
+      // strength of a result nobody can re-run.
+      if (project.ci.conclusion === "success" && !hasCarriedCi(project)) ciGreen++;
     }
 
     const age = daysSinceVerified(project);
-    if (age !== null && age <= FRESH_CLAIM_WINDOW_DAYS) recentlyVerified++;
+    // Only current-source projects can count as recently verified. A historical
+    // case study whose claims were checked before the source was deleted can
+    // carry a recent-enough date on paper while nothing remains to check.
+    if (age !== null && age <= FRESH_CLAIM_WINDOW_DAYS && !needsHistoricalDisclosure({ sourceState: project.sourceState })) {
+      recentlyVerified++;
+    }
   }
 
   return {

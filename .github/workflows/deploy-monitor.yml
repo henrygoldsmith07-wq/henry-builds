@@ -40,7 +40,21 @@ jobs:
           fi
           age=$(( ( $(date -u +%s) - $(date -u -d "$ts" +%s) ) / 86400 ))
           echo "age_days=$age" >> "$GITHUB_OUTPUT"
-          if [ "$age" -gt 3 ]; then
+          # Read from the canonical freshness module rather than repeating the
+          # threshold in shell. A bare `3` here had no counterpart in any JS
+          # file, so the monitor could alarm on a different schedule than the
+          # gate and the page badge, and nothing would notice.
+          # `node -e` with dynamic `import()` rather than `require()` or `--print`:
+          # this job does not run setup-node, so the runner's default version is
+          # used, and neither `require()` of an ES module (Node 22.12+) nor
+          # `--print` with `--input-type=module` is safe across versions.
+          alarm_days=$(node -e "import('./src/data/registry/freshness.mjs').then(m => process.stdout.write(String(m.DEPLOY_ALARM_AGE_DAYS)))" 2>/dev/null)
+          if [ -z "$alarm_days" ]; then
+            alarm_days=3
+            echo "::warning::could not read DEPLOY_ALARM_AGE_DAYS from the freshness module; falling back to 3"
+          fi
+          echo "alarm_days=$alarm_days" >> "$GITHUB_OUTPUT"
+          if [ "$age" -gt "$alarm_days" ]; then
             echo "stale=true" >> "$GITHUB_OUTPUT"
           else
             echo "stale=false" >> "$GITHUB_OUTPUT"

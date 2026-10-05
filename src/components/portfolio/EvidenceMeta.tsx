@@ -6,6 +6,11 @@ import type {
   SourceState,
 } from "@/data/registry/schema";
 import { sourceStateCopy } from "@/data/registry/schema";
+import {
+  DEPLOY_SNAPSHOT_WINDOW_DAYS,
+  MAX_CAPTURE_AGE_DAYS,
+  MAX_CLAIM_AGE_DAYS,
+} from "@/data/registry/freshness.mjs";
 
 const gradeClass: Record<string, string> = {
   "externally-validated": "grade-external",
@@ -77,7 +82,11 @@ export function FreshnessChip({ item }: { item: Evidence }) {
   const ageDays = Math.floor((now - new Date(item.capturedAt).getTime()) / 86_400_000);
   const stale = item.expiresAt
     ? now > new Date(item.expiresAt).getTime()
-    : ageDays > 90;
+    // The 90-day capture window is the canonical one. It had a second copy
+    // here as a bare literal; `registry:freshness` enforces the same number in
+    // CI, so a drift between the gate and the badge would show stale evidence
+    // as current on the page while failing the build.
+    : ageDays > MAX_CAPTURE_AGE_DAYS;
   return (
     <span
       className={`freshness-chip ${stale ? "freshness-stale" : ""}`}
@@ -117,9 +126,13 @@ export function SourceVerificationRow({
   sourceAccess,
   claimsCheckedAt,
   claimsAgeDays,
-  freshWithinDays = 180,
+  // Defaults come from the canonical freshness module, not from literals repeated
+  // here. Both of these numbers were also hard-coded in this file while the same
+  // windows were enforced elsewhere, which is precisely how a page ends up
+  // showing a claim as fresh while CI fails it.
+  freshWithinDays = MAX_CLAIM_AGE_DAYS,
   deployAgeDays = null,
-  deployWindowDays = 14,
+  deployWindowDays = DEPLOY_SNAPSHOT_WINDOW_DAYS,
 }: {
   status: SourceState;
   statusReason?: string;
