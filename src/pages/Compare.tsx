@@ -72,6 +72,219 @@ function honestyScore(project: HydratedProject): number {
   return disclosures * 10 + cs.metrics.length * 2 + stageRank[project.stage];
 }
 
+/**
+ * Visitor lenses: the questions someone actually arrives with.
+ *
+ * A visitor does not want "evidence density". They want "show me the thing that
+ * proves he can build a UI", or "which one used a model well". Each lens matches
+ * against fields the registry already holds — the `tags`, `category` and
+ * upstream `stack` strings — and then shows **which tag matched**.
+ *
+ * Two things make this defensible rather than decorative. The terms are taken
+ * from the vocabulary the registry actually uses, not from a generic list of
+ * technology words. And the matching term is displayed next to each project, so
+ * a ranking can be argued with and checked against the same strings it was
+ * derived from. A hidden composite score would rank confidently and could not be
+ * questioned, which is the opposite of what this site is for.
+ */
+type Lens = {
+  key: string;
+  label: string;
+  question: string;
+  /** Registry tags/categories/stack strings matched case-insensitively on word boundaries. */
+  terms: string[];
+};
+
+const LENSES: Lens[] = [
+  {
+    key: "frontend",
+    label: "Strongest UI work",
+    question: "Which projects are mostly about the interface, and what are they built with?",
+    terms: [
+      "css",
+      "design tokens",
+      "next.js",
+      "pwa",
+      "offline-first",
+      "client-side",
+      "three.js",
+      "electron",
+      "accessibility",
+      "dashboard",
+      "realtime",
+      "information design",
+    ],
+  },
+  {
+    key: "ai",
+    label: "Where a model was used",
+    question: "Which projects involve a model, and in what role?",
+    terms: [
+      "ai boundary",
+      "grounding",
+      "grounded generation",
+      "language contract",
+      "hedging",
+      "explainability",
+      "mastery model",
+      "claude",
+      "local-first",
+    ],
+  },
+  {
+    key: "systems",
+    label: "Systems and tooling",
+    question: "Which projects run close to the machine — CLIs, parsers, storage, orchestration?",
+    terms: [
+      "cli",
+      "parsers",
+      "token efficiency",
+      "electron",
+      "python",
+      "postgres",
+      "pglite",
+      "object storage",
+      "shared state",
+      "connectors",
+      "skill graph",
+      "orchestration",
+    ],
+  },
+  {
+    key: "product",
+    label: "Product-shaped problems",
+    question: "Which projects were built around a specific user problem rather than a technique?",
+    terms: [
+      "product constraints",
+      "privacy",
+      "privacy mode",
+      "everyday systems",
+      "personal productivity",
+      "offline-first",
+      "local-first",
+      "speech-to-text",
+      "speech",
+    ],
+  },
+  {
+    key: "testing",
+    label: "Testing as a theme",
+    question: "Which projects treat verification as part of the product rather than an afterthought?",
+    terms: ["playwright", "validation", "experiments", "provenance", "statistics", "benchmarks"],
+  },
+  {
+    key: "benchmarked",
+    label: "Measured, not asserted",
+    question: "Which projects publish numbers with a method someone could re-run?",
+    terms: ["benchmarks", "token efficiency", "parsers", "statistics", "experiments", "provenance"],
+  },
+];
+
+/**
+ * Returns every registry term that matched, so the ranking can show its reason.
+ *
+ * Matching is on word boundaries, not raw substrings. Naive `includes` made the
+ * short terms unusable: "ai" matched "detail", "main" and "domain", so twelve of
+ * fourteen projects appeared to use a model, and "ui" matched "build" and
+ * "guide" — which put almost nothing in the UI lens at all. A ranking that
+ * cannot be taken seriously is worse than no ranking.
+ */
+function lensMatches(project: HydratedProject, lens: Lens): string[] {
+  const shows = demonstratesOf(project);
+  const haystack = [
+    project.category,
+    project.upstream?.stack ?? "",
+    ...project.tags,
+    ...shows.technical,
+    ...shows.product,
+  ]
+    .join(" • ")
+    .toLowerCase();
+
+  return lens.terms.filter((term) => {
+    // Escape the term so a term like "c++" cannot be read as a pattern.
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Boundaries on both sides, so "ai" cannot match inside "detail" while
+    // still matching "AI" or "ai-driven".
+    return new RegExp(`(?<![a-z0-9])${escaped}(?![a-z0-9])`, "i").test(haystack);
+  });
+}
+
+function LensRankings({ rows }: { rows: HydratedProject[] }) {
+  const ranked = LENSES.map((lens) => {
+    const scored = rows
+      .map((project) => ({ project, matches: lensMatches(project, lens) }))
+      .filter((entry) => entry.matches.length > 0)
+      // More distinct matched terms first. Projects that tie are shown in the
+      // registry's order rather than being given a fabricated differentiator.
+      .sort((a, b) => b.matches.length - a.matches.length);
+    return { lens, scored };
+  }).filter((entry) => entry.scored.length > 0);
+
+  if (ranked.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-[1380px] px-5 pb-20 sm:px-8 lg:px-12" aria-labelledby="lenses-heading">
+      <div className="mb-8">
+        <h2 id="lenses-heading" className="text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
+          What to look at first
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          Each list below is ranked by how many distinct registry terms a project
+          matches, and every project shows which terms matched. Nothing here is a
+          composite score: the ranking can be checked against the same tags,
+          category and stack strings it was derived from. Where projects tie, they
+          are shown together rather than separated arbitrarily.
+        </p>
+      </div>
+
+      <div className="grid gap-px overflow-hidden border border-border bg-border md:grid-cols-2 xl:grid-cols-3">
+        {ranked.map(({ lens, scored }) => {
+          const top = scored[0].matches.length;
+          return (
+            <section key={lens.key} className="bg-background p-5 sm:p-6">
+              <h3 className="text-base font-semibold tracking-tight">{lens.label}</h3>
+              <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{lens.question}</p>
+              <ol className="mt-5 space-y-4">
+                {scored.map(({ project, matches }) => {
+                  const tied = matches.length === top && scored.filter((s) => s.matches.length === top).length > 1;
+                  return (
+                    <li key={project.slug}>
+                      <Link
+                        to={`/projects/${project.slug}`}
+                        className="group inline-flex items-start gap-1.5 font-medium hover:underline"
+                      >
+                        {project.name}
+                        <ArrowUpRight
+                          className="mt-0.5 size-3.5 shrink-0 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                          aria-hidden="true"
+                        />
+                      </Link>
+                      <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">
+                        {matches.map((term) => (
+                          <span
+                            key={term}
+                            className="mr-1.5 inline-block border border-border px-1.5 py-0.5 font-mono text-[10px]"
+                          >
+                            {term}
+                          </span>
+                        ))}
+                        {tied && (
+                          <span className="ml-1 text-muted-foreground/70">tied at top</span>
+                        )}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function Cell({ children, tone }: { children: React.ReactNode; tone?: "muted" | "warn" | "good" }) {
   const toneClass =
     tone === "warn"
@@ -235,6 +448,8 @@ export default function Compare() {
           </div>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">{active.blurb}</p>
         </section>
+
+        <LensRankings rows={rows} />
 
         <section className="mx-auto max-w-[1380px] px-5 pb-24 sm:px-8 lg:px-12">
           {/*
