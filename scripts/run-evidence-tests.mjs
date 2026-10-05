@@ -701,6 +701,42 @@ test("registry:freshness rejects an anonymous CI import", async () => {
   }
 });
 
+// --- generator smoke tests -------------------------------------------------
+
+/**
+ * Every generator is run for real against the actual repository.
+ *
+ * `generate-route-html.mjs` shipped a `TypeError` on every invocation and the
+ * entire suite stayed green, because the crash happened after the project pages
+ * had been written — so `dist/` was left holding correct output and every
+ * downstream check passed on it. A generator that throws has to fail loudly, and
+ * the cheapest way to guarantee that is to run it.
+ *
+ * These deliberately run against the repository rather than a fixture: a
+ * generator's job is to survive the real registry, and the failure above was
+ * invisible to every fixture-shaped test.
+ */
+for (const script of [
+  ["generate-sitemap", "scripts/generate-sitemap.mjs"],
+  ["generate-route-html", "scripts/generate-route-html.mjs"],
+  ["check-links", "scripts/check-links.mjs"],
+  ["check-route-html", "scripts/check-route-html.mjs"],
+  ["build-build-log", "scripts/build-build-log.mjs"],
+]) {
+  const [name, relative] = script;
+  test(`${name} runs to completion against the real registry`, async () => {
+    const { code, stdout, stderr } = await runNode(repoRoot, relative);
+    if (code !== 0) {
+      throw new Error(
+        `${relative} exited ${code}\n${stderr.split("\n").slice(-8).join("\n")}`,
+      );
+    }
+    if (/TypeError|ReferenceError|is not a function|Cannot read properties/.test(stdout + stderr)) {
+      throw new Error(`${relative} printed an engine error:\n${stderr.split("\n").slice(-6).join("\n")}`);
+    }
+  });
+}
+
 // --- the publication gate ---------------------------------------------------
 
 /**
