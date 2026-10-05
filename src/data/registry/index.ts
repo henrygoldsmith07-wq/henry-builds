@@ -18,12 +18,7 @@ import type {
   UpstreamEntry,
   UpstreamSnapshot,
 } from "./schema";
-import {
-  buildRouteManifest,
-  buildRoutePaths,
-  isPublishedCaseStudy,
-  needsHistoricalDisclosure,
-} from "./publication.mjs";
+import { isPublishedCaseStudy, needsHistoricalDisclosure } from "./publication.mjs";
 import upstreamRaw from "../../../registry/upstream.json";
 import ciFactsRaw from "../../../registry/ci-facts.json";
 import evidenceLedgerRaw from "../../../registry/evidence-ledger.json";
@@ -126,6 +121,18 @@ function sourceStateOf(project: Project): SourceState {
   return "current-source";
 }
 
+/**
+ * Whether this project may lead the archive.
+ *
+ * A project whose source is no longer current can never be featured, whatever
+ * its case study says. The rule is the canonical one from `publication.mjs`
+ * rather than an inline `sourceState === "current-source"` test, so the two
+ * places that used to spell it out separately cannot drift.
+ */
+function canBeFeatured(project: Project, sourceState: SourceState): boolean {
+  return project.featured && !needsHistoricalDisclosure({ sourceState });
+}
+
 function hydrate(project: Project): HydratedProject {
   const entry = upstreamById.get(project.upstreamId);
   const facts = ciFacts[project.upstreamId];
@@ -135,7 +142,7 @@ function hydrate(project: Project): HydratedProject {
   return {
     ...project,
     // An archived source never leads the landing page, whatever the file says.
-    featured: sourceState === "current-source" ? project.featured : false,
+    featured: canBeFeatured(project, sourceState),
     caseStudy: {
       ...project.caseStudy,
       metrics: withCiMetrics(project, facts),

@@ -22,6 +22,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { isPublishedCaseStudy } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
 const caseStudyDir = path.join(root, "registry/case-studies");
@@ -289,23 +290,29 @@ for (const file of files) {
   }
 
   // --- publish gate -------------------------------------------------------
+  // `publishesHere` is the canonical rule, not `publish !== false`. The two
+  // differ for a gated project whose upstream lifecycle has been promoted: the
+  // gate opens, so the project IS on the site and its evidence rules apply.
+  const publishesHere = isPublishedCaseStudy(project, upstreamById);
   if (project.publish === false) {
     if (!project.publishGate) {
       fail(`${id}: publish is false, so publishGate must explain why and what opens it`);
     }
-    const lifecycle = upstreamById.get(project.upstreamId)?.lifecycle;
-    if (lifecycle === "active" || lifecycle === "maintenance") {
+    if (publishesHere) {
       gated.push(
-        `${project.name}: upstream lifecycle is now '${lifecycle}' — the gate has opened ` +
-          `and it will publish on the next build. Set "publish": true to make that explicit.`,
+        `${project.name}: upstream lifecycle now satisfies the publication rule, so this gate ` +
+          `has opened and it will publish on the next build. Set "publish": true to make that explicit.`,
       );
     }
   }
 
   if (project.featured) {
     featuredCount++;
-    if (project.publish === false) {
-      fail(`${id}: cannot be featured while publish is false`);
+    // The site's own overlay drops `featured` for any project whose source is
+    // not current, so flagging it here would fail the registry on a project
+    // that never actually reaches the landing page.
+    if (!publishesHere) {
+      fail(`${id}: cannot be featured while the publication gate is closed`);
     }
   }
 
@@ -402,7 +409,9 @@ for (const file of files) {
   // more — so expectedCiCount stayed 0 and the coverage rule below could never
   // run. Both shapes must be counted or the guarantee is decorative.
   const entry = upstreamById.get(project.upstreamId);
-  const publishedHere = project.publish !== false;
+  // Canonical publication rule, so a project the site actually serves cannot
+  // quietly skip the CI-evidence requirement.
+  const publishedHere = isPublishedCaseStudy(project, upstreamById);
   const ciLookupTarget = entry?.workflow
     ? `${entry.workflow} on ${SOURCE_REPO}`
     : entry?.repo

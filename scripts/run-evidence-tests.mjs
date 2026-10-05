@@ -18,7 +18,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const execFileAsync = promisify(execFile);
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
@@ -84,6 +84,10 @@ function validStudy(slug, overrides = {}) {
     category: "Testing",
     accent: "#ffffff",
     featured: false,
+    // Every real case study declares this. The canonical publication rule reads
+    // `publish === true` strictly, so a fixture that omits it models an
+    // unpublished project — which is not what these tests are exercising.
+    publish: true,
     sourceState: "current-source",
     authorship: {
       role: "Sole author",
@@ -623,6 +627,119 @@ test("check-pipeline-health survives a missing facts file with a clear failure",
   if (result.code !== 1) throw new Error(`exit ${result.code}`);
   if (!/unreadable after import/.test(result.stderr)) throw new Error(`stderr: ${result.stderr}`);
 });
+
+// --- freshness gate ---------------------------------------------------------
+
+/**
+ * Builds a temp repo containing only the generated layers, so the freshness
+ * gate can be exercised without touching the real registry. `facts` is merged
+ * into ci-facts.json; `stamps` overrides each layer's timestamp field.
+ */
+function freshnessCase(label, { stamps = {}, facts, mode, omit = [] } = {}) {
+  const dir = tempDir(label);
+  for (const file of [
+    "upstream.json",
+    "evidence-ledger.json",
+    "source-status.json",
+    "ci-facts.json",
+    "facts-history.json",
+    "bundle-history.json",
+  ]) {
+    if (omit.includes(file)) continue;
+    const data = JSON.parse(
+      fs.readFileSync(path.join(repoRoot, "registry", file), "utf8"),
+    );
+    for (const field of ["importedAt", "checkedAt", "generatedAt"]) {
+      if (data[field]) data[field] = stamps[field] ?? daysAgoIso(1).slice(0, 19) + ".000Z";
+    }
+    if (file === "ci-facts.json") {
+      if (facts) data.facts = facts;
+      if (mode) data.mode = mode;
+      else delete data.mode;
+    }
+    writeJson(path.join(dir, "registry", file), data);
+  }
+  // The gate imports the shared windows module, so mirror it into the temp repo.
+  fs.mkdirSync(path.join(dir, "src", "data", "registry"), { recursive: true });
+  fs.copyFileSync(
+    path.join(repoRoot, "src", "data", "registry", "freshness.mjs"),
+    path.join(dir, "src", "data", "registry", "freshness.mjs"),
+  );
+  fs.mkdirSync(path.join(dir, "scripts"), { recursive: true });
+  fs.copyFileSync(
+    path.join(repoRoot, "scripts", "check-registry-freshness.mjs"),
+    path.join(dir, "scripts", "check-registry-freshness.mjs"),
+  );
+  return runNode(dir, script("scripts", "check-registry-freshness.mjs"));
+}
+
+test("registry:freshness fails when a generated layer is older than the window", async () => {
+  const result = await freshnessCase("evm-fresh-stale", {
+    stamps: { checkedAt: daysAgoIso(60).slice(0, 19) + ".000Z" },
+  });
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/source-status\.json is \d+/.test(result.stderr)) {
+    throw new Error(`missing stale-layer failure:\n${result.stderr}`);
+  }
+});
+
+test("registry:freshness cannot be satisfied by stamping a layer as freshly imported", async () => {
+  // The bypass: rewrite every timestamp to now, leaving the contents old.
+  const result = await freshnessCase("evm-fresh-bypass", {});
+  if (result.code !== 1) {
+    throw new Error(
+      `stamping every layer as fresh passed the gate (exit ${result.code}); the bypass is not defeated`,
+    );
+  }
+});
+
+test("registry:freshness rejects an anonymous CI import", async () => {
+  const result = await freshnessCase("evm-fresh-anon", { mode: "anonymous" });
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/anonymous/.test(result.stderr)) {
+    throw new Error(`missing anonymous-mode failure:\n${result.stderr}`);
+  }
+});
+
+// --- the publication gate ---------------------------------------------------
+
+/**
+ * The publication rule is the one piece of logic every consumer shares: the
+ * router, the sitemap, the link checker, the deploy probe and the validator all
+ * have to agree about which projects exist. Nothing guarded it, which is how it
+ * drifted in the first place — so it gets a table, not a happy path.
+ */
+const publicationCases = [
+  { label: "publish: true publishes", project: { publish: true }, lifecycle: "incubating", expect: true },
+  { label: "publish: false stays gated while incubating", project: { publish: false }, lifecycle: "incubating", expect: false },
+  { label: "publish: false opens once promoted to active", project: { publish: false }, lifecycle: "active", expect: true },
+  { label: "publish: false opens once promoted to maintenance", project: { publish: false }, lifecycle: "maintenance", expect: true },
+  { label: "an unknown lifecycle stays gated", project: { publish: false }, lifecycle: undefined, expect: false },
+  { label: "a lifecycle that cannot open the gate keeps it shut", project: { publish: false }, lifecycle: "external", expect: false },
+  // A JSON file is untyped at runtime, and the importer writes case studies
+  // programmatically. Truthiness and `=== true` diverge here, so the canonical
+  // rule must be the strict one or a stringly-typed "false" would publish.
+  { label: "a truthy non-boolean does not publish", project: { publish: "false" }, lifecycle: "incubating", expect: false },
+];
+
+for (const { label, project, lifecycle, expect } of publicationCases) {
+  test(`publication gate: ${label}`, async () => {
+    // A Windows absolute path is not a valid ESM specifier; pathToFileURL is.
+    const { isPublishedCaseStudy } = await import(
+      pathToFileURL(path.join(repoRoot, "src", "data", "registry", "publication.mjs")).href
+    );
+    const upstreamById = new Map(
+      lifecycle ? [["thing", { lifecycle }]] : [],
+    );
+    const actual = isPublishedCaseStudy(
+      { upstreamId: "thing", ...project },
+      upstreamById,
+    );
+    if (actual !== expect) {
+      throw new Error(`expected ${expect}, got ${actual}`);
+    }
+  });
+}
 
 // --- runner ------------------------------------------------------------------
 

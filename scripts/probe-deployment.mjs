@@ -11,7 +11,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { buildRoutePaths } from "./lib/published-projects.mjs";
+import { buildRoutePaths, loadCaseStudies } from "./lib/published-projects.mjs";
 
 const origin = (process.env.SITE_URL ?? process.env.VITE_SITE_URL ?? "").replace(/\/$/, "");
 
@@ -20,12 +20,12 @@ if (!origin) {
   process.exit(1);
 }
 
-const caseStudyDir = path.join(process.cwd(), "registry/case-studies");
-const published = fs
-  .readdirSync(caseStudyDir)
-  .filter((file) => file.endsWith(".json"))
-  .map((file) => JSON.parse(fs.readFileSync(path.join(caseStudyDir, file), "utf8")))
-  .filter((project) => project.publish !== false);
+// The canonical gate. This used to filter on `publish !== false` directly,
+// which is a subtly different rule: it never opens `publish: false` gates that
+// the upstream lifecycle has promoted. That copy meant a project could be live
+// on the site while the deploy monitor never probed it.
+const { published: publishedEntries } = loadCaseStudies(process.cwd());
+const published = publishedEntries.map((entry) => entry.data);
 
 let failures = 0;
 const problem = (msg) => {
