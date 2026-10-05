@@ -19,8 +19,16 @@ import {
 function SectionLabel({ number, children }: { number: string; children: string }) {
   return (
     <div className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-      <span className="text-foreground/45">{number}</span>
-      <span className="h-px w-8 bg-border" aria-hidden="true" />
+      {/*
+        `text-foreground/45` resolved to #100d09 at 45% alpha, which against the
+        contact section's inverted background — `background: var(--foreground)` —
+        measured 1:1 and rendered the section number invisible. Current colour
+        keeps it readable on the inverted section while staying a de-emphasised
+        numeral on the normal ones; the divider is hidden there because a
+        border-coloured rule disappears against it too.
+      */}
+      <span className="text-current opacity-60">{number}</span>
+      <span className="h-px w-8 bg-border [.contact-section_&]:hidden" aria-hidden="true" />
       <span>{children}</span>
     </div>
   );

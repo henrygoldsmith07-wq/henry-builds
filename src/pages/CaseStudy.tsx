@@ -245,7 +245,7 @@ export default function CaseStudy() {
                     role="note"
                   >
                     <TriangleAlert
-                      className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                      className="mt-0.5 size-4 shrink-0 tone-warn"
                       aria-hidden="true"
                     />
                     <p className="text-xs leading-5 text-foreground/80">
@@ -346,7 +346,7 @@ export default function CaseStudy() {
                 role="note"
               >
                 <TriangleAlert
-                  className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                  className="mt-0.5 size-4 shrink-0 tone-warn"
                   aria-hidden="true"
                 />
                 <div className="text-xs leading-5 text-foreground/80">
@@ -512,7 +512,7 @@ export default function CaseStudy() {
                   </span>
                   <h2 className="flex items-center gap-2 text-xl font-semibold tracking-[-0.03em]">
                     <TriangleAlert
-                      className="size-4 text-amber-600 dark:text-amber-400"
+                      className="size-4 tone-warn"
                       aria-hidden="true"
                     />
                     What this cannot yet claim

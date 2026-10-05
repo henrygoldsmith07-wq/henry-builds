@@ -288,7 +288,7 @@ function LensRankings({ rows }: { rows: HydratedProject[] }) {
 function Cell({ children, tone }: { children: React.ReactNode; tone?: "muted" | "warn" | "good" }) {
   const toneClass =
     tone === "warn"
-      ? "text-amber-600 dark:text-amber-400"
+      ? "tone-warn"
       : tone === "good"
         ? "text-foreground"
         : tone === "muted"

@@ -236,6 +236,22 @@
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; } }
 
 /* ---------------------------------------------------------------------------
+   Warning tone
+   ---------------------------------------------------------------------------
+
+   Tailwind's `amber-600` resolves to #d97706, which measures 3.06:1 against this
+   page background — below the 4.5:1 that its 12px usage requires. The axe audit
+   caught it on `/compare` as soon as a warn-toned cell was added there.
+
+   This is the same class of failure `.stage-archived` and `.freshness-stale`
+   already document, fixed the same way: pick the lightness that clears the
+   threshold rather than fading the colour with an opacity utility, which only
+   reduces contrast further.
+*/
+.tone-warn { color: oklch(0.44 0.15 60); }
+.dark .tone-warn { color: oklch(0.78 0.13 60); }
+
+/* ---------------------------------------------------------------------------
    Case studies, evidence and stage labels
    ------------------------------------------------------------------------- */
 
