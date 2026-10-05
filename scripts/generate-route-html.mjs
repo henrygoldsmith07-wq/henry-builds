@@ -250,6 +250,27 @@ write(
   }),
 );
 
+const buildLogDescription =
+  "Dead ends, accepted trade-offs, lessons and stated limitations recorded while building each project. Every entry is pulled from the case study it appears on.";
+
+write(
+  "build-log.html",
+  renderPage({
+    title: "Build log — Henry Goldsmith",
+    description: buildLogDescription,
+    route: "/build-log",
+    image: "/og/default.png",
+    imageAlt: "Henry Goldsmith — build log",
+    structuredData: {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Build log — Henry Goldsmith",
+      url: `${origin}/build-log`,
+      description: buildLogDescription,
+    },
+  }),
+);
+
 for (const project of projects) {
   const route = `/projects/${project.slug}`;
   const upstreamEntry = upstreamById.get(project.upstreamId);

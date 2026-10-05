@@ -32,6 +32,7 @@ export function useTheme() {
 const navItems = [
   { label: "Work", to: "/projects" },
   { label: "Compare", to: "/compare" },
+  { label: "Build log", to: "/build-log" },
   { label: "About", to: "/#about" },
   { label: "Approach", to: "/#approach" },
   { label: "Contact", to: "/#contact" },

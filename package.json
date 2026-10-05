@@ -28,6 +28,7 @@
     "test:evidence": "node scripts/run-evidence-tests.mjs",
 
     "og": "node scripts/generate-og.mjs",
+    "build-log": "node scripts/build-build-log.mjs",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "route-html": "node scripts/generate-route-html.mjs",
     "audit:claims": "node scripts/audit-claims.mjs",

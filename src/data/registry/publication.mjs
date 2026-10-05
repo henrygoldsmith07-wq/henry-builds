@@ -100,6 +100,9 @@ export const CORE_ROUTES = Object.freeze([
   Object.freeze({ path: "/", changefreq: "monthly", priority: "1.0" }),
   Object.freeze({ path: "/projects", changefreq: "monthly", priority: "0.8" }),
   Object.freeze({ path: "/compare", changefreq: "monthly", priority: "0.7" }),
+  // The build log is a thin index over content that already lives on the case
+  // studies, so it is discoverable but not competing with them.
+  Object.freeze({ path: "/build-log", changefreq: "monthly", priority: "0.6" }),
 ]);
 
 /**
