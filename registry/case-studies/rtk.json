@@ -66,8 +66,9 @@
       {
         "kind": "screenshot",
         "src": "/media/rtk/screenshot.png",
-        "alt": "RTK test output with collapsed passing suites and kept critical failures",
-        "caption": "Captured from the running app. Captured 2026-09-01."
+        "alt": "RTK running in a terminal, showing a large raw test log collapsed to a summary with the critical failure lines kept",
+        "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
       },
       {
         "kind": "illustration",

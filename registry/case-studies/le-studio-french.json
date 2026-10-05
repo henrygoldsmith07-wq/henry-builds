@@ -37,10 +37,32 @@
     "approach": "Start with a twelve-question placement test across A1–C2 and generate a personal roadmap where every unit mixes speaking with at least one grammar, reading or listening lesson. Keep the interface English-first so the scaffolding is never itself an obstacle, and put translations permanently within reach. Run entirely client-side, with the API key held only in local storage.",
     "visuals": [
       {
-        "kind": "illustration",
-        "preview": "language",
-        "alt": "Illustration of a French practice prompt with a translation panel and lesson progress",
-        "caption": "Illustration of a practice session. Not a screenshot — no capture of the running app has been published yet."
+        "kind": "screenshot",
+        "src": "/media/le-studio-french/screenshot.png",
+        "alt": "Le Studio French running in a desktop browser, showing a practice session with an English-first prompt and a French target phrase",
+        "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/le-studio-french/home.png",
+        "alt": "Le Studio French home screen on a phone, showing today's practice and unit progress",
+        "caption": "Captured from the running app. Mobile, 390x844. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/le-studio-french/arena.png",
+        "alt": "The speaking arena in Le Studio French on a phone, with a spoken prompt and a transcript of the attempt",
+        "caption": "Captured from the running app. Mobile, 390x844. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
+      },
+      {
+        "kind": "screenshot",
+        "src": "/media/le-studio-french/vocab.png",
+        "alt": "A vocabulary review card in Le Studio French on a phone, with the French term and its English translation",
+        "caption": "Captured from the running app. Mobile, 390x844. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
       }
     ],
     "metrics": [

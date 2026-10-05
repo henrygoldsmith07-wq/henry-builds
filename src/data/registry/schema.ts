@@ -175,7 +175,19 @@ export type FailedApproach = {
  * so a drawn mockup is never mistaken for a screenshot of working software.
  */
 export type Visual =
-  | { kind: "screenshot"; src: string; alt: string; caption?: string }
+  | {
+      kind: "screenshot";
+      src: string;
+      alt: string;
+      caption?: string;
+      /**
+       * When these pixels were captured (ISO date). A screenshot of a running
+       * product rots the moment the product changes, so the date travels with
+       * the image and the page can say how old it is instead of leaving the
+       * reader to assume it still shows the current build.
+       */
+      capturedAt?: string;
+    }
   | { kind: "illustration"; preview: PreviewKind; alt: string; caption?: string };
 
 export type PreviewKind =

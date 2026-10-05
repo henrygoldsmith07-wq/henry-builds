@@ -118,6 +118,8 @@ export function SourceVerificationRow({
   claimsCheckedAt,
   claimsAgeDays,
   freshWithinDays = 180,
+  deployAgeDays = null,
+  deployWindowDays = 14,
 }: {
   status: SourceState;
   statusReason?: string;
@@ -142,6 +144,13 @@ export function SourceVerificationRow({
   /** How old that check is, so a stale date can say so in words. */
   claimsAgeDays?: number | null;
   freshWithinDays?: number;
+  /**
+   * Age of the generated deployment snapshot. The facts layer is refreshed by a
+   * token-authenticated probe and never hand-edited, so an old snapshot means
+   * the URL has not been re-checked — and may already be gone.
+   */
+  deployAgeDays?: number | null;
+  deployWindowDays?: number;
 }) {
   const copy = sourceStateCopy[status];
   const deployedBehind = deploy?.upToDate === false;
@@ -205,6 +214,15 @@ export function SourceVerificationRow({
                   >
                     {" "}
                     · behind HEAD
+                  </span>
+                )}
+                {deployAgeDays !== null && deployAgeDays > deployWindowDays && (
+                  <span
+                    className="freshness-stale"
+                    title={`The last probe of this deployment was ${deployAgeDays} days ago, beyond the ${deployWindowDays}-day window. The recorded state has not been re-checked since, and the URL may no longer resolve.`}
+                  >
+                    {" "}
+                    · unchecked for {deployAgeDays}d
                   </span>
                 )}
               </>

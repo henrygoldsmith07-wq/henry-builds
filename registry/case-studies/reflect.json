@@ -71,14 +71,9 @@
       {
         "kind": "screenshot",
         "src": "/media/reflect/screenshot.png",
-        "alt": "Reflect trace separating observations from assumptions with an alternative reading",
-        "caption": "Captured from the running app. Captured 2026-09-01."
-      },
-      {
-        "kind": "screenshot",
-        "src": "/media/reflect/screenshot.png",
-        "alt": "Reflect trace separating observations from assumptions with an alternative reading",
-        "caption": "Captured from the running app. Captured 2026-09-01."
+        "alt": "Reflect running in a desktop browser, showing a structured reflection broken into observation, assumption and emotion",
+        "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
       },
       {
         "kind": "illustration",

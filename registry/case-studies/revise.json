@@ -75,8 +75,9 @@
       {
         "kind": "screenshot",
         "src": "/media/revise/screenshot.png",
-        "alt": "Revise dashboard with streak counter, cards due and revision plan progress",
-        "caption": "Captured from the running app. Captured 2026-09-01."
+        "alt": "Revise running in a desktop browser, showing the single recommended revision task and the mark breakdown",
+        "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
       },
       {
         "kind": "illustration",

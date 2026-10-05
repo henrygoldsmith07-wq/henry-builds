@@ -63,6 +63,12 @@ const STAGE_EVIDENCE = {
 const MAX_CI_FACTS_AGE_DAYS = 14;
 /** A green run older than this behind a failed latest run stops being news. */
 const RED_CI_STALE_DAYS = 30;
+/**
+ * A screenshot of a running product goes stale when the product moves on. Past
+ * this, the capture is history: it may not keep presenting itself as evidence
+ * of what the project does today.
+ */
+const MAX_CAPTURE_AGE_DAYS = 90;
 /** Time-sensitive claims must be re-verified at least this often. */
 const MAX_CLAIM_AGE_DAYS_DEFAULT = 180;
 
@@ -532,12 +538,48 @@ for (const file of files) {
   }
 
   // --- visuals must not overclaim ----------------------------------------
+  //
+  // A screenshot is the strongest evidence a case study can carry, and it is
+  // also the evidence that rots: it shows one build on one day. Two rules make
+  // that concrete, both of which the README already described but nothing
+  // enforced — six case studies referenced a screenshot with no capture date,
+  // and five listed the same image twice.
+  const seenScreenshots = new Set();
   (cs.visuals ?? []).forEach((visual, i) => {
     const at = `${id}.visuals[${i}]`;
     if (visual.kind === "screenshot") {
       if (!visual.src) fail(`${at}: screenshot needs a src`);
-      else if (!fs.existsSync(path.join(root, "public", visual.src.replace(/^\//, "")))) {
-        fail(`${at}: screenshot src '${visual.src}' does not exist in public/`);
+      else {
+        if (!fs.existsSync(path.join(root, "public", visual.src.replace(/^\//, "")))) {
+          fail(`${at}: screenshot src '${visual.src}' does not exist in public/`);
+        }
+        // The same capture listed twice reads as two pieces of evidence and is
+        // one. Rendered as a gallery it is simply a duplicated image.
+        if (seenScreenshots.has(visual.src)) {
+          fail(`${at}: '${visual.src}' is already in this case study's visuals`);
+        }
+        seenScreenshots.add(visual.src);
+      }
+
+      // Freshness. Without a date a reader cannot tell whether the capture
+      // shows the current build or a year-old one, so an undated screenshot is
+      // an uncheckable claim about the product.
+      if (!visual.capturedAt) {
+        fail(
+          `${at}: screenshot '${visual.src}' has no capturedAt — a capture of a running product must say when it was taken`,
+        );
+      } else if (!/^\d{4}-\d{2}-\d{2}$/.test(visual.capturedAt)) {
+        fail(`${at}: capturedAt must be an ISO date (YYYY-MM-DD), got '${visual.capturedAt}'`);
+      } else if (Number.isNaN(new Date(visual.capturedAt).getTime())) {
+        fail(`${at}: capturedAt '${visual.capturedAt}' is not a real date`);
+      } else {
+        const age = daysAgo(visual.capturedAt);
+        if (Number.isFinite(age) && age > MAX_CAPTURE_AGE_DAYS) {
+          fail(
+            `${at}: capture is ${Math.round(age)} days old, past the ${MAX_CAPTURE_AGE_DAYS}-day window — ` +
+              `recapture, or relabel it as an illustration so it stops reading as current`,
+          );
+        }
       }
     } else if (visual.kind === "illustration") {
       if (!visual.preview) fail(`${at}: illustration needs a preview kind`);

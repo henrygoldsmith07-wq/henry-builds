@@ -75,13 +75,57 @@ export function ProjectPreview({
         className={`preview-badge ${
           visual.kind === "screenshot" ? "preview-badge-real" : ""
         }`}
+        title={
+          visual.kind === "screenshot" && visual.capturedAt
+            ? `Captured ${visual.capturedAt}${captureAgeNote(visual.capturedAt)}`
+            : visual.kind === "screenshot"
+              ? "Capture date not recorded"
+              : "Drawn mockup — this is not a screenshot of working software"
+        }
       >
-        {visual.kind === "screenshot" ? "Screenshot" : "Illustration — not a screenshot"}
+        {visual.kind === "screenshot"
+          ? `Screenshot${visual.capturedAt ? ` · ${captureAgeLabel(visual.capturedAt)}` : ""}`
+          : "Illustration — not a screenshot"}
       </span>
 
       {visual.caption && <figcaption className="sr-only">{visual.caption}</figcaption>}
     </figure>
   );
+}
+
+/**
+ * How old a capture is, in the reader's terms.
+ *
+ * A screenshot of a running product stops being evidence of the current build
+ * as soon as the product changes, so the age belongs on the image itself rather
+ * than in a caption nobody reads. Frozen at module load, like FreshnessChip, so
+ * the render stays pure within a page load.
+ */
+const CAPTURE_NOW = new Date();
+
+function captureAgeDays(capturedAt: string): number | null {
+  const then = new Date(capturedAt).getTime();
+  if (!Number.isFinite(then)) return null;
+  return Math.floor((CAPTURE_NOW.getTime() - then) / 86_400_000);
+}
+
+function captureAgeLabel(capturedAt: string): string {
+  const days = captureAgeDays(capturedAt);
+  if (days === null) return capturedAt;
+  if (days <= 0) return "captured today";
+  if (days === 1) return "captured yesterday";
+  if (days < 60) return `captured ${days}d ago`;
+  const months = Math.round(days / 30);
+  return `captured ~${months}mo ago`;
+}
+
+/** Past the window the validator treats as current, say so rather than hide it. */
+function captureAgeNote(capturedAt: string): string {
+  const days = captureAgeDays(capturedAt);
+  if (days !== null && days > 90) {
+    return " — older than the 90-day window this site treats as current, so treat it as historical";
+  }
+  return "";
 }
 
 function PreviewBody({ kind, label }: { kind: PreviewKind; label: string }) {

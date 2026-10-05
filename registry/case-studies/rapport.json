@@ -80,14 +80,9 @@
       {
         "kind": "screenshot",
         "src": "/media/rapport/screenshot.png",
-        "alt": "Rapport skill-graph dashboard of the running app",
-        "caption": "Captured from the running app. Captured 2026-09-01."
-      },
-      {
-        "kind": "screenshot",
-        "src": "/media/rapport/screenshot.png",
-        "alt": "Rapport skill-graph dashboard of the running app",
-        "caption": "Captured from the running app. Captured 2026-09-01."
+        "alt": "Rapport running in a desktop browser, showing a practice conversation with skill-level feedback",
+        "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
       },
       {
         "kind": "illustration",

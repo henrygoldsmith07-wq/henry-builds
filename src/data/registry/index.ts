@@ -341,6 +341,34 @@ export function daysSinceVerified(project: HydratedProject): number | null {
   return Math.floor((Date.now() - then) / 86_400_000);
 }
 
+/**
+ * Whether the recorded deployment snapshot is old enough that the site should
+ * stop presenting it as the current state of the world.
+ *
+ * `facts-history.json` is generated from a token-authenticated probe and is
+ * never hand-edited, so when that probe stops running the snapshot silently
+ * ages. A URL in it can return 410 Gone for months while the site still calls
+ * the deployment "success". Rather than restate a snapshot nobody has checked
+ * recently as fact, this marks it stale so the verification strip can say so.
+ *
+ * Returns the age in days, or null when there is no usable deployment record.
+ */
+export function deploySnapshotAgeDays(project: HydratedProject): number | null {
+  const deploy = project.facts?.deploy;
+  if (!deploy || deploy.state === "none" || !deploy.url) return null;
+  // The snapshot as a whole is timestamped once; fall back to the deployment's
+  // own creation date when the file-level stamp is absent.
+  const stamped =
+    factsFile.generatedAt ?? factsFile.latest?.[project.upstreamId]?.deploy?.createdAt;
+  if (!stamped) return null;
+  const then = new Date(stamped).getTime();
+  if (!Number.isFinite(then)) return null;
+  return Math.floor((Date.now() - then) / 86_400_000);
+}
+
+/** Deploy records older than this are shown as an unchecked snapshot. */
+export const DEPLOY_SNAPSHOT_WINDOW_DAYS = 14;
+
 const stageRank: Record<Stage, number> = {
   shipped: 0,
   beta: 1,

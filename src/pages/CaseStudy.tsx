@@ -20,6 +20,8 @@ import NotFound from "@/pages/NotFound";
 import {
   daysSinceVerified,
   demonstratesOf,
+  DEPLOY_SNAPSHOT_WINDOW_DAYS,
+  deploySnapshotAgeDays,
   FRESH_CLAIM_WINDOW_DAYS,
   getProject,
   hasCarriedCi,
@@ -111,8 +113,12 @@ export default function CaseStudy() {
 
   const { caseStudy: study, authorship } = project;
   const lead = study.visuals[0];
+  // Everything after the lead. Captures and illustrations alike — each already
+  // labels itself, so a mockup is never read as a screenshot.
+  const gallery = study.visuals.slice(1);
   const demonstrates = demonstratesOf(project);
   const verifiedAgeDays = daysSinceVerified(project);
+  const deployAgeDays = deploySnapshotAgeDays(project);
 
   // Assigned in render order, so the numbering always matches the sections a
   // reader actually sees on this particular case study.
@@ -225,6 +231,37 @@ export default function CaseStudy() {
             </div>
           )}
 
+          {/* ---- further captures --------------------------------------------
+              Anything beyond the lead. A single screenshot shows one screen; the
+              rest of `visuals` is where a reader sees the product actually being
+              used. Real captures are dated on the image itself. */}
+          {gallery.length > 0 && (
+            <section className="mx-auto max-w-[1380px] px-5 pb-6 pt-12 sm:px-8 lg:px-12">
+              <h2 className="eyebrow mb-5">
+                {gallery.length} further {gallery.length === 1 ? "capture" : "captures"}
+              </h2>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {gallery.map((visual) => (
+                  <figure
+                    key={visual.kind === "screenshot" ? visual.src : visual.preview}
+                    className="min-w-0"
+                  >
+                    <ProjectPreview
+                      visual={visual}
+                      accent={project.accent}
+                      name={project.name}
+                    />
+                    {visual.caption && (
+                      <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                        {visual.caption}
+                      </p>
+                    )}
+                  </figure>
+                ))}
+              </div>
+            </section>
+          )}
+
           <div className="mx-auto max-w-[1380px] px-5 sm:px-8 lg:px-12">
             {/* ---- verification strip: where the source sits, what is deployed,
                    when CI last went green, when the claims were last checked -- */}
@@ -250,6 +287,8 @@ export default function CaseStudy() {
               claimsCheckedAt={study.lastVerifiedAt}
               claimsAgeDays={verifiedAgeDays}
               freshWithinDays={FRESH_CLAIM_WINDOW_DAYS}
+              deployAgeDays={deployAgeDays}
+              deployWindowDays={DEPLOY_SNAPSHOT_WINDOW_DAYS}
             />
 
             {/* ---- live-status caveat: shown when the generated facts and the

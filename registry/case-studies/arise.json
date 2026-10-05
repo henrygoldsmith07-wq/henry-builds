@@ -39,14 +39,9 @@
       {
         "kind": "screenshot",
         "src": "/media/arise/screenshot.png",
-        "alt": "Arise weekly training view with session counts and next session card",
-        "caption": "Captured from the running app. Captured 2026-09-01."
-      },
-      {
-        "kind": "screenshot",
-        "src": "/media/arise/screenshot.png",
-        "alt": "Arise weekly training view with session counts and next session card",
-        "caption": "Captured from the running app. Captured 2026-09-01."
+        "alt": "Arise running in a desktop browser, showing a training session with programmed sets and logged history",
+        "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
       },
       {
         "kind": "illustration",

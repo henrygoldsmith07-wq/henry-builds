@@ -71,14 +71,9 @@
       {
         "kind": "screenshot",
         "src": "/media/forq/screenshot.png",
-        "alt": "Forq weekly plan view with suggested recipe, kitchen coverage and cost per person",
-        "caption": "Captured from the running app. Captured 2026-09-01."
-      },
-      {
-        "kind": "screenshot",
-        "src": "/media/forq/screenshot.png",
-        "alt": "Forq weekly plan view with suggested recipe, kitchen coverage and cost per person",
-        "caption": "Captured from the running app. Captured 2026-09-01."
+        "alt": "Forq running in a desktop browser, showing the meal plan and the reasoning behind each suggestion",
+        "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
       },
       {
         "kind": "illustration",

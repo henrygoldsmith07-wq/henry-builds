@@ -40,14 +40,9 @@
       {
         "kind": "screenshot",
         "src": "/media/daily-debate/screenshot.png",
-        "alt": "Daily Debate transcript view with per-round score badges",
-        "caption": "Captured from the running app. Captured 2026-09-01."
-      },
-      {
-        "kind": "screenshot",
-        "src": "/media/daily-debate/screenshot.png",
-        "alt": "Daily Debate transcript view with per-round score badges",
-        "caption": "Captured from the running app. Captured 2026-09-01."
+        "alt": "Daily Debate running in a desktop browser, showing a debate round with the argument breakdown",
+        "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
+        "capturedAt": "2026-09-01"
       },
       {
         "kind": "illustration",

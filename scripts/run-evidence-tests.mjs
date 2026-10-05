@@ -59,6 +59,19 @@ function daysAgoIso(days) {
   return new Date(Date.now() - days * 86_400_000).toISOString();
 }
 
+/**
+ * Put a placeholder PNG where a case study says a screenshot lives, so the
+ * validator's "does this file exist in public/" rule is exercised rather than
+ * short-circuited by the missing-file failure.
+ *
+ * Takes the part after `/media/`; the case studies reference `/media/<slug>/<file>`.
+ */
+function writeCapture(dir, relative) {
+  const file = path.join(dir, "public", "media", relative);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, Buffer.from("89504e470d0a1a0a", "hex"));
+}
+
 /** A case study that passes every validator rule on its own. */
 function validStudy(slug, overrides = {}) {
   const study = {
@@ -298,6 +311,79 @@ test("validate-registry rejects a demonstrates block missing a whole axis", asyn
   if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
   if (!/demonstrates\.product needs at least 1 entry/.test(result.stderr)) {
     throw new Error(`missing demonstrates.product failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects a screenshot with no capture date", async () => {
+  const dir = tempDir("evm-uncaptured");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.visuals = [
+    { kind: "screenshot", src: "/media/proj-0/a.png", alt: "the app running" },
+  ];
+  writeRegistry(dir, studies);
+  writeCapture(dir, "proj-0/a.png");
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/has no capturedAt/.test(result.stderr)) {
+    throw new Error(`missing capturedAt failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects a screenshot past the freshness window", async () => {
+  const dir = tempDir("evm-oldshot");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.visuals = [
+    {
+      kind: "screenshot",
+      src: "/media/proj-0/old.png",
+      alt: "the app, a long time ago",
+      capturedAt: daysAgoIso(400).slice(0, 10),
+    },
+  ];
+  writeRegistry(dir, studies);
+  writeCapture(dir, "proj-0/old.png");
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/past the 90-day window/.test(result.stderr)) {
+    throw new Error(`missing stale-capture failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry accepts a freshly captured screenshot", async () => {
+  const dir = tempDir("evm-freshshot");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.visuals = [
+    {
+      kind: "screenshot",
+      src: "/media/proj-0/fresh.png",
+      alt: "the app running today",
+      capturedAt: daysAgoIso(3).slice(0, 10),
+    },
+  ];
+  writeRegistry(dir, studies);
+  writeCapture(dir, "proj-0/fresh.png");
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 0) {
+    throw new Error(`expected exit 0, got ${result.code}\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects the same screenshot listed twice", async () => {
+  const dir = tempDir("evm-dupe");
+  const studies = minimalRegistry();
+  const shot = {
+    kind: "screenshot",
+    src: "/media/proj-0/same.png",
+    alt: "the app running",
+    capturedAt: daysAgoIso(2).slice(0, 10),
+  };
+  studies[0].caseStudy.visuals = [shot, { ...shot }];
+  writeRegistry(dir, studies);
+  writeCapture(dir, "proj-0/same.png");
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/is already in this case study's visuals/.test(result.stderr)) {
+    throw new Error(`missing duplicate-capture failure:\n${result.stderr}`);
   }
 });
 
