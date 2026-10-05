@@ -6,6 +6,7 @@ import { ProofSummaryBar } from "@/components/portfolio/ProofSummary";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { StageBadge } from "@/components/portfolio/StageBadge";
+import { Trajectory } from "@/components/portfolio/Trajectory";
 import { profile } from "@/data/profile";
 import {
   archivedProjects,
@@ -141,6 +142,7 @@ export default function Landing() {
                   <strong>{profile.approach}</strong>
                 </div>
               </div>
+              <Trajectory />
             </div>
           </div>
         </section>
