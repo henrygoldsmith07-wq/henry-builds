@@ -20,14 +20,20 @@ function SectionLabel({ number, children }: { number: string; children: string }
   return (
     <div className="mb-7 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
       {/*
-        `text-foreground/45` resolved to #100d09 at 45% alpha, which against the
-        contact section's inverted background — `background: var(--foreground)` —
-        measured 1:1 and rendered the section number invisible. Current colour
-        keeps it readable on the inverted section while staying a de-emphasised
-        numeral on the normal ones; the divider is hidden there because a
-        border-coloured rule disappears against it too.
+        Two problems, one fix. `text-foreground/45` resolved to a measured 1:1
+        against the contact section's inverted background, so "05" was invisible
+        there. The first replacement — `text-current opacity-60` — fixed the
+        inversion but measured 2.56:1 on the normal sections, because an opacity
+        utility does exactly what a contrast requirement punishes: it dims the
+        colour instead of choosing one that already clears the threshold.
+
+        The numeral now simply inherits `text-muted-foreground` at full
+        strength, which passes on every background it appears on — including the
+        inverted one, because that section restyles `.text-muted-foreground` for
+        its own background. It is separated from the label by the divider rather
+        than by being made hard to read.
       */}
-      <span className="text-current opacity-60">{number}</span>
+      <span aria-hidden="true">{number}</span>
       <span className="h-px w-8 bg-border [.contact-section_&]:hidden" aria-hidden="true" />
       <span>{children}</span>
     </div>
