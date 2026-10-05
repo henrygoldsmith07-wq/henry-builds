@@ -13,7 +13,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { loadCaseStudies } from "./lib/published-projects.mjs";
+import { buildRoutePaths, loadCaseStudies } from "./lib/published-projects.mjs";
 
 const root = process.cwd();
 const distDir = path.join(root, "dist");
@@ -317,7 +317,11 @@ write(
   }),
 );
 
-pruneGatedRoutes(new Set(projects.map((project) => project.data.slug)));
+// `projects` holds bare case studies, not the `{file, data}` wrappers, so this
+// reads `project.slug`. Using `buildRoutePaths` rather than rebuilding the set
+// inline means the prune and the sitemap can never disagree about what is
+// published — the failure mode this whole refactor exists to prevent.
+pruneGatedRoutes(new Set(buildRoutePaths(published).map((route) => route.replace(/^\/projects\//, ""))));
 
 console.log(
   `generate-route-html: wrote ${written.length} crawler-visible route files for ${origin}`,
