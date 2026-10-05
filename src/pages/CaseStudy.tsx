@@ -239,7 +239,13 @@ export default function CaseStudy() {
           {/* ---- lead visual ----------------------------------------------- */}
           {lead && (
             <div className="mx-auto max-w-[1380px] px-5 sm:px-8 lg:px-12">
-              <ProjectPreview visual={lead} accent={project.accent} name={project.name} featured />
+              <ProjectPreview
+                visual={lead}
+                accent={project.accent}
+                name={project.name}
+                featured
+                priority
+              />
               {lead.caption && (
                 <p className="mt-3 text-xs text-muted-foreground">{lead.caption}</p>
               )}

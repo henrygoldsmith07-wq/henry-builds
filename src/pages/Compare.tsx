@@ -220,6 +220,17 @@ export default function Compare() {
         </section>
 
         <section className="mx-auto max-w-[1380px] px-5 pb-24 sm:px-8 lg:px-12">
+          {/*
+            Eight columns is 1024px of table in a 360px screen. The row header
+            is pinned to the left edge so a reader who has scrolled across to
+            "Grade" can still see which project the row belongs to, and the
+            caption is visible rather than screen-reader-only so the horizontal
+            scroll is discoverable instead of surprising.
+          */}
+          <p className="mb-3 text-xs text-muted-foreground sm:hidden">
+            Scroll the table sideways to see all eight columns. The project name
+            stays pinned to the left.
+          </p>
           <div className="mb-4 overflow-x-auto">
             <table className="w-full min-w-[64rem] border-collapse text-left text-sm">
               <caption className="sr-only">
@@ -238,11 +249,15 @@ export default function Compare() {
                     "Numbers",
                     "Grade",
                     "Claims checked",
-                  ].map((heading) => (
+                  ].map((heading, index) => (
                     <th
                       key={heading}
                       scope="col"
-                      className="whitespace-nowrap px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                      className={`whitespace-nowrap px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground ${
+                        // Pinned with the row headers so the two columns that
+                        // identify a row never scroll out of view together.
+                        index === 0 ? "sticky left-0 z-20 bg-background" : ""
+                      }`}
                     >
                       {heading}
                     </th>
@@ -254,10 +269,13 @@ export default function Compare() {
                   const shows = demonstratesOf(project);
                   return (
                     <tr key={project.slug} className="border-b border-border/70 align-top">
-                      <th scope="row" className="px-4 py-5 font-normal">
+                      <th
+                        scope="row"
+                        className="sticky left-0 z-10 bg-background px-4 py-5 font-normal"
+                      >
                         <Link
                           to={`/projects/${project.slug}`}
-                          className="group inline-flex items-start gap-1.5 font-semibold tracking-tight hover:underline"
+                          className="group inline-flex min-h-6 items-start gap-1.5 py-0.5 font-semibold tracking-tight hover:underline"
                         >
                           {project.name}
                           <ArrowUpRight

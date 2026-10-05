@@ -20,6 +20,14 @@ export function StageBadge({ stage, withMeaning = false }: { stage: Stage; withM
     <span className="inline-flex items-center gap-2">
       <span className={`stage-badge ${stageClass[stage]}`} title={copy.meaning}>
         {copy.label}
+        {/*
+          The meaning used to exist only in `title`, which is not announced on
+          focus and is unreachable on touch — so on `/compare`, where the badge
+          is the only thing explaining what a stage means, the explanation was
+          invisible to anyone not using a mouse. Visually hidden, always in the
+          accessibility tree; `withMeaning` still shows it as visible text.
+        */}
+        <span className="sr-only"> — {copy.meaning}</span>
       </span>
       {withMeaning && (
         <span className="text-xs text-muted-foreground">{copy.meaning}</span>

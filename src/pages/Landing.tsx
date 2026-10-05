@@ -1,5 +1,6 @@
-import { ArrowDown, ArrowUpRight, ExternalLink, Github, MoveUpRight } from "lucide-react";
+import { ArrowDown, ArrowUpRight, MoveUpRight } from "lucide-react";
 import { Link } from "react-router";
+import { ContactActions, ContactActionsCompact } from "@/components/portfolio/ContactActions";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
 import { ProofSummaryBar } from "@/components/portfolio/ProofSummary";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
@@ -48,25 +49,48 @@ export default function Landing() {
               {profile.role.toUpperCase()}
             </p>
 
+            {/*
+              The line breaks are the design at desktop width. Below 640px the
+              type scales down hard enough that "Say what it does" would need
+              ~590px inside a ~372px column, and `.portfolio-shell` clips the
+              overflow — so the tail of the sentence silently disappeared on
+              every phone. The breaks are therefore only applied when there is
+              room for them; the words still read as three clauses without them.
+            */}
             <h1 className="hero-reveal hero-reveal-title hero-title">
-              Build it.
-              <br />
-              <span className="text-muted-foreground">Measure it.</span>
-              <br />
-              Say what it does<span className="accent-dot">.</span>
+              <span className="hero-line">Build it.</span>
+              <br className="hero-break" />
+              <span className="text-muted-foreground hero-line">Measure it.</span>
+              <br className="hero-break" />
+              <span className="hero-line">
+                Say what it does<span className="accent-dot">.</span>
+              </span>
             </h1>
 
             <div className="hero-reveal hero-reveal-copy mt-9 flex flex-col gap-7 sm:flex-row sm:items-end sm:justify-between">
-              <p className="max-w-md text-base leading-7 text-muted-foreground sm:text-lg">
-                {profile.intro}
-              </p>
-              <div className="flex shrink-0 gap-3">
+              <div className="max-w-xl">
+                {/*
+                  The one-line positioning statement. A reader who scrolls past
+                  everything else should still leave knowing what he builds and
+                  what makes the work different, in two sentences, without
+                  encountering the word "registry".
+                */}
+                <p className="text-base leading-7 text-foreground sm:text-lg">
+                  {profile.roleSummary}
+                </p>
+                <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
+                  {profile.intro}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-3">
                 <button type="button" className="button-primary" onClick={() => scrollTo("work")}>
                   See the work <ArrowDown className="size-4" aria-hidden="true" />
                 </button>
                 <Link to="/projects" className="button-secondary">
                   All {projects.length} projects
                 </Link>
+                {/* Recruiter path: CV and GitHub are one tap from the first screen. */}
+                <ContactActionsCompact />
               </div>
             </div>
           </div>
@@ -223,6 +247,7 @@ export default function Landing() {
                           accent={project.accent}
                           name={project.name}
                           featured
+                          priority
                         />
                       )}
                     </Link>
@@ -331,21 +356,7 @@ export default function Landing() {
                   here actually rest on.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href={profile.contact.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="button-primary"
-                >
-                  GitHub <Github className="size-4" aria-hidden="true" />
-                </a>
-                {profile.contact.email && (
-                  <a href={`mailto:${profile.contact.email}`} className="button-secondary">
-                    Email <ExternalLink className="size-4" aria-hidden="true" />
-                  </a>
-                )}
-              </div>
+              <ContactActions />
             </div>
           </div>
         </section>

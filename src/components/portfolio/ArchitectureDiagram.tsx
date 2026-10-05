@@ -31,7 +31,9 @@ export function ArchitectureDiagram({ architecture }: { architecture: Architectu
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h4 className="text-sm font-semibold tracking-tight">{layer.name}</h4>
+                {/* h3, not h4: this sits directly under the case study's <h2> section
+                    heading, and an h4 skipped a level. */}
+                <h3 className="text-sm font-semibold tracking-tight">{layer.name}</h3>
                 {layer.path && (
                   <a
                     className="arch-path"

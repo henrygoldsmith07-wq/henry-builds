@@ -34,6 +34,9 @@ export function SourceStateBadge({
       <span className={`stage-badge ${stateClass[sourceState]}`} title={copy.meaning}>
         <Icon className="size-3" aria-hidden="true" />
         {copy.label}
+        {/* Screen-reader reachable: `title` alone is invisible to keyboard and
+            touch, which is exactly where "what does this state mean?" matters. */}
+        <span className="sr-only"> — {copy.meaning}</span>
       </span>
       {withMeaning && <span className="text-xs text-muted-foreground">{copy.meaning}</span>}
     </span>

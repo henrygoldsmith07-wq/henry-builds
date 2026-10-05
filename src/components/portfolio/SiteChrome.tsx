@@ -162,29 +162,42 @@ export function SiteFooter() {
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-[1380px] flex-col gap-8 px-5 py-8 sm:px-8 md:flex-row md:items-center md:justify-between lg:px-12">
         <div>
-          <Link to="/" className="text-sm font-semibold tracking-tight">
+          <Link
+            to="/"
+            className="inline-flex items-center py-1 text-sm font-semibold tracking-tight"
+          >
             {profile.name}
           </Link>
           <p className="mt-1 text-xs text-muted-foreground">{profile.statement}</p>
         </div>
-        <nav className="flex flex-wrap gap-5 text-xs text-muted-foreground" aria-label="Footer">
-          <Link to="/projects" className="hover:text-foreground">
+        {/*
+          These are links, so WCAG 2.2 SC 2.5.8 applies: a 12px text link with
+          no padding is ~16px tall. `py-1.5` plus `inline-flex` brings every
+          footer link over the 24px floor without changing the type or the
+          visual rhythm — the extra space comes from padding, not from making
+          the text bigger.
+        */}
+        <nav
+          className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground"
+          aria-label="Footer"
+        >
+          <Link to="/projects" className="inline-flex items-center py-1.5 hover:text-foreground">
             All work
           </Link>
-          <Link to="/compare" className="hover:text-foreground">
+          <Link to="/compare" className="inline-flex items-center py-1.5 hover:text-foreground">
             Compare
           </Link>
-          <Link to="/#about" className="hover:text-foreground">
+          <Link to="/#about" className="inline-flex items-center py-1.5 hover:text-foreground">
             About
           </Link>
-          <Link to="/#contact" className="hover:text-foreground">
+          <Link to="/#contact" className="inline-flex items-center py-1.5 hover:text-foreground">
             Contact
           </Link>
           <a
             href={profile.contact.github}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-foreground"
+            className="inline-flex items-center py-1.5 hover:text-foreground"
           >
             GitHub
           </a>

@@ -16,11 +16,22 @@ export function ProjectPreview({
   accent,
   name,
   featured = false,
+  priority = false,
 }: {
   visual: Visual;
   accent: string;
   name: string;
   featured?: boolean;
+  /**
+   * Set for the hero on `/` and the lead visual on a case study — the two
+   * images that are the page's largest-contentful-paint element.
+   *
+   * These were `loading="lazy"`, which defers the one image the browser is
+   * being measured on and competes directly with the Lighthouse LCP budget.
+   * Gallery images below the fold stay lazy, which is where lazy loading earns
+   * its keep.
+   */
+  priority?: boolean;
 }) {
   const isDark = visual.kind === "illustration" && DARK_PREVIEWS.has(visual.preview);
 
@@ -40,7 +51,10 @@ export function ProjectPreview({
           <img
             src={visual.src}
             alt={visual.alt}
-            loading="lazy"
+            // The hero/lead image is the LCP element: fetching it eagerly is the
+            // difference between a prompt paint and a deferred one.
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             decoding="async"
             className="size-full object-cover"
           />
