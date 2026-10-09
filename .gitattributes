@@ -1,0 +1,37 @@
+# Normalise line endings in the repository, not in the working tree.
+#
+# Without this, git applies the platform default on checkout, so the same commit
+# produces different bytes on Windows and Linux. The practical cost is churn that
+# looks like a real change: `git status` reports modified files that were never
+# edited, and every diff mixes line-ending noise into substantive edits.
+* text=auto eol=lf
+
+# The one file that must stay CRLF, because Windows tooling expects it.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Snapshots, media and generated bundles are binary. Saying so stops git from
+# trying to normalise them and corrupting the bytes — and stops diffs of a
+# refreshed baseline from showing as "text file changed".
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.zip binary
+
+# Screenshots are regenerated per platform, and CI compares the Linux ones.
+tests/**/*-linux.png binary
+tests/**/*-win32.png binary
+
+# Generated artifacts. Kept tracked on purpose — they are the evidence this site
+# exists to publish, and a reviewer must be able to diff them without a build.
+registry/*.json text eol=lf
+public/og/*.png binary
+
+# Lockfiles and anything reviewed as a diff rather than edited.
+bun.lock text eol=lf

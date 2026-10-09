@@ -5,6 +5,26 @@ import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { projects } from "@/data/registry";
 import buildLog from "../../registry/build-log.json";
+import {
+  BUILD_LOG_DESCRIPTION,
+  BUILD_LOG_TITLE,
+  collectionGraph,
+} from "@/data/registry/structured-data.mjs";
+
+/**
+ * The crawler-visible graph, built by the same helper the static generator
+ * calls so the hydrated page and `dist/build-log.html` agree. Module scope
+ * keeps the reference stable so the head is not rewritten on every render.
+ * No `entries`: the build log's entries are dated by nothing, so an ItemList
+ * would imply an ordering that does not exist.
+ */
+const buildStructuredData = ({ origin }: { origin: string }) =>
+  collectionGraph({
+    origin,
+    route: "/build-log",
+    title: BUILD_LOG_TITLE,
+    description: BUILD_LOG_DESCRIPTION,
+  });
 
 type Kind = "dead-end" | "decision" | "lesson" | "limitation";
 
@@ -79,9 +99,10 @@ export default function BuildLog() {
   return (
     <div className="portfolio-shell">
       <SiteMetadata
-        title="Build log — Henry Goldsmith"
-        description="Decisions, dead ends, lessons and stated limits recorded while building each project. Every entry comes from the case study it appears on; none is invented."
+        title={BUILD_LOG_TITLE}
+        description={BUILD_LOG_DESCRIPTION}
         path="/build-log"
+        buildStructuredData={buildStructuredData}
       />
       <SiteHeader />
       <main id="main">

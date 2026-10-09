@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import { profile } from "@/data/profile";
 import type { HydratedProject } from "@/data/registry";
+import {
+  caseStudyGraph,
+  landingGraph,
+} from "@/data/registry/structured-data.mjs";
 
 type MetadataProps = {
   title?: string;
@@ -14,6 +18,22 @@ type MetadataProps = {
   noIndex?: boolean;
   /** When present, adds SoftwareSourceCode structured data and a per-project card. */
   project?: HydratedProject;
+  /**
+   * Builds the page's JSON-LD graph from the origin and route this component
+   * has already resolved, so the graph's URLs cannot disagree with the
+   * canonical link and og:url tags on the same page.
+   *
+   * The list pages pass a builder over the shared `collectionGraph` helpers in
+   * `structured-data.mjs` — the same builders the static generator calls — so
+   * the hydrated page and its crawler-visible HTML describe the same thing.
+   * Before this prop existed the runtime overwrote the static CollectionPage
+   * with the generic Person/WebSite graph, because a page without a `project`
+   * prop had no way to say what it was.
+   */
+  buildStructuredData?: (context: {
+    origin: string;
+    routePath: string;
+  }) => Record<string, unknown>;
 };
 
 /** Tags this component owns. Anything it added is removed on unmount. */
@@ -61,6 +81,7 @@ export function SiteMetadata({
   image: imageOverride,
   noIndex = false,
   project,
+  buildStructuredData,
 }: MetadataProps = {}) {
   useEffect(() => {
     const origin = siteOrigin();
@@ -112,43 +133,39 @@ export function SiteMetadata({
       },
     );
 
-    const structuredData = project
-      ? {
-          "@context": "https://schema.org",
-          "@type": "SoftwareSourceCode",
-          name: project.name,
-          description: project.summary,
-          url: pageUrl,
-          // Only emitted when the source actually exists. A removed source must not
-          // produce a `codeRepository` pointing at a repository that no longer
-          // holds the project — asserting one in structured data is a claim a
-          // crawler cannot check but a reader will believe.
-          ...(project.repo && "href" in project.repo
-            ? { codeRepository: project.repo.href }
-            : {}),
-          programmingLanguage: project.upstream?.stack,
-          author: { "@type": "Person", name: profile.name, url: origin },
-          keywords: project.tags.join(", "),
-          ...(project.liveUrl ? { discussionUrl: undefined, sameAs: [project.liveUrl] } : {}),
-        }
-      : {
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "Person",
-              name: profile.name,
-              url: origin,
-              sameAs: [profile.contact.github].filter(Boolean),
-              knowsAbout: profile.knowsAbout,
-            },
-            {
-              "@type": "WebSite",
-              name: profile.siteTitle,
-              url: origin,
-              description: profile.siteDescription,
-            },
-          ],
-        };
+    // A caller-supplied builder wins — it receives the origin and route this
+    // component already resolved, so its URLs match the canonical link and
+    // og:url tags. Next a per-project graph from the same builder the static
+    // generator uses. The fallback is the site-wide graph and only the
+    // site-wide graph: no route may silently receive a graph that describes a
+    // different page, which is the defect structured-data.mjs exists to
+    // prevent. The person details come from profile.ts, which re-exports the
+    // same literals the generator reads, so the Person graph is byte-identical
+    // on both sides.
+    const structuredData =
+      buildStructuredData?.({ origin, routePath }) ??
+      (project
+        ? caseStudyGraph({
+            origin,
+            route: routePath === "/" ? "/" : routePath,
+            name: project.name,
+            summary: project.summary,
+            // Only emitted when the source actually exists. A removed source
+            // must not produce a `codeRepository` pointing at a repository that
+            // no longer holds the project — asserting one in structured data is
+            // a claim a crawler cannot check but a reader will believe.
+            codeRepository:
+              project.repo && "href" in project.repo
+                ? project.repo.href
+                : undefined,
+            programmingLanguage: project.upstream?.stack,
+            keywords: project.tags.join(", "),
+            sameAs: project.liveUrl ? [project.liveUrl] : [],
+          })
+        : landingGraph(origin, {
+            githubUrl: profile.contact.github,
+            knowsAbout: [...profile.knowsAbout],
+          }));
 
     upsert(
       "script#portfolio-structured-data",
@@ -166,7 +183,7 @@ export function SiteMetadata({
     return () => {
       document.head.querySelectorAll(`[${OWNED}]`).forEach((element) => element.remove());
     };
-  }, [title, description, path, type, imageOverride, noIndex, project]);
+  }, [title, description, path, type, imageOverride, noIndex, project, buildStructuredData]);
 
   return null;
 }

@@ -10,11 +10,11 @@
 //   node scripts/check-csp-inline-hash.mjs           # verify (CI)
 //   node scripts/check-csp-inline-hash.mjs --print   # print hashes only
 //
-// The hash is computed over the LF-normalised script body. index.html is
-// committed with LF endings and this repo has no .gitattributes, so a Windows
-// checkout rewrites those LF to CRLF on disk. Hashing the raw working-tree
-// bytes would emit a different digest per platform; normalising first makes
-// the value identical everywhere.
+// The hash is computed over the LF-normalised script body. .gitattributes
+// normalises text files to LF in the working tree, but the normalisation here
+// stays as defence in depth: a checkout made before that file existed, or a
+// tool that rewrites endings, would otherwise emit a different digest per
+// platform and fail the check for a reason that has nothing to do with the CSP.
 //
 // No dependencies — runs in a bare CI container.
 import crypto from "node:crypto";

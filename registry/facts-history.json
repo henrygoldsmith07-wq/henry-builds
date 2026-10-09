@@ -1,59 +1,58 @@
 {
   "_generated": true,
-  "generatedAt": "2026-08-23T08:13:35.448Z",
+  "generatedAt": "2026-10-09T20:54:06.532Z",
   "latest": {
     "arise": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
         "conclusion": "success",
-        "tests": 182,
-        "lastGreenAt": "2026-08-21"
+        "lastGreenAt": "2026-10-09"
       },
-      "sha": "532d5a1fd6986c2c57b134a29d9d4a6ce0779354",
+      "sha": "25566af",
       "deploy": {
         "state": "success",
         "environment": "Production",
-        "sha": "f1817b5",
-        "url": "https://arise-cmacgw0ie-henry-4da4.vercel.app",
-        "createdAt": "2026-08-23",
-        "upToDate": false
+        "sha": "25566af",
+        "url": "https://arise-6tuvczo40-henry-4da4.vercel.app",
+        "createdAt": "2026-10-09",
+        "upToDate": true
       },
       "vulnerabilities": {
         "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
       }
     },
     "daily-debate": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
         "conclusion": "success",
-        "tests": 152,
-        "lastGreenAt": "2026-08-21"
+        "lastGreenAt": "2026-10-09"
       },
-      "sha": "ba9a494d97142de32cce8d5c286fda04fb4de8a1",
+      "sha": "075ac10",
       "deploy": {
         "state": "success",
         "environment": "Production",
-        "sha": "18e3b28",
-        "url": "https://daily-debate-263ptj8lg-henry-4da4.vercel.app",
-        "createdAt": "2026-08-23",
-        "upToDate": false
+        "sha": "075ac10",
+        "url": "https://daily-debate-c6wcnnhuz-henry-4da4.vercel.app",
+        "createdAt": "2026-10-09",
+        "upToDate": true
       },
       "vulnerabilities": {
         "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
       }
     },
     "food-shopping-os": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
-        "conclusion": "failure"
+        "conclusion": "failure",
+        "lastGreenAt": "2026-09-27"
       },
-      "sha": "c4eb82e188d9cc3005b161ea4611d9fa12f69712",
+      "sha": "cf22ca5",
       "deploy": {
         "state": "success",
         "environment": "Production",
-        "sha": "46b03d5",
-        "url": "https://food-shopping-qzsgdmbxn-henry-4da4.vercel.app",
-        "createdAt": "2026-08-22",
+        "sha": "cf22ca5",
+        "url": "https://food-shopping-4rg3lu0le-henry-4da4.vercel.app",
+        "createdAt": "2026-10-09",
         "upToDate": true
       },
       "vulnerabilities": {
@@ -61,35 +60,37 @@
       }
     },
     "french-practice": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
-        "conclusion": "failure"
+        "conclusion": "success",
+        "lastGreenAt": "2026-10-09"
       },
-      "sha": "95f46d379810d2aa8e20493884fb3332e2899d4f",
+      "sha": "aeb1b0d",
       "deploy": {
         "state": "success",
         "environment": "Production",
-        "sha": "bd884ab",
-        "url": "https://french-practice-qcdiczezz-henry-4da4.vercel.app",
-        "createdAt": "2026-08-23",
-        "upToDate": false
+        "sha": "aeb1b0d",
+        "url": "https://french-practice-2frgshnpy-henry-4da4.vercel.app",
+        "createdAt": "2026-10-05",
+        "upToDate": true
       },
       "vulnerabilities": {
         "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
       }
     },
     "mental-load-tracker": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
-        "conclusion": "failure"
+        "conclusion": "failure",
+        "lastGreenAt": "2026-10-05"
       },
-      "sha": "d2d6dd40e40c843ac33b7a5ec2a5f11f2ef1c160",
+      "sha": "992fe17",
       "deploy": {
-        "state": "success",
+        "state": "failure",
         "environment": "Production",
-        "sha": "d2d6dd4",
-        "url": "https://mental-load-tracker-q7cc0ne71-henry-4da4.vercel.app",
-        "createdAt": "2026-08-22",
+        "sha": "992fe17",
+        "url": "https://mental-load-tracker-bsoon7xu7-henry-4da4.vercel.app",
+        "createdAt": "2026-10-09",
         "upToDate": true
       },
       "vulnerabilities": {
@@ -97,82 +98,112 @@
       }
     },
     "pulse": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
-        "conclusion": "failure"
+        "conclusion": "failure",
+        "lastGreenAt": "2026-10-05"
       },
-      "sha": "fc7ce7950fc3b49ee5b6ff4e0c4aa82f85de5613",
+      "sha": "914ec73",
       "deploy": {
-        "state": "success",
+        "state": "failure",
         "environment": "Production",
-        "sha": "7d3b498",
-        "url": "https://pulse-9rammxujk-henry-4da4.vercel.app",
-        "createdAt": "2026-08-22",
-        "upToDate": false
+        "sha": "914ec73",
+        "url": "https://pulse-9xfearoim-henry-4da4.vercel.app",
+        "createdAt": "2026-10-09",
+        "upToDate": true
       },
       "vulnerabilities": {
         "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
       }
     },
     "rapport": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
-        "conclusion": "failure"
+        "conclusion": "success",
+        "lastGreenAt": "2026-10-05"
       },
-      "sha": "9dc0a0fda260e275c44ca5fb69081012e6eb3ad0",
+      "sha": "0f8edcf",
       "deploy": {
-        "state": "none"
+        "state": "success",
+        "environment": "Production",
+        "sha": "0f8edcf",
+        "url": "https://rapport-ij9fp6enz-henry-107b.vercel.app",
+        "createdAt": "2026-10-05",
+        "upToDate": true
       },
       "vulnerabilities": {
         "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
       }
     },
     "emotion-tracker": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
         "conclusion": "success",
-        "tests": 208,
-        "lastGreenAt": "2026-08-21"
+        "lastGreenAt": "2026-10-05"
       },
-      "sha": "ac8b0b7b60b67df9980ac78156f99b87add9441e",
+      "sha": "0b09ee3",
       "deploy": {
-        "state": "none"
+        "state": "success",
+        "environment": "Production",
+        "sha": "0b09ee3",
+        "url": "https://emotion-tracker-eld6wua8o-henry-107b.vercel.app",
+        "createdAt": "2026-10-05",
+        "upToDate": true
       },
       "vulnerabilities": {
         "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
       }
     },
     "revise": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
         "conclusion": "failure"
       },
-      "sha": "edf4e294aae1f0d5a8375fe1531a0957f72b143c",
+      "sha": "6882c9b",
       "deploy": {
         "state": "success",
         "environment": "Production",
-        "sha": "e60a82f",
-        "url": "https://revise-hu278og3s-henry-4da4.vercel.app",
-        "createdAt": "2026-08-22",
-        "upToDate": false
+        "sha": "6882c9b",
+        "url": "https://revise-cmrbcjvlg-henry-4da4.vercel.app",
+        "createdAt": "2026-10-09",
+        "upToDate": true
       },
       "vulnerabilities": {
         "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
       }
     },
     "rtk": {
-      "date": "2026-08-23",
+      "date": "2026-10-09",
       "ci": {
         "conclusion": "failure"
       },
-      "sha": "8eb714d5724b8743ddaef112bd95c1f25c6a08bd",
+      "sha": "82bd13f",
       "deploy": {
-        "state": "success",
+        "state": "failure",
         "environment": "Production",
-        "sha": "ea7fb0b",
-        "url": "https://revise-3bj4-i9qfv8gyn-henry-4da4.vercel.app",
-        "createdAt": "2026-08-22",
-        "upToDate": false
+        "sha": "82bd13f",
+        "url": "https://slimout-7t0dy2xvf-henry-4da4.vercel.app",
+        "createdAt": "2026-10-02",
+        "upToDate": true
+      },
+      "vulnerabilities": {
+        "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+      }
+    },
+    "habit-tracker": {
+      "date": "2026-10-09",
+      "ci": {
+        "conclusion": "success",
+        "lastGreenAt": "2026-10-05"
+      },
+      "sha": "5f0265d",
+      "deploy": {
+        "state": "failure",
+        "environment": "Production",
+        "sha": "5f0265d",
+        "url": "https://habit-tracker-41rya8pdk-henry-4da4.vercel.app",
+        "createdAt": "2026-10-05",
+        "upToDate": true
       },
       "vulnerabilities": {
         "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
@@ -200,6 +231,25 @@
         "vulnerabilities": {
           "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
         }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "success",
+          "lastGreenAt": "2026-10-09"
+        },
+        "sha": "25566af",
+        "deploy": {
+          "state": "success",
+          "environment": "Production",
+          "sha": "25566af",
+          "url": "https://arise-6tuvczo40-henry-4da4.vercel.app",
+          "createdAt": "2026-10-09",
+          "upToDate": true
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
       }
     ],
     "daily-debate": [
@@ -222,6 +272,25 @@
         "vulnerabilities": {
           "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
         }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "success",
+          "lastGreenAt": "2026-10-09"
+        },
+        "sha": "075ac10",
+        "deploy": {
+          "state": "success",
+          "environment": "Production",
+          "sha": "075ac10",
+          "url": "https://daily-debate-c6wcnnhuz-henry-4da4.vercel.app",
+          "createdAt": "2026-10-09",
+          "upToDate": true
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
       }
     ],
     "food-shopping-os": [
@@ -237,6 +306,25 @@
           "sha": "46b03d5",
           "url": "https://food-shopping-qzsgdmbxn-henry-4da4.vercel.app",
           "createdAt": "2026-08-22",
+          "upToDate": true
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "failure",
+          "lastGreenAt": "2026-09-27"
+        },
+        "sha": "cf22ca5",
+        "deploy": {
+          "state": "success",
+          "environment": "Production",
+          "sha": "cf22ca5",
+          "url": "https://food-shopping-4rg3lu0le-henry-4da4.vercel.app",
+          "createdAt": "2026-10-09",
           "upToDate": true
         },
         "vulnerabilities": {
@@ -262,6 +350,25 @@
         "vulnerabilities": {
           "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
         }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "success",
+          "lastGreenAt": "2026-10-09"
+        },
+        "sha": "aeb1b0d",
+        "deploy": {
+          "state": "success",
+          "environment": "Production",
+          "sha": "aeb1b0d",
+          "url": "https://french-practice-2frgshnpy-henry-4da4.vercel.app",
+          "createdAt": "2026-10-05",
+          "upToDate": true
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
       }
     ],
     "mental-load-tracker": [
@@ -277,6 +384,25 @@
           "sha": "d2d6dd4",
           "url": "https://mental-load-tracker-q7cc0ne71-henry-4da4.vercel.app",
           "createdAt": "2026-08-22",
+          "upToDate": true
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "failure",
+          "lastGreenAt": "2026-10-05"
+        },
+        "sha": "992fe17",
+        "deploy": {
+          "state": "failure",
+          "environment": "Production",
+          "sha": "992fe17",
+          "url": "https://mental-load-tracker-bsoon7xu7-henry-4da4.vercel.app",
+          "createdAt": "2026-10-09",
           "upToDate": true
         },
         "vulnerabilities": {
@@ -302,6 +428,25 @@
         "vulnerabilities": {
           "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
         }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "failure",
+          "lastGreenAt": "2026-10-05"
+        },
+        "sha": "914ec73",
+        "deploy": {
+          "state": "failure",
+          "environment": "Production",
+          "sha": "914ec73",
+          "url": "https://pulse-9xfearoim-henry-4da4.vercel.app",
+          "createdAt": "2026-10-09",
+          "upToDate": true
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
       }
     ],
     "rapport": [
@@ -313,6 +458,25 @@
         "sha": "9dc0a0fda260e275c44ca5fb69081012e6eb3ad0",
         "deploy": {
           "state": "none"
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "success",
+          "lastGreenAt": "2026-10-05"
+        },
+        "sha": "0f8edcf",
+        "deploy": {
+          "state": "success",
+          "environment": "Production",
+          "sha": "0f8edcf",
+          "url": "https://rapport-ij9fp6enz-henry-107b.vercel.app",
+          "createdAt": "2026-10-05",
+          "upToDate": true
         },
         "vulnerabilities": {
           "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
@@ -330,6 +494,25 @@
         "sha": "ac8b0b7b60b67df9980ac78156f99b87add9441e",
         "deploy": {
           "state": "none"
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "success",
+          "lastGreenAt": "2026-10-05"
+        },
+        "sha": "0b09ee3",
+        "deploy": {
+          "state": "success",
+          "environment": "Production",
+          "sha": "0b09ee3",
+          "url": "https://emotion-tracker-eld6wua8o-henry-107b.vercel.app",
+          "createdAt": "2026-10-05",
+          "upToDate": true
         },
         "vulnerabilities": {
           "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
@@ -354,6 +537,24 @@
         "vulnerabilities": {
           "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
         }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "failure"
+        },
+        "sha": "6882c9b",
+        "deploy": {
+          "state": "success",
+          "environment": "Production",
+          "sha": "6882c9b",
+          "url": "https://revise-cmrbcjvlg-henry-4da4.vercel.app",
+          "createdAt": "2026-10-09",
+          "upToDate": true
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
       }
     ],
     "rtk": [
@@ -370,6 +571,45 @@
           "url": "https://revise-3bj4-i9qfv8gyn-henry-4da4.vercel.app",
           "createdAt": "2026-08-22",
           "upToDate": false
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
+      },
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "failure"
+        },
+        "sha": "82bd13f",
+        "deploy": {
+          "state": "failure",
+          "environment": "Production",
+          "sha": "82bd13f",
+          "url": "https://slimout-7t0dy2xvf-henry-4da4.vercel.app",
+          "createdAt": "2026-10-02",
+          "upToDate": true
+        },
+        "vulnerabilities": {
+          "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"
+        }
+      }
+    ],
+    "habit-tracker": [
+      {
+        "date": "2026-10-09",
+        "ci": {
+          "conclusion": "success",
+          "lastGreenAt": "2026-10-05"
+        },
+        "sha": "5f0265d",
+        "deploy": {
+          "state": "failure",
+          "environment": "Production",
+          "sha": "5f0265d",
+          "url": "https://habit-tracker-41rya8pdk-henry-4da4.vercel.app",
+          "createdAt": "2026-10-05",
+          "upToDate": true
         },
         "vulnerabilities": {
           "unavailable": "needs a token with security_events scope (REGISTRY_TOKEN)"

@@ -15,8 +15,27 @@ import {
   registryMeta,
 } from "@/data/registry";
 import { stageOrder, type Stage } from "@/data/registry/schema";
+import {
+  PROJECTS_DESCRIPTION,
+  PROJECTS_TITLE,
+  collectionGraph,
+  nameSortedEntries,
+} from "@/data/registry/structured-data.mjs";
 
 const ALL = "all" as const;
+
+/**
+ * The crawler-visible graph, built by the same helper the static generator
+ * calls so the hydrated page and `dist/projects.html` agree. Defined at module
+ * scope: the reference must be stable or every render rewrites the head.
+ */
+const buildStructuredData = ({ origin }: { origin: string }) =>
+  collectionGraph({
+    origin,
+    route: "/projects",
+    title: PROJECTS_TITLE,
+    entries: nameSortedEntries(projects, origin),
+  });
 
 export default function Projects() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -108,10 +127,11 @@ export default function Projects() {
   return (
     <div className="portfolio-shell min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteMetadata
-        title="All work — Henry Goldsmith"
-        description="Every project in the registry, including the weaker and unfinished ones, with an honest stage label on each."
+        title={PROJECTS_TITLE}
+        description={PROJECTS_DESCRIPTION}
         path="/projects"
         image="/og/projects.png"
+        buildStructuredData={buildStructuredData}
       />
       <SiteHeader />
 

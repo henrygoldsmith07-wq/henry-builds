@@ -14,6 +14,22 @@
 import fs from "node:fs";
 import path from "node:path";
 import { buildRoutePaths, loadCaseStudies } from "./lib/published-projects.mjs";
+import {
+  BUILD_LOG_DESCRIPTION,
+  BUILD_LOG_TITLE,
+  COMPARE_DESCRIPTION,
+  COMPARE_TITLE,
+  LANDING_DESCRIPTION,
+  LANDING_TITLE,
+  PROJECTS_DESCRIPTION,
+  PROJECTS_TITLE,
+  SITE_NAME,
+  caseStudyGraph,
+  collectionGraph,
+  landingGraph,
+  nameSortedEntries,
+} from "../src/data/registry/structured-data.mjs";
+import { profileData } from "../src/data/profile-data.mjs";
 
 const root = process.cwd();
 const distDir = path.join(root, "dist");
@@ -160,136 +176,102 @@ function pruneGatedRoutes(publishedSlugs) {
   }
 }
 
-const siteDescription =
-  "Projects by Henry Goldsmith, each with a stage label, the numbers behind it and a link to the source. Prototypes are labelled as prototypes.";
+// Route copy lives in structured-data.mjs so the static HTML and the hydrated
+// runtime describe the same page with the same words. The builder functions
+// below are the same ones SiteMetadata calls, which is what makes "agrees"
+// checkable rather than aspirational.
+const person = {
+  githubUrl: profileData.contact.github,
+  knowsAbout: profileData.knowsAbout,
+};
+
+const entries = nameSortedEntries(projects, origin);
 
 write(
   "index.html",
   renderPage({
-    title: "Henry Goldsmith — Software, evidence-first",
-    description: siteDescription,
+    title: LANDING_TITLE,
+    description: LANDING_DESCRIPTION,
     route: "/",
     image: "/og/default.png",
     imageAlt: "Henry Goldsmith — build it, measure it, say what it does.",
-    structuredData: {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "Person",
-          name: "Henry Goldsmith",
-          url: origin,
-          sameAs: ["https://github.com/henrygoldsmith07-wq"],
-        },
-        {
-          "@type": "WebSite",
-          name: "Henry Goldsmith",
-          url: origin,
-          description: siteDescription,
-        },
-      ],
-    },
+    structuredData: landingGraph(origin, person),
   }),
 );
-
-const projectsDescription =
-  "Every project in the registry, including the weaker and unfinished ones, with an honest stage label on each.";
 
 write(
   "projects.html",
   renderPage({
-    title: "All work — Henry Goldsmith",
-    description: projectsDescription,
+    title: PROJECTS_TITLE,
+    description: PROJECTS_DESCRIPTION,
     route: "/projects",
     image: "/og/projects.png",
-    imageAlt: "Henry Goldsmith — all work",
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      name: "All work — Henry Goldsmith",
-      url: `${origin}/projects`,
-      mainEntity: {
-        "@type": "ItemList",
-        itemListElement: projects.map((project, index) => ({
-          "@type": "ListItem",
-          position: index + 1,
-          name: project.name,
-          url: `${origin}/projects/${project.slug}`,
-        })),
-      },
-    },
+    imageAlt: `${SITE_NAME} — all work`,
+    structuredData: collectionGraph({
+      origin,
+      route: "/projects",
+      title: PROJECTS_TITLE,
+      entries,
+    }),
   }),
 );
-
-const compareDescription =
-  "Every project side by side: stage, source state, CI health, evidence density, measured numbers, ledger grades and what each one demonstrates.";
 
 write(
   "compare.html",
   renderPage({
-    title: "Compare the work — Henry Goldsmith",
-    description: compareDescription,
+    title: COMPARE_TITLE,
+    description: COMPARE_DESCRIPTION,
     route: "/compare",
     image: "/og/default.png",
-    imageAlt: "Henry Goldsmith — all projects compared",
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      name: "Compare the work — Henry Goldsmith",
-      url: `${origin}/compare`,
-      description: compareDescription,
-      mainEntity: {
-        "@type": "ItemList",
-        itemListElement: projects.map((project, index) => ({
-          "@type": "ListItem",
-          position: index + 1,
-          name: project.name,
-          url: `${origin}/projects/${project.slug}`,
-        })),
-      },
-    },
+    imageAlt: `${SITE_NAME} — all projects compared`,
+    structuredData: collectionGraph({
+      origin,
+      route: "/compare",
+      title: COMPARE_TITLE,
+      description: COMPARE_DESCRIPTION,
+      entries,
+    }),
   }),
 );
-
-const buildLogDescription =
-  "Dead ends, accepted trade-offs, lessons and stated limitations recorded while building each project. Every entry is pulled from the case study it appears on.";
 
 write(
   "build-log.html",
   renderPage({
-    title: "Build log — Henry Goldsmith",
-    description: buildLogDescription,
+    title: BUILD_LOG_TITLE,
+    description: BUILD_LOG_DESCRIPTION,
     route: "/build-log",
     image: "/og/default.png",
-    imageAlt: "Henry Goldsmith — build log",
-    structuredData: {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      name: "Build log — Henry Goldsmith",
-      url: `${origin}/build-log`,
-      description: buildLogDescription,
-    },
+    imageAlt: `${SITE_NAME} — build log`,
+    structuredData: collectionGraph({
+      origin,
+      route: "/build-log",
+      title: BUILD_LOG_TITLE,
+      description: BUILD_LOG_DESCRIPTION,
+    }),
   }),
 );
 
 for (const project of projects) {
   const route = `/projects/${project.slug}`;
   const upstreamEntry = upstreamById.get(project.upstreamId);
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareSourceCode",
+  // The generator reads bare case studies, so `repo` is the authored SourceRef
+  // (or absent), not the hydrated `repoBaseFor` derivation the pages use. Only
+  // an href that actually exists may become `codeRepository`: pointing a crawler
+  // at a removed repository is a claim no reader can check but every reader
+  // will believe. This matches the `"href" in project.repo` guard in
+  // SiteMetadata.
+  const codeRepository =
+    project.repo && "href" in project.repo ? project.repo.href : undefined;
+  const structuredData = caseStudyGraph({
+    origin,
+    route,
     name: project.name,
-    description: project.summary,
-    url: `${origin}${route}`,
-    codeRepository: project.repo?.href,
+    summary: project.summary,
+    codeRepository,
     programmingLanguage: upstreamEntry?.stack,
-    author: {
-      "@type": "Person",
-      name: "Henry Goldsmith",
-      url: origin,
-    },
     keywords: (project.tags ?? []).join(", "),
-    ...(project.liveUrl ? { sameAs: [project.liveUrl] } : {}),
-  };
+    sameAs: project.liveUrl ? [project.liveUrl] : [],
+  });
 
   write(
     path.join("projects", `${project.slug}.html`),

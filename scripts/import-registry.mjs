@@ -317,9 +317,9 @@ function readZipEntries(buffer) {
  *
  * Accepted shapes: {"tests":{"total":n,"files"? :n},"benchmarks"?:{...}}
  */
-async function artifactFacts(runId) {
+async function artifactFacts(repo, runId) {
   const list = await fetchJson(
-    `https://api.github.com/repos/${SOURCE_REPO}/actions/runs/${runId}/artifacts?per_page=50`,
+    `https://api.github.com/repos/${repo}/actions/runs/${runId}/artifacts?per_page=50`,
   );
   const candidates = (list.artifacts ?? []).filter((a) => /^ci-facts(-[\w.-]+)?$/.test(a.name));
   if (candidates.length === 0) return null;
@@ -327,7 +327,7 @@ async function artifactFacts(runId) {
   for (const artifact of candidates) {
     try {
       const res = await githubFetch(
-        `https://api.github.com/repos/${SOURCE_REPO}/actions/artifacts/${artifact.id}/zip`,
+        `https://api.github.com/repos/${repo}/actions/artifacts/${artifact.id}/zip`,
         { accept: "application/vnd.github+json" },
       );
       const buffer = Buffer.from(await res.arrayBuffer());
@@ -437,17 +437,17 @@ async function defaultBranchOf(repo) {
   return data.default_branch ?? "main";
 }
 
-async function runLogText(runId) {
+async function runLogText(repo, runId) {
   // The logs endpoint 302s to a zip. We only want plain text, so we read the
   // per-job logs instead, which the API serves directly.
   const jobs = await fetchJson(
-    `https://api.github.com/repos/${SOURCE_REPO}/actions/runs/${runId}/jobs?per_page=20`,
+    `https://api.github.com/repos/${repo}/actions/runs/${runId}/jobs?per_page=20`,
   );
   let combined = "";
   for (const job of jobs.jobs ?? []) {
     try {
       combined += await fetchText(
-        `https://api.github.com/repos/${SOURCE_REPO}/actions/jobs/${job.id}/logs`,
+        `https://api.github.com/repos/${repo}/actions/jobs/${job.id}/logs`,
       );
       combined += "\n";
     } catch {
@@ -506,17 +506,22 @@ async function collectCiFacts(entries) {
       record.lastSuccessRunUrl = lastSuccess?.html_url;
       record.headSha = run.head_sha?.slice(0, 7);
 
-      // Facts content comes artifact-first, log-parsing second.
+      // Facts content comes artifact-first, log-parsing second — always from
+      // the repo the run actually belongs to. These used to be pinned to
+      // SOURCE_REPO, so every standalone-repo entry (the post-2026-08 layout)
+      // fetched its artifacts and job logs from the monorepo, got a 404, and
+      // silently degraded to carried-forward numbers.
+      const runRepo = entry.workflow ? SOURCE_REPO : entry.repo;
       let measured = null;
       if (token) {
         try {
-          measured = await artifactFacts(run.id);
+          measured = await artifactFacts(runRepo, run.id);
         } catch (error) {
           warn(`${entry.id}: artifact lookup failed (${error.message})`);
         }
       }
       if (!measured && run.conclusion === "success" && token) {
-        const logs = await runLogText(run.id);
+        const logs = await runLogText(runRepo, run.id);
         const total = extractCount(logs, TEST_PATTERNS);
         const files = extractCount(logs, FILE_PATTERNS);
         const benchCases = extractCount(logs, BENCHMARK_PATTERNS);

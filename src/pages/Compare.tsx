@@ -17,6 +17,27 @@ import {
   type HydratedProject,
 } from "@/data/registry";
 import type { Stage } from "@/data/registry/schema";
+import {
+  COMPARE_DESCRIPTION,
+  COMPARE_TITLE,
+  collectionGraph,
+  nameSortedEntries,
+} from "@/data/registry/structured-data.mjs";
+
+/**
+ * The crawler-visible graph, built by the same helper the static generator
+ * calls so the hydrated page and `dist/compare.html` agree. Module scope keeps
+ * the reference stable so the head is not rewritten on every render.
+ */
+const buildStructuredData = ({ origin }: { origin: string }) =>
+  collectionGraph({
+    origin,
+    route: "/compare",
+    title: COMPARE_TITLE,
+    description: COMPARE_DESCRIPTION,
+    entries: nameSortedEntries(projects, origin),
+  });
+
 /** Sortable axes. "honest" leads because it is what the site is actually about. */
 type SortKey = "honest" | "stage" | "evidence" | "measures" | "verified";
 
@@ -401,9 +422,10 @@ export default function Compare() {
   return (
     <div className="portfolio-shell min-h-screen overflow-x-hidden bg-background text-foreground">
       <SiteMetadata
-        title="Compare the work — Henry Goldsmith"
-        description="Every project side by side: stage, source state, CI health, evidence density, measured numbers, ledger grades and what each one demonstrates."
+        title={COMPARE_TITLE}
+        description={COMPARE_DESCRIPTION}
         path="/compare"
+        buildStructuredData={buildStructuredData}
       />
       <SiteHeader />
 

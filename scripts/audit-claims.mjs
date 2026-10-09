@@ -17,6 +17,10 @@ const root = process.cwd();
 
 const TARGETS = [
   "registry/case-studies",
+  // profile.ts re-exports profile-data.mjs; the authored copy lives in the
+  // .mjs, so auditing only the .ts would let banned phrasing move there
+  // unchecked.
+  "src/data/profile-data.mjs",
   "src/data/profile.ts",
   "src/pages/Landing.tsx",
   "src/pages/Projects.tsx",

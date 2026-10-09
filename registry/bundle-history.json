@@ -5,7 +5,14 @@
       "date": "2026-08-23",
       "totalKb": 920,
       "jsKb": 784
+    },
+    {
+      "date": "2026-10-09",
+      "totalKb": 681,
+      "jsKb": 541,
+      "totalGzipKb": 191,
+      "jsGzipKb": 169
     }
   ],
-  "generatedAt": "2026-08-23T17:40:20.746Z"
+  "generatedAt": "2026-10-09T20:54:27.441Z"
 }

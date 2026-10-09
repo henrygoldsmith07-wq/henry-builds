@@ -1,5 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
 import { allRoutes, projectSlugs } from "./routes";
 
 /**
@@ -232,4 +234,86 @@ test("mobile menu closes with Escape and returns focus", async ({ page }, testIn
 
   await expect(page.getByRole("navigation", { name: "Mobile" })).toHaveCount(0);
   await expect(trigger).toBeFocused();
+});
+
+/**
+ * The JSON-LD a crawler-without-JavaScript reads must describe the same page as
+ * the JSON-LD the hydrated app leaves behind.
+ *
+ * `generate-route-html.mjs` writes a CollectionPage per list route; SiteMetadata
+ * used to overwrite it with the generic Person/WebSite graph on mount, so the
+ * two classes of crawler disagreed about what `/projects` is. The builders are
+ * now shared (structured-data.mjs), and this test is what keeps that true:
+ * without it, the next person to touch either side has nothing telling them the
+ * outputs must match.
+ *
+ * Origins are normalised because the static HTML is generated with the
+ * production origin while a local preview serves it from localhost. Everything
+ * else — graph type, wording, item order, per-project URLs' paths — must be
+ * exactly equal. Production origin agreement is governed by SITE_URL being set
+ * at build time, which `check-registry-freshness` and the sitemap already
+ * depend on.
+ *
+ * The synthetic 404 route is skipped: `allRoutes` includes it so the
+ * accessibility suite covers the error page, but it has no generated
+ * counterpart to compare against — its own test asserts the noindex tag.
+ */
+test("the hydrated page's structured data agrees with the crawler-visible HTML", async ({
+  page,
+}) => {
+  const staticScriptPattern =
+    /<script\b[^>]*id=["']portfolio-structured-data["'][^>]*>([\s\S]*?)<\/script>/i;
+
+  const staticPathFor = (routePath: string) =>
+    routePath === "/" ? "index.html" : `${routePath.replace(/^\//, "")}.html`;
+
+  const readStatic = (routePath: string) => {
+    const relative = staticPathFor(routePath);
+    const file = path.join(process.cwd(), "dist", relative);
+    const html = fs.readFileSync(file, "utf8");
+    const match = html.match(staticScriptPattern);
+    if (!match) throw new Error(`${relative} has no portfolio-structured-data script`);
+    return JSON.parse(match[1]) as Record<string, unknown>;
+  };
+
+  const originOf = (graph: Record<string, unknown>): string => {
+    const url =
+      (graph.url as string | undefined) ??
+      ((graph["@graph"] as Array<{ url?: string }> | undefined)?.find(
+        (node) => typeof node.url === "string",
+      )?.url);
+    if (!url) throw new Error("graph carries no URL to read an origin from");
+    return new URL(url).origin;
+  };
+
+  // Replaces every occurrence of a graph's own origin so two graphs that agree
+  // on everything but where they were served from still compare equal.
+  const normalize = (graph: Record<string, unknown>) => {
+    const origin = originOf(graph);
+    return JSON.parse(
+      JSON.stringify(graph).split(origin).join("ORIGIN"),
+    ) as Record<string, unknown>;
+  };
+
+  for (const route of allRoutes) {
+    // Routes without generated HTML (the synthetic 404) have no static side.
+    if (!fs.existsSync(path.join(process.cwd(), "dist", staticPathFor(route.path)))) {
+      continue;
+    }
+
+    const staticGraph = normalize(readStatic(route.path));
+
+    await page.goto(route.path);
+    await page.waitForLoadState("networkidle");
+    const runtimeText = await page.evaluate(
+      () =>
+        document.getElementById("portfolio-structured-data")?.textContent ?? "",
+    );
+    expect(runtimeText, `${route.path} hydrated without structured data`).toBeTruthy();
+
+    const runtimeGraph = normalize(JSON.parse(runtimeText));
+    expect(runtimeGraph, `${route.path}: hydrated JSON-LD differs from the static HTML`).toEqual(
+      staticGraph,
+    );
+  }
 });

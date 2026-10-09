@@ -25,6 +25,9 @@ export const coreRoutes = [
   { name: "landing", path: "/" },
   { name: "projects", path: "/projects" },
   { name: "compare", path: "/compare" },
+  // Published and crawler-visible since it was added, but absent from this
+  // list until now — the accessibility suite never audited it.
+  { name: "build-log", path: "/build-log" },
 ];
 
 export const notFoundRoute = {

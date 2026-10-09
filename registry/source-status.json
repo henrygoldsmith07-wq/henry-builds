@@ -1,6 +1,6 @@
 {
   "_generated": "Written by scripts/import-registry.mjs. Do not edit by hand.",
-  "checkedAt": "2026-08-23T17:36:08.700Z",
+  "checkedAt": "2026-10-09T20:53:22.802Z",
   "projects": {
     "agent-os-control-room": {
       "derived": "archived-source",
@@ -11,18 +11,18 @@
       "reason": "Source lives at henrygoldsmith07-wq/arise@main.",
       "repo": "henrygoldsmith07-wq/arise",
       "ref": "main",
-      "access": "private",
-      "sha": "d3df0813a1672dae2fd67ee6ce07d276527e9dc1",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/arise/commit/d3df0813a1672dae2fd67ee6ce07d276527e9dc1"
+      "access": "public",
+      "sha": "25566af27ddbe3a37da06118fd14efdc70bbabab",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/arise/commit/25566af27ddbe3a37da06118fd14efdc70bbabab"
     },
     "daily-debate": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/daily-debate@main.",
       "repo": "henrygoldsmith07-wq/daily-debate",
       "ref": "main",
-      "access": "private",
-      "sha": "a8e47371389dc739af5ddee156565fd936d6af56",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/commit/a8e47371389dc739af5ddee156565fd936d6af56"
+      "access": "public",
+      "sha": "075ac10e321d8572c711e1c1863f29b4787054e6",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/commit/075ac10e321d8572c711e1c1863f29b4787054e6"
     },
     "dictation-typer": {
       "derived": "archived-source",
@@ -33,9 +33,9 @@
       "reason": "Source lives at henrygoldsmith07-wq/food-shopping-os@main.",
       "repo": "henrygoldsmith07-wq/food-shopping-os",
       "ref": "main",
-      "access": "private",
-      "sha": "9a88e0f93117c8e6e35cbf7f87f23674b540846d",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/commit/9a88e0f93117c8e6e35cbf7f87f23674b540846d"
+      "access": "public",
+      "sha": "cf22ca52d3316f8344443f6f230a95a5e0c28b71",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/commit/cf22ca52d3316f8344443f6f230a95a5e0c28b71"
     },
     "habit-tracker": {
       "derived": "current",
@@ -43,17 +43,17 @@
       "repo": "henrygoldsmith07-wq/habit-tracker",
       "ref": "main",
       "access": "private",
-      "sha": "b1dcf37a2aa84efd6f5832e94b42c4ad6f9665a8",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/habit-tracker/commit/b1dcf37a2aa84efd6f5832e94b42c4ad6f9665a8"
+      "sha": "5f0265d9006e402e0f918356867e24f32f108856",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/habit-tracker/commit/5f0265d9006e402e0f918356867e24f32f108856"
     },
     "le-studio-french": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/french-practice@main.",
       "repo": "henrygoldsmith07-wq/french-practice",
       "ref": "main",
-      "access": "private",
-      "sha": "bd884ab3049ed5977e3e65f00f942713951c0622",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/french-practice/commit/bd884ab3049ed5977e3e65f00f942713951c0622"
+      "access": "public",
+      "sha": "aeb1b0d4a5f9e95e311c21265891d210a0d51b1d",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/french-practice/commit/aeb1b0d4a5f9e95e311c21265891d210a0d51b1d"
     },
     "meeting-recorder": {
       "derived": "archived-source",
@@ -65,8 +65,8 @@
       "repo": "henrygoldsmith07-wq/mental-load-tracker",
       "ref": "main",
       "access": "private",
-      "sha": "d2d6dd40e40c843ac33b7a5ec2a5f11f2ef1c160",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/commit/d2d6dd40e40c843ac33b7a5ec2a5f11f2ef1c160"
+      "sha": "992fe17267a8506ec0c1daa4ac6d41a230cab5b9",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/commit/992fe17267a8506ec0c1daa4ac6d41a230cab5b9"
     },
     "pulse": {
       "derived": "current",
@@ -74,8 +74,8 @@
       "repo": "henrygoldsmith07-wq/pulse",
       "ref": "main",
       "access": "private",
-      "sha": "426d523d738e07a2f468d7a0a25a5b35713fd767",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/pulse/commit/426d523d738e07a2f468d7a0a25a5b35713fd767"
+      "sha": "914ec731a97a64483de2098e5d1c1a9e42e83344",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/pulse/commit/914ec731a97a64483de2098e5d1c1a9e42e83344"
     },
     "rapport": {
       "derived": "current",
@@ -83,8 +83,8 @@
       "repo": "henrygoldsmith07-wq/rapport",
       "ref": "main",
       "access": "private",
-      "sha": "4f271dcfd1b7e45a62809c8b5f767070b927c2e6",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/rapport/commit/4f271dcfd1b7e45a62809c8b5f767070b927c2e6"
+      "sha": "0f8edcf9b9dfd76e12b529b5307d1ca4f2df93b1",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/rapport/commit/0f8edcf9b9dfd76e12b529b5307d1ca4f2df93b1"
     },
     "reflect": {
       "derived": "current",
@@ -92,17 +92,17 @@
       "repo": "henrygoldsmith07-wq/emotion-tracker",
       "ref": "main",
       "access": "private",
-      "sha": "6bb5dcadc10032ebcba8cfd067bf1bdfe39c3c33",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/commit/6bb5dcadc10032ebcba8cfd067bf1bdfe39c3c33"
+      "sha": "0b09ee35f462e3951d9cf8f6ba2e25b2592723cf",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/commit/0b09ee35f462e3951d9cf8f6ba2e25b2592723cf"
     },
     "revise": {
       "derived": "current",
       "reason": "Source lives at henrygoldsmith07-wq/revise@main.",
       "repo": "henrygoldsmith07-wq/revise",
       "ref": "main",
-      "access": "private",
-      "sha": "0d1b276f7443b4c40af2bfabf130c6b3a48351ff",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/revise/commit/0d1b276f7443b4c40af2bfabf130c6b3a48351ff"
+      "access": "public",
+      "sha": "6882c9bf39c09ca621fbe263b2ec67853b955a6e",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/revise/commit/6882c9bf39c09ca621fbe263b2ec67853b955a6e"
     },
     "rtk": {
       "derived": "current",
@@ -110,8 +110,8 @@
       "repo": "henrygoldsmith07-wq/rtk",
       "ref": "main",
       "access": "private",
-      "sha": "808092d6498bfa7aa7cb8ec360e201b862da2d4b",
-      "shaUrl": "https://github.com/henrygoldsmith07-wq/rtk/commit/808092d6498bfa7aa7cb8ec360e201b862da2d4b"
+      "sha": "82bd13f27cfc22bc381679cb5624356075f73dfd",
+      "shaUrl": "https://github.com/henrygoldsmith07-wq/rtk/commit/82bd13f27cfc22bc381679cb5624356075f73dfd"
     },
     "world-news": {
       "derived": "archived-source",
