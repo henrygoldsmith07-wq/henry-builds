@@ -715,7 +715,39 @@ test("registry:freshness rejects an anonymous CI import", async () => {
  * These deliberately run against the repository rather than a fixture: a
  * generator's job is to survive the real registry, and the failure above was
  * invisible to every fixture-shaped test.
+ *
+ * Two of them need `dist/index.html` as their template, and this suite runs
+ * before the build in CI. Skipping them there would put the guarantee exactly
+ * where it is least useful, so a minimal shell is written when `dist/` is
+ * absent: the registry stays real, which is what these tests are about, and the
+ * template is only the HTML skeleton the generator rewrites. A real build
+ * replaces it.
  */
+function ensureDistTemplate() {
+  const distDir = path.join(repoRoot, "dist");
+  const template = path.join(distDir, "index.html");
+  if (fs.existsSync(template)) return;
+  fs.mkdirSync(distDir, { recursive: true });
+  fs.writeFileSync(
+    template,
+    [
+      "<!doctype html>",
+      '<html lang="en">',
+      "  <head>",
+      "    <title>template</title>",
+      '    <meta name="description" content="template" />',
+      '    <meta name="robots" content="index, follow" />',
+      '    <link rel="canonical" href="/" />',
+      "  </head>",
+      "  <body>",
+      '    <div id="root"></div>',
+      "  </body>",
+      "</html>",
+      "",
+    ].join("\n"),
+  );
+}
+
 for (const script of [
   ["generate-sitemap", "scripts/generate-sitemap.mjs"],
   ["generate-route-html", "scripts/generate-route-html.mjs"],
@@ -725,6 +757,7 @@ for (const script of [
 ]) {
   const [name, relative] = script;
   test(`${name} runs to completion against the real registry`, async () => {
+    ensureDistTemplate();
     const { code, stdout, stderr } = await runNode(repoRoot, relative);
     if (code !== 0) {
       throw new Error(
