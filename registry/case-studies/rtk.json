@@ -28,7 +28,7 @@
   },
   "repo": {
     "label": "rtk",
-    "href": "https://github.com/henrygoldsmith07-wq/rtk",
+    "href": "https://github.com/henrygoldsmith07-wq/slimout",
     "path": "."
   },
   "caseStudy": {
@@ -56,7 +56,7 @@
         {
           "kind": "benchmark",
           "label": "benchmark/fixtures.js and datasets.js",
-          "href": "https://github.com/henrygoldsmith07-wq/rtk/tree/main/benchmark",
+          "href": "https://github.com/henrygoldsmith07-wq/slimout/tree/main/benchmark",
           "path": "benchmark",
           "capturedAt": "2026-08-09"
         }
@@ -87,7 +87,7 @@
           {
             "kind": "benchmark",
             "label": "README — evidence table",
-            "href": "https://github.com/henrygoldsmith07-wq/rtk/blob/main/README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/slimout/blob/main/README.md",
             "path": "README.md",
             "capturedAt": "2026-08-09"
           }
@@ -103,7 +103,7 @@
           {
             "kind": "benchmark",
             "label": "README — evidence table",
-            "href": "https://github.com/henrygoldsmith07-wq/rtk/blob/main/README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/slimout/blob/main/README.md",
             "path": "README.md",
             "capturedAt": "2026-08-09"
           }
@@ -119,7 +119,7 @@
           {
             "kind": "benchmark",
             "label": "README — reproduce",
-            "href": "https://github.com/henrygoldsmith07-wq/rtk/blob/main/README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/slimout/blob/main/README.md",
             "path": "README.md",
             "capturedAt": "2026-08-09"
           }
@@ -133,15 +133,15 @@
           {
             "kind": "benchmark",
             "label": "README — evidence table and CI gate",
-            "href": "https://github.com/henrygoldsmith07-wq/rtk/blob/main/README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/slimout/blob/main/README.md",
             "path": "README.md",
             "capturedAt": "2026-08-09"
           },
           {
             "kind": "ci",
-            "label": "rtk.yml",
-            "href": "https://github.com/henrygoldsmith07-wq/rtk/blob/main/.github/workflows/rtk.yml",
-            "path": ".github/workflows/rtk.yml"
+            "label": "benchmark.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/slimout/blob/main/.github/workflows/benchmark.yml",
+            "path": ".github/workflows/benchmark.yml"
           }
         ],
         "ledgerClaimId": "rtk-token-saving"
@@ -152,7 +152,7 @@
           {
             "kind": "benchmark",
             "label": "README — tsc failure row and footnote",
-            "href": "https://github.com/henrygoldsmith07-wq/rtk/blob/main/README.md",
+            "href": "https://github.com/henrygoldsmith07-wq/slimout/blob/main/README.md",
             "path": "README.md",
             "capturedAt": "2026-08-09"
           }
