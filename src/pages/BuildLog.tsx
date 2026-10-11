@@ -38,7 +38,7 @@ interface LogEntry {
   title: string | null;
   body: string;
   change: string | null;
-  evidence: Evidence[] | null;
+  evidence?: Evidence[] | null;
 }
 
 const KINDS: { key: Kind; label: string; blurb: string }[] = [
