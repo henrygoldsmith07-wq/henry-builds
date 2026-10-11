@@ -353,6 +353,52 @@ test("validate-registry rejects a screenshot past the freshness window", async (
   }
 });
 
+test("validate-registry accepts a failed approach carrying evidence", async () => {
+  // Three studies already carried `evidence` on a failed approach while the
+  // schema did not declare the field and the renderer dropped it. The field is
+  // optional, but when it is written it has to be a well-formed evidence list.
+  const dir = tempDir("evm-failure-evidence");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.failedApproaches = [
+    {
+      approach: "A strict Content-Security-Policy over the whole app",
+      whyItFailed: "The globe is a three.js canvas and breaks under a strict CSP.",
+      whatItChanged: "Headers shipped without a CSP and the absence was recorded.",
+      evidence: [
+        {
+          kind: "doc",
+          label: "Monorepo improvement log",
+          href: "https://github.com/example/monorepo/blob/main/IMPROVEMENT_LOG.md",
+        },
+      ],
+    },
+  ];
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 0) {
+    throw new Error(`expected exit 0, got ${result.code}:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects a failed approach with malformed evidence", async () => {
+  const dir = tempDir("evm-failure-evidence-bad");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.failedApproaches = [
+    {
+      approach: "A strict Content-Security-Policy over the whole app",
+      whyItFailed: "The globe is a three.js canvas and breaks under a strict CSP.",
+      whatItChanged: "Headers shipped without a CSP and the absence was recorded.",
+      evidence: [{ kind: "doc", label: "nowhere" }],
+    },
+  ];
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/must point somewhere/.test(result.stderr)) {
+    throw new Error(`missing evidence failure:\n${result.stderr}`);
+  }
+});
+
 test("validate-registry accepts a freshly captured screenshot", async () => {
   const dir = tempDir("evm-freshshot");
   const studies = minimalRegistry();

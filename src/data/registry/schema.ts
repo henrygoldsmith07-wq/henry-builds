@@ -182,6 +182,14 @@ export type FailedApproach = {
   approach: string;
   whyItFailed: string;
   whatItChanged: string;
+  /**
+   * Optional, and deliberately so: a recorded deferral can cite where the
+   * outcome was noted ("the monorepo improvement log records this directly"),
+   * but a description of what was tried needs nothing attached. When present it
+   * renders through the same `EvidenceRow` every other claim uses, so a failed
+   * approach is held to the standard the rest of the page already enforces.
+   */
+  evidence?: Evidence[];
 };
 
 /**

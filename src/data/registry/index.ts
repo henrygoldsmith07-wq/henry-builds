@@ -316,12 +316,14 @@ export function allEvidenceOf(project: HydratedProject): Evidence[] {
   const fromArchitecture = cs.architecture?.evidence ?? [];
   const fromLifecycle = cs.insightLifecycle?.evidence ?? [];
   const fromBenchmark = cs.benchmarkChart?.evidence ?? [];
+  const fromFailures = cs.failedApproaches.flatMap((f) => f.evidence ?? []);
   return [
     ...fromClaims,
     ...fromMetrics,
     ...fromArchitecture,
     ...fromLifecycle,
     ...fromBenchmark,
+    ...fromFailures,
   ];
 }
 

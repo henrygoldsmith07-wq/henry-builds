@@ -90,7 +90,7 @@ export function EvidenceChip({ item }: { item: Evidence }) {
 
 export { PrivateSourceContext as SourceAccessContext, ProjectContext as EvidenceProjectContext };
 
-export function EvidenceRow({ items }: { items: Evidence[] }) {
+export function EvidenceRow({ items }: { items?: Evidence[] }) {
   if (!items?.length) return null;
   return (
     <div className="mt-3 flex flex-wrap gap-1.5">

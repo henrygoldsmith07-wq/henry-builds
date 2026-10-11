@@ -748,6 +748,11 @@ export default function CaseStudy() {
                           </p>
                         </div>
                       </div>
+                      {/* A recorded failure is a claim about why something was
+                          abandoned, so it carries the same evidence rule as an
+                          outcome. Three studies already carried `evidence` here
+                          with the field silently dropped at render time. */}
+                      <EvidenceRow items={failure.evidence} />
                     </div>
                   ))}
                 </div>

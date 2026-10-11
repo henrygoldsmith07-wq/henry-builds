@@ -552,6 +552,17 @@ for (const file of files) {
     checkEvidenceList(cs.architecture.evidence, `${id}.architecture`);
   }
 
+  // --- failed approaches: evidence optional, but validated when present ----
+  //
+  // Three studies carried `evidence` on a failed approach while the schema did
+  // not declare the field and the renderer dropped it, so the most consequential
+  // claims on the page were the only ones shown with nothing attached. The
+  // evidence is still optional — a deferral needs no citation — but when it is
+  // written it has to be well-formed.
+  (cs.failedApproaches ?? []).forEach((failure, i) => {
+    checkEvidenceList(failure.evidence, `${id}.failedApproaches[${i}]`, { required: false });
+  });
+
   // --- visuals must not overclaim ----------------------------------------
   //
   // A screenshot is the strongest evidence a case study can carry, and it is
