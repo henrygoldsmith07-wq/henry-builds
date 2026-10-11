@@ -100,6 +100,32 @@ function verifyRoute({
       `${relative}: missing ${structuredType} structured data`,
     );
   }
+
+  // A no-JavaScript crawler sees the head metadata but React never mounts, so
+  // the body must carry something followable on its own. Every indexable route
+  // ships a `<noscript>` block with the page description and internal links
+  // built from the same data as the JSON-LD above.
+  if (!noIndex) {
+    checked++;
+    const body = html.split("</head>")[1] ?? "";
+    if (!body.includes("<noscript>")) {
+      fail(`${relative}: no <noscript> body — a crawler without JavaScript sees an empty page`);
+    } else {
+      const hrefs = [...body.matchAll(/<a\s+href="([^"]+)"/g)].map((match) => match[1]);
+      const internal = hrefs.filter((href) => href.startsWith("/"));
+      checked++;
+      if (internal.length === 0) {
+        fail(`${relative}: <noscript> body has no internal links to follow`);
+      }
+      // The body heading must agree with the head title it stands in for, or
+      // the two renderers describe the same URL differently.
+      checked++;
+      const heading = body.match(/<noscript><h1>(.*?)<\/h1>/)?.[1];
+      if (heading && !title.startsWith(heading.replace(/&quot;/g, '"'))) {
+        fail(`${relative}: <noscript> heading does not match the page title`);
+      }
+    }
+  }
 }
 
 verifyRoute({

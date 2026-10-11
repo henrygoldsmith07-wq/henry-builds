@@ -770,6 +770,118 @@ for (const script of [
   });
 }
 
+// --- the crawler-visible body -------------------------------------------------
+
+/**
+ * Every generated route used to ship `<div id="root"></div>` and nothing else:
+ * correct head metadata and JSON-LD, but zero body content and zero internal
+ * links for a crawler that never runs scripts. Each route now carries a
+ * `<noscript>` block with its own description and crawlable links built from
+ * the same data the JSON-LD graphs carry.
+ *
+ * The escaper is shared too: it used to be defined inline in the generator,
+ * and two copies of an HTML escaper is how an injection gap opens. Asserting
+ * the escaping here pins the single copy.
+ */
+const noscriptCases = [
+  {
+    label: "a link list with per-link notes",
+    args: {
+      heading: "All work",
+      description: "Every project.",
+      links: [{ href: "/projects/arise", label: "Arise", note: "A tagline" }],
+    },
+    expect: [
+      "<noscript><h1>All work</h1>",
+      "<p>Every project.</p>",
+      '<li><a href="/projects/arise">Arise</a> — A tagline</li>',
+    ],
+  },
+  {
+    label: "quotes and angle brackets in copy cannot break the markup",
+    args: {
+      heading: 'Never "you have bias"',
+      description: "<script> is not a tag here",
+      links: [{ href: "/projects/reflect?a=1&b=2", label: "Fish & chips" }],
+    },
+    expect: [
+      "<h1>Never &quot;you have bias&quot;</h1>",
+      "&lt;script&gt; is not a tag here",
+      '<a href="/projects/reflect?a=1&amp;b=2">Fish &amp; chips</a>',
+    ],
+  },
+  {
+    label: "a page with no links still names itself",
+    args: { heading: "Build log", note: "Source: https://example.com" },
+    expect: ["<h1>Build log</h1>", "Source: https://example.com", "</noscript>"],
+  },
+];
+
+for (const { label, args, expect } of noscriptCases) {
+  test(`noscript body: ${label}`, async () => {
+    const { noscriptBody } = await import(
+      pathToFileURL(path.join(repoRoot, "src", "data", "registry", "structured-data.mjs")).href
+    );
+    const body = noscriptBody(args);
+    for (const needle of expect) {
+      if (needle && !body.includes(needle)) {
+        throw new Error(`missing ${JSON.stringify(needle)} in ${JSON.stringify(body)}`);
+      }
+    }
+    if (!body.startsWith("<noscript>") || !body.endsWith("</noscript>")) {
+      throw new Error(`not a single noscript block: ${JSON.stringify(body)}`);
+    }
+  });
+}
+
+/**
+ * The generator reads `dist/index.html` as its template — and also writes it.
+ * Once a run has emitted a `<noscript>` body, the next run reads that body
+ * back. The first version of the body injection matched `<div id="root"></div>`
+ * exactly, so it silently stopped firing on the second run and left the
+ * landing page's body in every route file. `check-route-html` caught it
+ * (heading/title disagreement on every route), but the generator must be
+ * idempotent on its own: two consecutive runs against the real registry must
+ * produce byte-identical output.
+ *
+ * The replacement matches the whole root subtree, which is only safe because
+ * `noscriptBody` emits no nested divs — pinned below so a future edit to the
+ * markup cannot silently truncate every route file.
+ */
+test("noscript body: emits no nested divs, so the generator can replace the whole root subtree", async () => {
+  const { noscriptBody } = await import(
+    pathToFileURL(path.join(repoRoot, "src", "data", "registry", "structured-data.mjs")).href
+  );
+  const samples = [
+    { heading: "A", links: [{ href: "/x", label: "X", note: "Y" }] },
+    { heading: "B", description: "D", note: "N" },
+  ];
+  for (const args of samples) {
+    const body = noscriptBody(args);
+    if (/<div[\s>]/.test(body)) {
+      throw new Error(`noscript body contains a div: ${JSON.stringify(body)}`);
+    }
+  }
+});
+
+test("generate-route-html is idempotent across two consecutive runs", async () => {
+  ensureDistTemplate();
+  const first = await runNode(repoRoot, "scripts/generate-route-html.mjs");
+  if (first.code !== 0) throw new Error(`first run exited ${first.code}\n${first.stderr}`);
+  const snapshot = new Map();
+  for (const file of ["index.html", "projects.html", "compare.html", "build-log.html", "404.html"]) {
+    snapshot.set(file, fs.readFileSync(path.join(repoRoot, "dist", file), "utf8"));
+  }
+  const second = await runNode(repoRoot, "scripts/generate-route-html.mjs");
+  if (second.code !== 0) throw new Error(`second run exited ${second.code}\n${second.stderr}`);
+  for (const [file, html] of snapshot) {
+    const again = fs.readFileSync(path.join(repoRoot, "dist", file), "utf8");
+    if (again !== html) {
+      throw new Error(`${file} changed between two consecutive generator runs`);
+    }
+  }
+});
+
 // --- the publication gate ---------------------------------------------------
 
 /**

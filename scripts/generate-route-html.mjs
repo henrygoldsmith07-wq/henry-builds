@@ -26,8 +26,10 @@ import {
   SITE_NAME,
   caseStudyGraph,
   collectionGraph,
+  escapeHtml,
   landingGraph,
   nameSortedEntries,
+  noscriptBody,
 } from "../src/data/registry/structured-data.mjs";
 import { profileData } from "../src/data/profile-data.mjs";
 
@@ -51,19 +53,8 @@ const projects = published
   .map(({ data }) => data)
   .sort((a, b) => a.name.localeCompare(b.name));
 
-function escapeHtml(value) {
-  return String(value).replace(
-    /[&<>"']/g,
-    (char) =>
-      ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      })[char],
-  );
-}
+// escapeHtml is imported from the shared structured-data module. It used to be
+// defined inline here; the single copy keeps the two from drifting.
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -111,6 +102,7 @@ function renderPage({
   type = "website",
   noIndex = false,
   structuredData,
+  body,
 }) {
   const url = `${origin}${route === "/" ? "/" : route}`;
   const imageUrl = image.startsWith("http") ? image : `${origin}${image}`;
@@ -137,6 +129,22 @@ function renderPage({
   html = setCanonical(html, url);
 
   if (structuredData) html = setStructuredData(html, structuredData);
+
+  // The template body is an empty `#root` shell on a fresh build — but once
+  // this generator has run, `dist/index.html` (the template) already carries a
+  // `<noscript>` body, and the next run reads it back. An exact-match replace
+  // of `<div id="root"></div>` would silently stop firing and leave the landing
+  // body in every file, so the whole root subtree is replaced instead.
+  // `noscriptBody` emits no nested divs, so matching to the first `</div>`
+  // cannot truncate. The evidence test below pins that invariant, and this is
+  // also what makes the generator idempotent: two consecutive runs yield
+  // byte-identical output.
+  if (body) {
+    html = html.replace(
+      /<div id="root">[\s\S]*?<\/div>/,
+      `<div id="root">${body}</div>`,
+    );
+  }
 
   return html;
 }
@@ -187,6 +195,18 @@ const person = {
 
 const entries = nameSortedEntries(projects, origin);
 
+// Links both the head metadata and the body can share: one derivation of the
+// project list, used by the ItemList graphs and the `<noscript>` link lists.
+const entryLinks = entries.map((entry) => {
+  const slug = entry.url.replace(`${origin}/projects/`, "");
+  const project = projects.find((candidate) => candidate.slug === slug);
+  return {
+    href: `/projects/${slug}`,
+    label: entry.name,
+    ...(project?.tagline ? { note: project.tagline } : {}),
+  };
+});
+
 write(
   "index.html",
   renderPage({
@@ -196,6 +216,15 @@ write(
     image: "/og/default.png",
     imageAlt: "Henry Goldsmith — build it, measure it, say what it does.",
     structuredData: landingGraph(origin, person),
+    body: noscriptBody({
+      heading: LANDING_TITLE,
+      description: LANDING_DESCRIPTION,
+      links: [
+        { href: "/projects", label: "All work" },
+        { href: "/compare", label: "Compare the work" },
+        { href: "/build-log", label: "Build log" },
+      ],
+    }),
   }),
 );
 
@@ -212,6 +241,11 @@ write(
       route: "/projects",
       title: PROJECTS_TITLE,
       entries,
+    }),
+    body: noscriptBody({
+      heading: PROJECTS_TITLE,
+      description: PROJECTS_DESCRIPTION,
+      links: entryLinks,
     }),
   }),
 );
@@ -231,6 +265,11 @@ write(
       description: COMPARE_DESCRIPTION,
       entries,
     }),
+    body: noscriptBody({
+      heading: COMPARE_TITLE,
+      description: COMPARE_DESCRIPTION,
+      links: entryLinks,
+    }),
   }),
 );
 
@@ -247,6 +286,11 @@ write(
       route: "/build-log",
       title: BUILD_LOG_TITLE,
       description: BUILD_LOG_DESCRIPTION,
+    }),
+    body: noscriptBody({
+      heading: BUILD_LOG_TITLE,
+      description: BUILD_LOG_DESCRIPTION,
+      links: [{ href: "/projects", label: "All work" }],
     }),
   }),
 );
@@ -283,6 +327,15 @@ for (const project of projects) {
       imageAlt: `${project.name} — ${project.tagline}`,
       type: "article",
       structuredData,
+      body: noscriptBody({
+        heading: `${project.name} — ${project.tagline}`,
+        description: project.summary,
+        links: [
+          { href: "/projects", label: "All work" },
+          { href: "/compare", label: "Compare the work" },
+        ],
+        ...(codeRepository ? { note: `Source: ${codeRepository}` } : {}),
+      }),
     }),
   );
 }
@@ -296,6 +349,15 @@ write(
     route: "/404",
     image: "/og/default.png",
     noIndex: true,
+    body: noscriptBody({
+      heading: "Page not found",
+      description:
+        "That page does not exist. Return to the portfolio or browse the project archive.",
+      links: [
+        { href: "/", label: "Home" },
+        { href: "/projects", label: "All work" },
+      ],
+    }),
   }),
 );
 

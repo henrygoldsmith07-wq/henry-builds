@@ -192,3 +192,61 @@ export function caseStudyGraph({
     ...(sameAs?.length ? { sameAs } : {}),
   };
 }
+
+/**
+ * Escape text for interpolation into static HTML.
+ *
+ * This module is shared between Node scripts and the browser bundle, so the
+ * escaper lives here rather than being written down twice. `generate-route-html`
+ * used to carry its own copy; it now imports this one.
+ */
+export function escapeHtml(value) {
+  return String(value).replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
+}
+
+/**
+ * A static, no-JavaScript body for the generated route files.
+ *
+ * Every generated route currently ships `<div id="root"></div>` and nothing
+ * else: correct head metadata and JSON-LD, but zero crawlable body content and
+ * zero internal links. A crawler that never runs scripts can verify the URL
+ * exists but cannot follow anywhere or read a word. The `<noscript>` block
+ * below gives it a heading, the page's own description, and links built from
+ * the same data the JSON-LD graphs already carry — no new copy, so the static
+ * and hydrated pages cannot describe the same URL differently.
+ *
+ * Browsers with JavaScript replace the whole `#root` subtree on hydration, so
+ * sighted users never see this markup. It is deliberately plain: unstyled list
+ * markup with no classes, so it cannot drift from the design system or be
+ * mistaken for the rendered page.
+ *
+ * @param {{ heading: string, description?: string, links?: Array<{ href: string, label: string, note?: string }>, note?: string }} params
+ */
+export function noscriptBody({ heading, description, links = [], note }) {
+  const items = links
+    .map(
+      ({ href, label, note: linkNote }) =>
+        `<li><a href="${escapeHtml(href)}">${escapeHtml(label)}</a>` +
+        (linkNote ? ` — ${escapeHtml(linkNote)}` : "") +
+        `</li>`,
+    )
+    .join("");
+  return (
+    `<noscript>` +
+    `<h1>${escapeHtml(heading)}</h1>` +
+    (description ? `<p>${escapeHtml(description)}</p>` : "") +
+    (items ? `<ul>${items}</ul>` : "") +
+    (note ? `<p>${escapeHtml(note)}</p>` : "") +
+    `</noscript>`
+  );
+}

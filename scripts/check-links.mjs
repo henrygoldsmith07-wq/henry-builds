@@ -127,6 +127,12 @@ if (fs.existsSync(distDir)) {
     const asset = match[1];
     if (asset.startsWith("//")) continue;
     checked++;
+    // Route-shaped hrefs (the `<noscript>` bodies link between routes) are
+    // served by rewrites, never emitted as literal files. The canonical route
+    // manifest — not the dist filesystem — is what says they exist. Anything
+    // else must be a real emitted asset.
+    const bare = asset.split(/[?#]/)[0].replace(/\/$/, "") || "/";
+    if (routes.has(bare)) continue;
     if (!fs.existsSync(path.join(distDir, asset.replace(/^\//, "")))) {
       fail(`dist/index.html references ${asset}, which was not emitted`);
     }
