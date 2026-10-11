@@ -41,6 +41,7 @@ for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".json"))) {
       title: item.approach,
       body: item.whyItFailed,
       change: item.whatItChanged ?? null,
+      evidence: item.evidence ?? null,
       sortKey: 0,
     });
   }

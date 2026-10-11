@@ -3,8 +3,10 @@ import { Link } from "react-router";
 import { ArrowUpRight } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
+import { EvidenceRow } from "@/components/portfolio/Evidence";
 import { projects } from "@/data/registry";
 import buildLog from "../../registry/build-log.json";
+import type { Evidence } from "@/data/registry/schema";
 import {
   BUILD_LOG_DESCRIPTION,
   BUILD_LOG_TITLE,
@@ -36,6 +38,7 @@ interface LogEntry {
   title: string | null;
   body: string;
   change: string | null;
+  evidence: Evidence[] | null;
 }
 
 const KINDS: { key: Kind; label: string; blurb: string }[] = [
@@ -163,6 +166,9 @@ export default function BuildLog() {
                   <p className="mt-3 border-l-2 border-border pl-4 text-sm leading-6 text-muted-foreground">
                     {entry.change}
                   </p>
+                )}
+                {entry.evidence && entry.evidence.length > 0 && (
+                  <EvidenceRow items={entry.evidence} />
                 )}
                 <Link
                   to={`/projects/${entry.slug}`}

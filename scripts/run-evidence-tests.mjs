@@ -816,6 +816,56 @@ for (const script of [
   });
 }
 
+
+// --- build-log evidence passthrough -------------------------------------------
+
+test("build-build-log carries failed-approach evidence into dead-end entries", async () => {
+  const dir = tempDir("blg-evidence");
+  const studies = minimalRegistry(2);
+  studies[0].caseStudy.failedApproaches = [
+    {
+      approach: "A failed approach with a citation",
+      whyItFailed: "It did not work.",
+      whatItChanged: "Was abandoned.",
+      evidence: [
+        {
+          kind: "doc",
+          label: "Improvement log — CSP deferred",
+          href: "https://github.com/example/repo/blob/main/IMPROVEMENT_LOG.md",
+        },
+      ],
+    },
+  ];
+  writeRegistry(dir, studies);
+  const { code, stdout } = await runNode(dir, script("scripts", "build-build-log.mjs"));
+  if (code !== 0) throw new Error("build-build-log exited " + code + "\n" + stdout);
+  const log = JSON.parse(fs.readFileSync(path.join(dir, "registry", "build-log.json"), "utf8"));
+  const deadEnd = log.entries.find((e) => e.kind === "dead-end" && e.slug === "proj-0");
+  if (!deadEnd) throw new Error("no dead-end entry for proj-0");
+  if (!deadEnd.evidence || deadEnd.evidence.length !== 1) {
+    throw new Error("dead-end entry should carry evidence");
+  }
+});
+
+test("build-build-log leaves evidence null when a failed approach has none", async () => {
+  const dir = tempDir("blg-no-evidence");
+  const studies = minimalRegistry(1);
+  studies[0].caseStudy.failedApproaches = [
+    {
+      approach: "A failed approach with no citation",
+      whyItFailed: "It broke silently.",
+      whatItChanged: "Was rolled back.",
+    },
+  ];
+  writeRegistry(dir, studies);
+  const { code, stdout } = await runNode(dir, script("scripts", "build-build-log.mjs"));
+  if (code !== 0) throw new Error("build-build-log exited " + code + "\n" + stdout);
+  const log = JSON.parse(fs.readFileSync(path.join(dir, "registry", "build-log.json"), "utf8"));
+  const deadEnd = log.entries.find((e) => e.kind === "dead-end");
+  if (!deadEnd) throw new Error("no dead-end entry found");
+  if (deadEnd.evidence !== null) throw new Error("expected evidence null");
+});
+
 // --- the crawler-visible body -------------------------------------------------
 
 /**
