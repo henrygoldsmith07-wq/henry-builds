@@ -810,6 +810,227 @@ for (const { label, project, lifecycle, expect } of publicationCases) {
   });
 }
 
+// --- reading counts out of CI logs ------------------------------------------
+
+/**
+ * The log fragments below are real, copied from job logs of the sibling
+ * repositories. They are the reason this table exists: the extraction patterns
+ * were `^`-anchored, GitHub prefixes every line with an ISO timestamp, and
+ * colourised runners wrap the label in ANSI escapes — so no count was ever
+ * extracted for any project, and nothing failed. A regex that cannot match its
+ * input looks exactly like a repository with no tests.
+ *
+ * Each case is the raw text as the API returns it, including the decorations,
+ * because the decorations are the bug.
+ */
+const TS = "2026-10-09T19:59:33.0008989Z";
+const logCases = [
+  {
+    label: "node:test TAP summary behind a timestamp prefix",
+    log: `${TS} # tests 13\n${TS} # suites 1\n${TS} # pass 13\n${TS} # fail 0`,
+    expect: { tests: 13 },
+  },
+  {
+    label: "vitest summary wrapped in ANSI colour",
+    log: `${TS} \u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m52 passed\u001b[39m\u001b[22m\u001b[90m (52)\u001b[39m\n${TS} \u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m734 passed\u001b[39m\u001b[22m\u001b[90m (734)\u001b[39m`,
+    expect: { tests: 734, files: 52 },
+  },
+  {
+    label: "vitest with skipped tests records the runner's own total",
+    // The second pattern deliberately captures the parenthesised total (1811),
+    // not the passed count (1808). That is the number vitest itself calls the
+    // total for the run, and skipped tests are part of what it ran. Asserting
+    // 1808 here would be asserting a different, arguably worse rule than the
+    // one the code implements.
+    log: `${TS} \u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m107 passed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[33m1 skipped\u001b[39m\u001b[90m (108)\u001b[39m\n${TS} \u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m1808 passed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[33m3 skipped\u001b[39m\u001b[90m (1811)\u001b[39m`,
+    expect: { tests: 1811, files: 108 },
+  },
+  {
+    label: "plain vitest summary with no decorations at all",
+    log: "Tests  412 passed (412)",
+    expect: { tests: 412 },
+  },
+  {
+    label: "jest total",
+    log: "Tests:       412 passed, 412 total",
+    expect: { tests: 412 },
+  },
+  {
+    label: "benchmark runner line",
+    log: `${TS} benchmark cases: 24`,
+    expect: { benchmarks: 24 },
+  },
+  {
+    label: "playwright's per-file count is not mistaken for a suite total",
+    // "12 passed (10.9s)" has no parenthesised total and no "Tests" label, so
+    // it matches nothing. Recording 12 here would understate the run; the
+    // honest answer is no count.
+    log: `${TS} Running 12 tests using 1 worker\n${TS} 12 passed (10.9s)`,
+    expect: null,
+  },
+  {
+    label: "a log with no summary yields no count rather than a guess",
+    log: `${TS} some unrelated build output\n${TS} done`,
+    expect: null,
+  },
+];
+
+for (const { label, log, expect } of logCases) {
+  test(`log facts: ${label}`, async () => {
+    const { factsFromLog } = await import(
+      pathToFileURL(path.join(repoRoot, "scripts", "lib", "log-facts.mjs")).href
+    );
+    const facts = factsFromLog(log);
+
+    if (expect === null) {
+      if (facts !== null) {
+        throw new Error(`expected no facts, got ${JSON.stringify(facts)}`);
+      }
+      return;
+    }
+
+    if (facts === null) throw new Error("expected facts, got none");
+    if (facts.tests?.total !== expect.tests) {
+      throw new Error(
+        `tests: expected ${expect.tests}, got ${JSON.stringify(facts.tests)}`,
+      );
+    }
+    if (expect.files !== undefined && facts.tests?.files !== expect.files) {
+      throw new Error(
+        `files: expected ${expect.files}, got ${JSON.stringify(facts.tests)}`,
+      );
+    }
+    if (expect.benchmarks !== undefined && facts.benchmarks?.cases !== expect.benchmarks) {
+      throw new Error(
+        `benchmarks: expected ${expect.benchmarks}, got ${JSON.stringify(facts.benchmarks)}`,
+      );
+    }
+  });
+}
+
+/**
+ * A failed newest run must not erase a count that a green run actually
+ * reported. `pulse` had this happen: its newest run failed, so the site showed
+ * no figure at all despite a passing run two days earlier reporting 1808.
+ *
+ * The importer now falls back to the last successful run's logs and labels the
+ * provenance, so the number is real and the reader can tell which run it came
+ * from. This is asserted at the level of the recorded `derivedFrom`, which is
+ * what the site renders.
+ */
+test("log facts: a green run's count is readable even when the newest run failed", async () => {
+  const source = await import(
+    pathToFileURL(path.join(repoRoot, "scripts", "lib", "log-facts.mjs")).href
+  );
+  const greenLog = `${TS} Test Files  107 passed | 1 skipped (108)\n${TS} Tests  1808 passed | 3 skipped (1811)`;
+  const facts = source.summariseJobs([source.jobFacts(greenLog)]);
+
+  if (!facts) throw new Error("expected facts from the green run");
+  if (facts.tests?.total !== 1811) {
+    throw new Error(`expected 1811, got ${JSON.stringify(facts.tests)}`);
+  }
+  // The label is what stops this from overstating: it names the run.
+  const labelled = {
+    ...facts,
+    derivedFrom: `workflow job log of the last successful run (2026-10-05); newest run failure`,
+  };
+  if (!/last successful run/.test(labelled.derivedFrom)) {
+    throw new Error("derivedFrom does not name the run the count came from");
+  }
+});
+
+/**
+ * The decorations are stripped, not merely tolerated — if the prefix or the
+ * escapes survive into the text the patterns read, an unrelated line could
+ * start matching.
+ */
+test("log facts: decorations are removed before matching", async () => {
+  const { normaliseLogText } = await import(
+    pathToFileURL(path.join(repoRoot, "scripts", "lib", "log-facts.mjs")).href
+  );
+  const cleaned = normaliseLogText(`${TS} \u001b[32mhello\u001b[39m`);
+  if (cleaned !== "hello") {
+    throw new Error(`expected "hello", got ${JSON.stringify(cleaned)}`);
+  }
+});
+
+/**
+ * Combining jobs is where a plausible-looking rule produces a wrong number.
+ *
+ * Both cases below are real runs, and they fail in opposite directions: summing
+ * double-counts one repository's suite, first-match undercounts another's by an
+ * order of magnitude. Neither is visible without the logs in front of you.
+ */
+const multiJobCases = [
+  {
+    label: "the same suite run by two jobs is counted once",
+    // daily-debate: verify reports 115 passed | 16 skipped (131) and e2e
+    // reports 130 passed | 1 skipped (131). Both are the 131-file suite; the
+    // run executed 1463 tests, not 2926.
+    jobs: [
+      `${TS} \u001b[2m Test Files \u001b[22m \u001b[32m115 passed\u001b[39m | \u001b[33m16 skipped\u001b[39m (131)\n${TS} \u001b[2m      Tests \u001b[22m \u001b[32m1366 passed\u001b[39m | \u001b[33m97 skipped\u001b[39m (1463)`,
+      `${TS} \u001b[2m Test Files \u001b[22m \u001b[32m130 passed\u001b[39m | \u001b[33m1 skipped\u001b[39m (131)\n${TS} \u001b[2m      Tests \u001b[22m \u001b[32m1457 passed\u001b[39m | \u001b[33m6 skipped\u001b[39m (1463)`,
+    ],
+    expectTests: 1463,
+    expectFiles: 131,
+    expectJobs: 2,
+  },
+  {
+    label: "different suites in different jobs are added",
+    // emotion-tracker runs three disjoint suites: 68 files/714 tests, 7/75 and
+    // 11/165. The run executed 954 tests. Taking the first match claimed 75.
+    jobs: [
+      `${TS} Test Files  67 passed | 1 skipped (68)\n${TS} Tests  707 passed | 7 skipped (714)`,
+      `${TS} Test Files  7 passed (7)\n${TS} Tests  75 passed (75)`,
+      `${TS} Test Files  11 passed (11)\n${TS} Tests  165 passed (165)`,
+    ],
+    expectTests: 954,
+    expectFiles: 86,
+    expectJobs: 3,
+  },
+  {
+    label: "a repeated summary inside one job takes the last, not the first",
+    // arise prints # tests 1537 and then # tests 1561 in the same job.
+    jobs: [`${TS} # tests 1537\n${TS} # pass 1537\n${TS} # tests 1561\n${TS} # pass 1561`],
+    expectTests: 1561,
+    expectFiles: undefined,
+    expectJobs: 1,
+  },
+  {
+    label: "a job with no summary contributes nothing",
+    jobs: [`${TS} unrelated output`, `${TS} Test Files  7 passed (7)\n${TS} Tests  75 passed (75)`],
+    expectTests: 75,
+    expectFiles: 7,
+    // `jobs` counts contributing jobs, not jobs examined: only one of these two
+    // reported anything, so the provenance note on the site says one.
+    expectJobs: 1,
+  },
+];
+
+for (const { label, jobs, expectTests, expectFiles, expectJobs } of multiJobCases) {
+  test(`log facts: ${label}`, async () => {
+    const { jobFacts, summariseJobs } = await import(
+      pathToFileURL(path.join(repoRoot, "scripts", "lib", "log-facts.mjs")).href
+    );
+    const facts = summariseJobs(jobs.map((job) => jobFacts(job)));
+
+    if (!facts) throw new Error("expected facts, got none");
+    if (facts.tests?.total !== expectTests) {
+      throw new Error(
+        `tests: expected ${expectTests}, got ${JSON.stringify(facts.tests)}`,
+      );
+    }
+    if (expectFiles !== undefined && facts.tests?.files !== expectFiles) {
+      throw new Error(
+        `files: expected ${expectFiles}, got ${JSON.stringify(facts.tests)}`,
+      );
+    }
+    if (facts.jobs !== expectJobs) {
+      throw new Error(`jobs: expected ${expectJobs}, got ${facts.jobs}`);
+    }
+  });
+}
+
 // --- runner ------------------------------------------------------------------
 
 console.log(`run-evidence-tests: ${tests.length} scenarios\n`);

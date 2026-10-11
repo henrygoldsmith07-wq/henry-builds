@@ -1,6 +1,6 @@
 {
   "_generated": "Written by scripts/import-registry.mjs --ci. Do not edit by hand.",
-  "importedAt": "2026-10-09T20:53:52.208Z",
+  "importedAt": "2026-10-10T12:59:30.258Z",
   "mode": "authenticated",
   "sourceRepo": "henrygoldsmith07-wq/Claude-Code",
   "sourceRef": "main",
@@ -8,32 +8,43 @@
     "arise": {
       "workflow": ".github/workflows/arise.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/arise/blob/main/.github/workflows/arise.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/37983924912",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/38041194298",
       "conclusion": "success",
-      "lastRunAt": "2026-10-09T20:27:56Z",
-      "lastSuccessfulRunAt": "2026-10-09T20:27:56Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/37983924912",
-      "headSha": "25566af"
+      "lastRunAt": "2026-10-10T09:49:58Z",
+      "lastSuccessfulRunAt": "2026-10-10T09:49:58Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/arise/actions/runs/38041194298",
+      "headSha": "8568004",
+      "tests": {
+        "total": 1574
+      },
+      "jobs": 1,
+      "derivedFrom": "workflow job log"
     },
     "daily-debate": {
-      "workflow": ".github/workflows/daily-debate.yml",
-      "workflowUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/daily-debate.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/37975899137",
+      "workflow": ".github/workflows/backend-cleanup.yml",
+      "workflowUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/blob/main/.github/workflows/backend-cleanup.yml",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/38047502022",
       "conclusion": "success",
-      "lastRunAt": "2026-10-09T18:53:46Z",
-      "lastSuccessfulRunAt": "2026-10-09T18:53:46Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/37975899137",
-      "headSha": "075ac10"
+      "lastRunAt": "2026-10-10T11:11:23Z",
+      "lastSuccessfulRunAt": "2026-10-10T11:11:23Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/daily-debate/actions/runs/38047502022",
+      "headSha": "eb05c92"
     },
     "emotion-tracker": {
       "workflow": ".github/workflows/ci.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/blob/main/.github/workflows/ci.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/actions/runs/37325044585",
-      "conclusion": "success",
-      "lastRunAt": "2026-10-05T14:33:18Z",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/actions/runs/38050153811",
+      "conclusion": "failure",
+      "lastRunAt": "2026-10-10T11:56:11Z",
       "lastSuccessfulRunAt": "2026-10-05T14:33:18Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/emotion-tracker/actions/runs/37325044585",
-      "headSha": "0b09ee3"
+      "headSha": "cbe6fc6",
+      "tests": {
+        "total": 954,
+        "files": 86
+      },
+      "jobs": 3,
+      "derivedFrom": "workflow job log of the last successful run (2026-10-05); newest run failure"
     },
     "food-shopping-os": {
       "workflow": ".github/workflows/food-shopping-os.yml",
@@ -43,34 +54,46 @@
       "lastRunAt": "2026-10-09T14:26:53Z",
       "lastSuccessfulRunAt": "2026-09-27T07:41:34Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/food-shopping-os/actions/runs/36303112162",
-      "headSha": "cf22ca5"
+      "headSha": "cf22ca5",
+      "tests": {
+        "total": 2644,
+        "files": 217
+      },
+      "jobs": 1,
+      "derivedFrom": "workflow job log of the last successful run (2026-09-27); newest run failure"
     },
     "french-practice": {
       "workflow": ".github/workflows/cross-browser.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/french-practice/blob/main/.github/workflows/cross-browser.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/37921713161",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/38044780714",
       "conclusion": "success",
-      "lastRunAt": "2026-10-09T11:41:19Z",
-      "lastSuccessfulRunAt": "2026-10-09T11:41:19Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/37921713161",
-      "headSha": "aeb1b0d"
+      "lastRunAt": "2026-10-10T10:30:05Z",
+      "lastSuccessfulRunAt": "2026-10-10T10:30:05Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/french-practice/actions/runs/38044780714",
+      "headSha": "431085e"
     },
     "habit-tracker": {
       "workflow": ".github/workflows/habit-tracker.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/habit-tracker/blob/main/.github/workflows/habit-tracker.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/habit-tracker/actions/runs/37326547616",
-      "conclusion": "success",
-      "lastRunAt": "2026-10-05T14:44:00Z",
-      "lastSuccessfulRunAt": "2026-10-05T14:44:00Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/habit-tracker/actions/runs/37326547616",
-      "headSha": "5f0265d"
+      "runUrl": "https://github.com/henrygoldsmith07-wq/habit-tracker/actions/runs/38048481692",
+      "conclusion": "failure",
+      "lastRunAt": "2026-10-10T11:27:42Z",
+      "lastSuccessfulRunAt": "2026-10-10T09:13:52Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/habit-tracker/actions/runs/38040605763",
+      "headSha": "c7d509e",
+      "tests": {
+        "total": 295,
+        "files": 29
+      },
+      "jobs": 1,
+      "derivedFrom": "carried from earlier successful run (2026-10-05); newest run did not produce a fresh count"
     },
     "le-studio-site": {
       "workflow": ".github/workflows/freshness.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/le-studio-site/blob/main/.github/workflows/freshness.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/le-studio-site/actions/runs/37930400535",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/le-studio-site/actions/runs/38049753747",
       "conclusion": "failure",
-      "lastRunAt": "2026-10-09T12:29:51Z",
+      "lastRunAt": "2026-10-10T11:49:19Z",
       "lastSuccessfulRunAt": "2026-10-05T13:28:11Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/le-studio-site/actions/runs/37317002591",
       "headSha": "93a54cb"
@@ -78,58 +101,76 @@
     "mental-load-tracker": {
       "workflow": ".github/workflows/mental-load-tracker.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/blob/main/.github/workflows/mental-load-tracker.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/actions/runs/37986379271",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/actions/runs/37999234058",
       "conclusion": "failure",
-      "lastRunAt": "2026-10-09T20:21:02Z",
+      "lastRunAt": "2026-10-09T22:26:37Z",
       "lastSuccessfulRunAt": "2026-10-05T10:30:21Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/actions/runs/37296642596",
-      "headSha": "992fe17"
+      "headSha": "2f4f30d",
+      "tests": {
+        "total": 54,
+        "files": 2
+      },
+      "jobs": 1,
+      "derivedFrom": "workflow job log of the last successful run (2026-10-05); newest run failure"
     },
     "pulse": {
       "workflow": ".github/workflows/pulse.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/pulse/blob/main/.github/workflows/pulse.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/pulse/actions/runs/37989831524",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/pulse/actions/runs/38046699137",
       "conclusion": "failure",
-      "lastRunAt": "2026-10-09T20:52:09Z",
+      "lastRunAt": "2026-10-10T10:57:23Z",
       "lastSuccessfulRunAt": "2026-10-05T08:58:23Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/pulse/actions/runs/37286473985",
-      "headSha": "914ec73"
+      "headSha": "587a950",
+      "tests": {
+        "total": 1811,
+        "files": 108
+      },
+      "jobs": 1,
+      "derivedFrom": "workflow job log of the last successful run (2026-10-05); newest run failure"
     },
     "rapport": {
       "workflow": ".github/workflows/rapport.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/rapport/blob/main/.github/workflows/rapport.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/rapport/actions/runs/37287120601",
-      "conclusion": "success",
-      "lastRunAt": "2026-10-05T09:04:14Z",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/rapport/actions/runs/38036799948",
+      "conclusion": "failure",
+      "lastRunAt": "2026-10-10T08:07:43Z",
       "lastSuccessfulRunAt": "2026-10-05T09:04:14Z",
       "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/rapport/actions/runs/37287120601",
-      "headSha": "0f8edcf"
+      "headSha": "cf54a32",
+      "tests": {
+        "total": 734,
+        "files": 52
+      },
+      "jobs": 1,
+      "derivedFrom": "workflow job log of the last successful run (2026-10-05); newest run failure"
     },
     "revise": {
       "workflow": ".github/workflows/revise.yml",
       "workflowUrl": "https://github.com/henrygoldsmith07-wq/revise/blob/main/.github/workflows/revise.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/37984258743",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/revise/actions/runs/38035556572",
       "conclusion": "failure",
-      "lastRunAt": "2026-10-09T20:07:37Z",
-      "headSha": "6882c9b"
+      "lastRunAt": "2026-10-10T09:44:36Z",
+      "headSha": "98c5d6b"
     },
     "rtk": {
-      "workflow": ".github/workflows/benchmark.yml",
-      "workflowUrl": "https://github.com/henrygoldsmith07-wq/rtk/blob/main/.github/workflows/benchmark.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/slimout/actions/runs/37318669242",
+      "workflow": ".github/workflows/slimout.yml",
+      "workflowUrl": "https://github.com/henrygoldsmith07-wq/rtk/blob/main/.github/workflows/slimout.yml",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/slimout/actions/runs/38049622685",
       "conclusion": "failure",
-      "lastRunAt": "2026-10-05T13:41:46Z",
-      "headSha": "82bd13f"
+      "lastRunAt": "2026-10-10T11:47:03Z",
+      "headSha": "f0eae6c"
     },
     "road-ready": {
-      "workflow": ".github/workflows/ci.yml",
-      "workflowUrl": "https://github.com/henrygoldsmith07-wq/road-ready/blob/main/.github/workflows/ci.yml",
-      "runUrl": "https://github.com/henrygoldsmith07-wq/road-ready/actions/runs/37234830266",
+      "workflow": "dynamic/dependabot/dependabot-updates",
+      "workflowUrl": "https://github.com/henrygoldsmith07-wq/road-ready/blob/main/dynamic/dependabot/dependabot-updates",
+      "runUrl": "https://github.com/henrygoldsmith07-wq/road-ready/actions/runs/38038172041",
       "conclusion": "success",
-      "lastRunAt": "2026-10-04T21:14:08Z",
-      "lastSuccessfulRunAt": "2026-10-04T21:14:08Z",
-      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/road-ready/actions/runs/37234830266",
-      "headSha": "a6855ac"
+      "lastRunAt": "2026-10-10T08:32:57Z",
+      "lastSuccessfulRunAt": "2026-10-10T08:32:57Z",
+      "lastSuccessRunUrl": "https://github.com/henrygoldsmith07-wq/road-ready/actions/runs/38038172041",
+      "headSha": "b866f54"
     }
   }
 }

@@ -38,6 +38,10 @@ import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 import { crossRepoReadMode } from "./lib/github-paths.mjs";
+import {
+  jobFacts,
+  summariseJobs,
+} from "./lib/log-facts.mjs";
 
 const SOURCE_REPO = "henrygoldsmith07-wq/Claude-Code";
 const SOURCE_PATH = "apps/registry.json";
@@ -361,43 +365,6 @@ async function artifactFacts(repo, runId) {
   return null;
 }
 
-/**
- * Pull the number of tests out of a job log.
- *
- * Deliberately conservative: if none of these shapes match, we record no count
- * rather than guessing. A wrong number on the site is worse than no number.
- */
-const TEST_PATTERNS = [
-  // vitest: "Tests  412 passed (412)"
-  /^\s*Tests\s+(\d+)\s+passed\s+\((\d+)\)/im,
-  // vitest with failures: "Tests  2 failed | 410 passed (412)"
-  /^\s*Tests\s+.*?\((\d+)\)\s*$/im,
-  // node:test TAP summary: "# pass 37"
-  /^#\s*pass\s+(\d+)/im,
-  // jest: "Tests:       412 passed, 412 total"
-  /^\s*Tests:\s+.*?(\d+)\s+total/im,
-];
-
-const FILE_PATTERNS = [
-  // vitest: "Test Files  29 passed (29)"
-  /^\s*Test Files\s+\d+\s+passed\s+\((\d+)\)/im,
-  /^\s*Test Files\s+.*?\((\d+)\s*\)$/im,
-];
-
-// rtk's benchmark runner prints a strict final line: "benchmark cases: N".
-const BENCHMARK_PATTERNS = [/^benchmark cases:\s*(\d+)\s*$/im];
-
-function extractCount(text, patterns) {
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) {
-      const value = Number(match[match.length - 1]);
-      if (Number.isFinite(value) && value > 0) return value;
-    }
-  }
-  return undefined;
-}
-
 async function latestRun(workflowFile) {
   const url =
     `https://api.github.com/repos/${SOURCE_REPO}/actions/workflows/` +
@@ -437,24 +404,36 @@ async function defaultBranchOf(repo) {
   return data.default_branch ?? "main";
 }
 
-async function runLogText(repo, runId) {
-  // The logs endpoint 302s to a zip. We only want plain text, so we read the
-  // per-job logs instead, which the API serves directly.
+/**
+ * Reading counts out of a job log lives in `scripts/lib/log-facts.mjs`, because
+ * the extraction patterns are `^`-anchored against text that GitHub decorates
+ * with a timestamp and ANSI colour on every line. That mismatch meant no count
+ * was ever extracted for any project, and no test could see it while the logic
+ * was inline here. The module is driven by a table in `run-evidence-tests.mjs`.
+ *
+ * Each job is parsed separately and the results are combined, rather than
+ * concatenating every job into one string. Two sibling repositories run the same
+ * suite in two jobs and another runs three different suites; a single
+ * first-match over the concatenation reported 75 tests for a project that ran
+ * 954. See `summariseJobs` for the rule that replaces it.
+ */
+async function runLogFacts(repo, runId) {
   const jobs = await fetchJson(
     `https://api.github.com/repos/${repo}/actions/runs/${runId}/jobs?per_page=20`,
   );
-  let combined = "";
+  const perJob = [];
   for (const job of jobs.jobs ?? []) {
     try {
-      combined += await fetchText(
+      // The logs endpoint 302s to a zip; the per-job endpoint serves text.
+      const text = await fetchText(
         `https://api.github.com/repos/${repo}/actions/jobs/${job.id}/logs`,
       );
-      combined += "\n";
+      perJob.push(jobFacts(text));
     } catch {
       // A single unreadable job should not sink the whole import.
     }
   }
-  return combined;
+  return summariseJobs(perJob);
 }
 
 async function collectCiFacts(entries) {
@@ -520,32 +499,51 @@ async function collectCiFacts(entries) {
           warn(`${entry.id}: artifact lookup failed (${error.message})`);
         }
       }
-      if (!measured && run.conclusion === "success" && token) {
-        const logs = await runLogText(runRepo, run.id);
-        const total = extractCount(logs, TEST_PATTERNS);
-        const files = extractCount(logs, FILE_PATTERNS);
-        const benchCases = extractCount(logs, BENCHMARK_PATTERNS);
-        if (total || benchCases) {
-          measured = {
-            tests: total ? (files ? { total, files } : { total }) : undefined,
-            benchmarks: benchCases ? { cases: benchCases } : undefined,
-            derivedFrom: "workflow job log",
-          };
+      if (!measured && token) {
+        // Measure the newest run only when it is green. When it is not, read
+        // the last successful run instead: a count from a run that passed is
+        // real evidence, and dropping it left projects like pulse showing no
+        // figure at all while a green run two days earlier had reported one.
+        // The label says which run it came from, so nothing is overstated.
+        if (run.conclusion === "success") {
+          measured = await runLogFacts(runRepo, run.id);
+        } else if (lastSuccess) {
+          measured = await runLogFacts(runRepo, lastSuccess.id);
+          if (measured) {
+            measured = {
+              ...measured,
+              derivedFrom:
+                `workflow job log of the last successful run (${lastSuccess.updated_at.slice(0, 10)}); ` +
+                `newest run ${run.conclusion}`,
+            };
+          }
         }
       }
 
       if (measured) {
         if (measured.tests) record.tests = measured.tests;
         if (measured.benchmarks) record.benchmarks = measured.benchmarks;
+        if (measured.jobs) record.jobs = measured.jobs;
         record.derivedFrom = measured.derivedFrom;
       } else if (!token) {
         record.derivedFrom = "run metadata only (no GITHUB_TOKEN, artifacts/logs not readable)";
       } else if (previous[entry.id]?.tests && run.conclusion !== "success") {
         // Keep the older verified count visible but marked stale rather than
         // dropping it silently when the newest run failed before measuring.
-        record.tests = previous[entry.id].tests;
-        record.derivedFrom = `carried from earlier successful run (${previous[entry.id].completedAt ?? "unknown date"}); newest run did not produce a fresh count`;
-        warn(`${entry.id}: carrying stale test count forward — newest run ${run.conclusion}`);
+        const prior = previous[entry.id];
+        record.tests = prior.tests;
+        // `completedAt` does not exist on these records — the field is
+        // `lastSuccessfulRunAt`. Reading the wrong one printed "unknown date"
+        // on the site for a date the record already carried, which is worse
+        // than no note: it reads as though nothing verified the count.
+        const priorOn = prior.lastSuccessfulRunAt ?? prior.lastRunAt;
+        record.jobs = prior.jobs;
+        record.derivedFrom =
+          `carried from earlier successful run (${priorOn ? priorOn.slice(0, 10) : "unknown date"}); ` +
+          `newest run did not produce a fresh count`;
+        warn(
+          `${entry.id}: carrying stale test count forward (${priorOn ? priorOn.slice(0, 10) : "unknown date"}) — newest run ${run.conclusion}`,
+        );
       }
 
       facts[entry.id] = record;

@@ -84,6 +84,12 @@ function withCiMetrics(project: Project, facts: CiFacts[string] | undefined): Me
   if (!facts?.tests || facts.conclusion !== "success") return metrics;
 
   const when = facts.lastSuccessfulRunAt;
+  // A summed figure says how many jobs it summed. The importer counts a suite
+  // reported by two jobs once and adds genuinely different suites, so the total
+  // is not readable off any single job log — naming the number of contributions
+  // is what makes it checkable against the run.
+  const jobNote =
+    facts.jobs && facts.jobs > 1 ? `, combined from ${facts.jobs} job logs` : "";
   const ciMetric: Metric = {
     label: "Automated tests",
     value: facts.tests.files
@@ -91,7 +97,7 @@ function withCiMetrics(project: Project, facts: CiFacts[string] | undefined): Me
       : `${facts.tests.total}`,
     method: `Read from the latest successful ${basename(facts.workflow)} run${
       when ? ` (${when.slice(0, 10)})` : ""
-    }.`,
+    }${jobNote}.`,
     source: "ci",
     evidence: [
       {

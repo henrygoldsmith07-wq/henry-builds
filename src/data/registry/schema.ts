@@ -429,6 +429,15 @@ export type CiFacts = Record<
     lastSuccessRunUrl?: string;
     tests?: { total: number; files?: number };
     benchmarks?: { cases: number; label?: string; sourceUrl?: string };
+    /**
+     * How many job logs contributed a count to `tests.total` — jobs that
+     * reported nothing are not counted.
+     *
+     * A run's jobs may report the same suite (counted once) or different suites
+     * (added), so a combined figure needs to show its parts to be checkable.
+     * Set only when the count came from parsing logs.
+     */
+    jobs?: number;
     /** Where the number came from when CI did not report one directly. */
     derivedFrom?: string;
     /** Set when a transient import failure carried an older fact forward. */
