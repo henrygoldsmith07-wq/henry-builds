@@ -41,7 +41,22 @@
         "caption": "Illustration of the weekly side-by-side view. Not a screenshot — no capture of the running app has been published yet."
       }
     ],
-    "metrics": [],
+    "metrics": [
+      {
+        "label": "Test suite",
+        "value": "54 passing",
+        "method": "Counted by the app's vitest suite, run against the mental-load-tracker workflow.",
+        "source": "ci",
+        "evidence": [
+          {
+            "kind": "ci",
+            "label": "mental-load-tracker.yml",
+            "href": "https://github.com/henrygoldsmith07-wq/mental-load-tracker/blob/main/.github/workflows/mental-load-tracker.yml",
+            "path": ".github/workflows/mental-load-tracker.yml"
+          }
+        ]
+      }
+    ],
     "outcomes": [
       {
         "statement": "There are no user accounts at all — a household is a short join code, and each person's name and colour are stored locally on their own device.",
