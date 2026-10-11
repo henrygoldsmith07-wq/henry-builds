@@ -5,7 +5,8 @@
       "url": [
         "http://localhost/",
         "http://localhost/projects.html",
-        "http://localhost/projects/arise.html"
+        "http://localhost/projects/arise.html",
+        "http://localhost/compare.html"
       ],
       "numberOfRuns": 3,
       "settings": {
