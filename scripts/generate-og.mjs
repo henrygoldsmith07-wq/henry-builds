@@ -121,12 +121,44 @@ async function render(name, svg) {
   console.log(`  ${name}.png  ${(size / 1024).toFixed(1)} kB`);
 }
 
+/**
+ * Deletes cards for projects that are no longer published.
+ *
+ * Writing the published set is not enough on its own: `public/og/` survives
+ * between builds, so a project whose publication gate closes leaves its card
+ * behind. `habit-tracker.png` is exactly that — the project is gated
+ * `publish: false` while its card still sits in the output, and nothing in the
+ * build ever removes it.
+ *
+ * This mirrors `pruneGatedRoutes()` in generate-route-html.mjs, which solves
+ * the same problem for `dist/projects/*.html`: a stale artifact for a gated
+ * project is a claim nothing on the site is allowed to make.
+ *
+ * Only files this script owns are considered — `*.png` under `public/og` — and
+ * the published set plus the two route cards are preserved, so a stray file
+ * someone adds for another purpose is left alone.
+ */
+function pruneUnpublishedCards(publishedSlugs) {
+  if (!fs.existsSync(outDir)) return;
+  const keep = new Set([...publishedSlugs, "default", "projects", "compare", "build-log"]);
+  let pruned = 0;
+  for (const file of fs.readdirSync(outDir)) {
+    if (!file.endsWith(".png")) continue;
+    const name = file.replace(/\.png$/, "");
+    if (keep.has(name)) continue;
+    fs.rmSync(path.join(outDir, file));
+    pruned += 1;
+    console.log(`  removed ${file} — project is no longer published`);
+  }
+  return pruned;
+}
+
 async function main() {
   fs.mkdirSync(outDir, { recursive: true });
 
   const { published } = loadCaseStudies(root);
 
-  console.log(`generate-og: rendering ${published.length + 2} cards`);
+  console.log(`generate-og: rendering ${published.length + 4} cards`);
 
   await render(
     "default",
@@ -149,6 +181,33 @@ async function main() {
     }),
   );
 
+  // /compare and /build-log are full routes with their own titles in
+  // structured-data.mjs, but both were falling back to og/default.png — so a
+  // shared link to either page showed the generic marketing card. The build
+  // log is the page the brief calls "the part that says the most about how the
+  // work was done"; it deserves a card of its own.
+  await render(
+    "compare",
+    card({
+      eyebrow: "Compare the work",
+      title: "Same question, every project.",
+      subtitle:
+        "Evidence links, measured numbers, stated limits and CI state, side by side.",
+      footer: "henry-builds/compare",
+    }),
+  );
+
+  await render(
+    "build-log",
+    card({
+      eyebrow: "Build log",
+      title: "What was tried and dropped.",
+      subtitle:
+        "Dead ends, decisions, lessons and stated limits, each with a source.",
+      footer: "henry-builds/build-log",
+    }),
+  );
+
   for (const { data: project } of published) {
     await render(
       project.slug,
@@ -161,6 +220,8 @@ async function main() {
       }),
     );
   }
+
+  pruneUnpublishedCards(published.map(({ data: project }) => project.slug));
 }
 
 main().catch((error) => {

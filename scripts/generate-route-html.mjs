@@ -264,7 +264,7 @@ write(
     title: COMPARE_TITLE,
     description: COMPARE_DESCRIPTION,
     route: "/compare",
-    image: "/og/default.png",
+    image: "/og/compare.png",
     imageAlt: `${SITE_NAME} — all projects compared`,
     structuredData: collectionGraph({
       origin,
@@ -287,7 +287,7 @@ write(
     title: BUILD_LOG_TITLE,
     description: BUILD_LOG_DESCRIPTION,
     route: "/build-log",
-    image: "/og/default.png",
+    image: "/og/build-log.png",
     imageAlt: `${SITE_NAME} — build log`,
     structuredData: collectionGraph({
       origin,

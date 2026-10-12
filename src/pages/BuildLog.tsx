@@ -116,6 +116,7 @@ export default function BuildLog() {
         title={BUILD_LOG_TITLE}
         description={BUILD_LOG_DESCRIPTION}
         path="/build-log"
+        image="/og/build-log.png"
         buildStructuredData={buildStructuredData}
       />
       <SiteHeader />

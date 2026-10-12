@@ -1267,6 +1267,48 @@ for (const { label, jobs, expectTests, expectFiles, expectJobs } of multiJobCase
   });
 }
 
+// --- OG card pruning ----------------------------------------------------------
+
+/**
+ * `public/og/` survives between builds, and the generator used to write cards
+ * without ever removing them. So when a project's publication gate closes, its
+ * card stays behind: `habit-tracker.png` was still sitting in the output a day
+ * after the project was gated `publish: false`, with nothing on the site
+ * referencing it. A stale artefact for a project the site is not allowed to
+ * claim is a small integrity leak, and the same class of bug
+ * `pruneGatedRoutes()` already solves for `dist/projects/*.html`.
+ *
+ * The generator resolves every path from `process.cwd()`, so a scratch repo
+ * with one published project and one stale card is enough to prove the rule.
+ */
+test("generate-og removes cards for projects that are no longer published", async () => {
+  const dir = tempDir("og-prune");
+  const studies = minimalRegistry(1);
+  // One published project and one gated card left over from an earlier build.
+  writeRegistry(dir, studies);
+  const ogDir = path.join(dir, "public", "og");
+  fs.mkdirSync(ogDir, { recursive: true });
+  fs.writeFileSync(path.join(ogDir, "gated-project.png"), "stale card, left by an older build");
+
+  const { code, stdout, stderr } = await runNode(dir, script("scripts", "generate-og.mjs"));
+  if (code !== 0) throw new Error(`generate-og exited ${code}\n${stderr || stdout}`);
+
+  const remaining = fs.readdirSync(ogDir).sort();
+  if (remaining.includes("gated-project.png")) {
+    throw new Error(`stale card survived the run: ${remaining.join(", ")}`);
+  }
+  // The published project's own card must still be there.
+  if (!remaining.includes("proj-0.png")) {
+    throw new Error(`published project's card missing: ${remaining.join(", ")}`);
+  }
+  // And the two route cards, which the routes now reference directly.
+  for (const required of ["default.png", "projects.png", "compare.png", "build-log.png"]) {
+    if (!remaining.includes(required)) {
+      throw new Error(`route card ${required} missing: ${remaining.join(", ")}`);
+    }
+  }
+});
+
 // --- runner ------------------------------------------------------------------
 
 console.log(`run-evidence-tests: ${tests.length} scenarios\n`);

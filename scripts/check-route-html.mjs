@@ -145,7 +145,17 @@ verifyRoute({
 verifyRoute({
   route: "/compare",
   title: "Compare the work — Henry Goldsmith",
-  image: "/og/default.png",
+  image: "/og/compare.png",
+  structuredType: "CollectionPage",
+});
+
+// The build log was generated but never verified here, so a broken or missing
+// card for it would have passed the suite. It is now a route of its own in the
+// OG set rather than a fallback to the marketing card.
+verifyRoute({
+  route: "/build-log",
+  title: "Build log — Henry Goldsmith",
+  image: "/og/build-log.png",
   structuredType: "CollectionPage",
 });
 

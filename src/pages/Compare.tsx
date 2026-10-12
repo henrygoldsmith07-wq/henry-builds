@@ -425,6 +425,7 @@ export default function Compare() {
         title={COMPARE_TITLE}
         description={COMPARE_DESCRIPTION}
         path="/compare"
+        image="/og/compare.png"
         buildStructuredData={buildStructuredData}
       />
       <SiteHeader />
