@@ -49,6 +49,14 @@ if (!fs.existsSync(templatePath)) {
 
 const template = fs.readFileSync(templatePath, "utf8");
 const { published, upstreamById } = loadCaseStudies(root);
+
+// The build-log entries are generated data, not a static import — the
+// noscript body needs the entries that exist *now*, so they are read from
+// the committed registry/build-log.json rather than re-deriving them here.
+const buildLogPath = path.join(root, "registry", "build-log.json");
+const buildLogEntries = fs.existsSync(buildLogPath)
+  ? JSON.parse(fs.readFileSync(buildLogPath, "utf8")).entries ?? []
+  : [];
 const projects = published
   .map(({ data }) => data)
   .sort((a, b) => a.name.localeCompare(b.name));
@@ -291,6 +299,9 @@ write(
       heading: BUILD_LOG_TITLE,
       description: BUILD_LOG_DESCRIPTION,
       links: [{ href: "/projects", label: "All work" }],
+      // Give non-JS crawlers the actual entries rather than an empty shell.
+      // The evidence pointers are the part that matters most for indexing.
+      entries: buildLogEntries,
     }),
   }),
 );

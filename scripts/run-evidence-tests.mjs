@@ -911,6 +911,34 @@ const noscriptCases = [
     args: { heading: "Build log", note: "Source: https://example.com" },
     expect: ["<h1>Build log</h1>", "Source: https://example.com", "</noscript>"],
   },
+  {
+    label: "build-log entries render as sections with evidence links",
+    args: {
+      heading: "Build log",
+      description: "Decisions, dead ends, lessons and stated limits.",
+      links: [{ href: "/projects", label: "All work" }],
+      entries: [
+        {
+          project: "World News Globe",
+          title: "Locking the whole app down with a strict Content-Security-Policy",
+          body: "CSP was deferred.",
+          evidence: [
+            {
+              kind: "doc",
+              label: "Monorepo improvement log — security headers run",
+              href: "https://github.com/example/repo/blob/main/IMPROVEMENT_LOG.md",
+            },
+          ],
+        },
+      ],
+    },
+    expect: [
+      "<p>World News Globe</p>",
+      "<h2>Locking the whole app down with a strict Content-Security-Policy</h2>",
+      "<p>CSP was deferred.</p>",
+      '<a href="https://github.com/example/repo/blob/main/IMPROVEMENT_LOG.md">',
+    ],
+  },
 ];
 
 for (const { label, args, expect } of noscriptCases) {

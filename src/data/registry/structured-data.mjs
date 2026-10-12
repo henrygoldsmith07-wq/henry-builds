@@ -232,7 +232,7 @@ export function escapeHtml(value) {
  *
  * @param {{ heading: string, description?: string, links?: Array<{ href: string, label: string, note?: string }>, note?: string }} params
  */
-export function noscriptBody({ heading, description, links = [], note }) {
+export function noscriptBody({ heading, description, links = [], note, entries = [] }) {
   const items = links
     .map(
       ({ href, label, note: linkNote }) =>
@@ -241,10 +241,41 @@ export function noscriptBody({ heading, description, links = [], note }) {
         `</li>`,
     )
     .join("");
+
+  // Each entry renders as a semantic section: project name as eyebrow,
+  // title as a sub-heading, body as the content, and evidence links as a
+  // list. This gives non-JS crawlers the substance of the build log rather
+  // than an empty shell — the evidence pointers are the part a crawler
+  // should index first.
+  const entryHtml = entries
+    .map(
+      ({ project, title, body, evidence }) => {
+        const evidenceLinks = (evidence ?? [])
+          .map(
+            (item) =>
+              `<li><a href="${escapeHtml(item.href ?? "")}">${escapeHtml(item.label ?? "Evidence")}</a></li>`,
+          )
+          .join("");
+        return (
+          `<section>` +
+          `<p>${escapeHtml(project)}</p>` +
+          (title ? `<h2>${escapeHtml(title)}</h2>` : "") +
+          `<p>${escapeHtml(body)}</p>` +
+          (evidenceLinks ? `<ul>${evidenceLinks}</ul>` : "") +
+          `</section>`
+        );
+      },
+    )
+    .join("");
+
+  // No wrapping <div>: the generator replaces the entire <div id="root">…</div>
+  // subtree by matching the first </div>, and a nested div would silently
+  // truncate the body. The <noscript> element itself is the only container.
   return (
     `<noscript>` +
     `<h1>${escapeHtml(heading)}</h1>` +
     (description ? `<p>${escapeHtml(description)}</p>` : "") +
+    entryHtml +
     (items ? `<ul>${items}</ul>` : "") +
     (note ? `<p>${escapeHtml(note)}</p>` : "") +
     `</noscript>`
