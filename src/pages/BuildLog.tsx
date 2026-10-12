@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { ArrowUpRight } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
-import { EvidenceRow } from "@/components/portfolio/Evidence";
+import { EvidenceRow, EvidenceProjectContext, SourceAccessContext } from "@/components/portfolio/Evidence";
 import { projects } from "@/data/registry";
 import buildLog from "../../registry/build-log.json";
 import type { Evidence } from "@/data/registry/schema";
@@ -99,6 +99,17 @@ export default function BuildLog() {
   const currentBlurb = KINDS.find((k) => k.key === active)?.blurb ?? "";
   const undated = entries.every((e) => !e.date);
 
+  // A lookup to resolve each entry back to its project for evidence chip
+  // context. Without this, path-relative evidence links resolve against the
+  // monorepo base rather than the project's actual repository, and private
+  // source disclosure (the lock icon) never fires on this page.
+  const projectBySlug = useMemo(
+    () => new Map(projects.map((p) => [p.slug, p])),
+    // `projects` is a module-level import, not a prop — it never changes
+    // identity within a session, so the map never needs recomputing.
+    [],
+  );
+
   return (
     <div className="portfolio-shell">
       <SiteMetadata
@@ -168,7 +179,13 @@ export default function BuildLog() {
                   </p>
                 )}
                 {entry.evidence && entry.evidence.length > 0 && (
-                  <EvidenceRow items={entry.evidence} />
+                  <SourceAccessContext.Provider
+                    value={projectBySlug.get(entry.slug)?.sourceAccess === "private"}
+                  >
+                    <EvidenceProjectContext.Provider value={projectBySlug.get(entry.slug) ?? null}>
+                      <EvidenceRow items={entry.evidence} />
+                    </EvidenceProjectContext.Provider>
+                  </SourceAccessContext.Provider>
                 )}
                 <Link
                   to={`/projects/${entry.slug}`}
