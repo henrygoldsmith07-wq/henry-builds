@@ -1012,9 +1012,38 @@ const noscriptCases = [
       '<a href="https://github.com/example/repo/blob/main/IMPROVEMENT_LOG.md">',
     ],
   },
+  {
+    label: "case-study sections render the evidence a crawler could not see",
+    args: {
+      heading: "rtk — Cut tool-call tokens.",
+      description: "Filters noisy tool output.",
+      links: [{ href: "/projects", label: "All work" }],
+      sections: [
+        { heading: "What it demonstrates", items: ["Per-tool parsers"] },
+        { heading: "Measured", items: ["Token reduction: 37%"] },
+        { heading: "What the project says it cannot yet claim", items: ["No independent corpus"] },
+      ],
+    },
+    expect: [
+      "<h2>What it demonstrates</h2><ul><li>Per-tool parsers</li></ul>",
+      "<h2>Measured</h2><ul><li>Token reduction: 37%</li></ul>",
+      "<h2>What the project says it cannot yet claim</h2><ul><li>No independent corpus</li></ul>",
+    ],
+  },
+  {
+    // A section with no usable items must vanish rather than render a bare
+    // heading, or every case study would advertise an empty "Measured" block.
+    label: "a section with only blank items renders nothing",
+    args: {
+      heading: "x",
+      sections: [{ heading: "Measured", items: ["", "   ", null] }],
+    },
+    expect: [],
+    absent: ["Measured"],
+  },
 ];
 
-for (const { label, args, expect } of noscriptCases) {
+for (const { label, args, expect, absent = [] } of noscriptCases) {
   test(`noscript body: ${label}`, async () => {
     const { noscriptBody } = await import(
       pathToFileURL(path.join(repoRoot, "src", "data", "registry", "structured-data.mjs")).href
@@ -1023,6 +1052,11 @@ for (const { label, args, expect } of noscriptCases) {
     for (const needle of expect) {
       if (needle && !body.includes(needle)) {
         throw new Error(`missing ${JSON.stringify(needle)} in ${JSON.stringify(body)}`);
+      }
+    }
+    for (const needle of absent) {
+      if (needle && body.includes(needle)) {
+        throw new Error(`${JSON.stringify(needle)} should not be present in ${JSON.stringify(body)}`);
       }
     }
     if (!body.startsWith("<noscript>") || !body.endsWith("</noscript>")) {

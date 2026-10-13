@@ -328,6 +328,31 @@ for (const project of projects) {
     sameAs: project.liveUrl ? [project.liveUrl] : [],
   });
 
+  // The evidence surfaces a crawler should be able to read. A case-study route
+  // used to hand a scriptless crawler a heading, the summary and two nav links
+  // — so every headline claim on the page was invisible to it, which is the
+  // opposite of what this site is for. Every string is authored registry copy,
+  // re-formatted rather than rewritten, so this cannot introduce a claim the
+  // hydrated page does not make.
+  const study = project.caseStudy ?? {};
+  const sections = [
+    {
+      heading: "What it demonstrates",
+      items: [
+        ...(study.demonstrates?.technical ?? []),
+        ...(study.demonstrates?.product ?? []),
+      ],
+    },
+    {
+      heading: "Measured",
+      items: (study.metrics ?? []).map((metric) => `${metric.label}: ${metric.value}`),
+    },
+    {
+      heading: "What the project says it cannot yet claim",
+      items: study.limitations ?? [],
+    },
+  ].filter((section) => section.items.length > 0);
+
   write(
     path.join("projects", `${project.slug}.html`),
     renderPage({
@@ -345,6 +370,7 @@ for (const project of projects) {
           { href: "/projects", label: "All work" },
           { href: "/compare", label: "Compare the work" },
         ],
+        ...(sections.length ? { sections } : {}),
         ...(codeRepository ? { note: `Source: ${codeRepository}` } : {}),
       }),
     }),

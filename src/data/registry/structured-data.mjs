@@ -232,7 +232,7 @@ export function escapeHtml(value) {
  *
  * @param {{ heading: string, description?: string, links?: Array<{ href: string, label: string, note?: string }>, note?: string }} params
  */
-export function noscriptBody({ heading, description, links = [], note, entries = [] }) {
+export function noscriptBody({ heading, description, links = [], note, entries = [], sections = [] }) {
   const items = links
     .map(
       ({ href, label, note: linkNote }) =>
@@ -240,6 +240,33 @@ export function noscriptBody({ heading, description, links = [], note, entries =
         (linkNote ? ` — ${escapeHtml(linkNote)}` : "") +
         `</li>`,
     )
+    .join("");
+
+  /**
+   * A titled block of list items — the case-study surfaces a crawler should
+   * read: measured numbers, what the project demonstrates, and stated limits.
+   *
+   * The case-study routes used to carry only a heading, the summary, two nav
+   * links and a source pointer, so a crawler that never runs JavaScript saw a
+   * sentence about a project and none of the evidence behind it. That is the
+   * one thing this site argues it does differently, so the no-JS body has to
+   * show it. Every string here is already authored registry copy; nothing is
+   * generated, so the static and hydrated views cannot disagree.
+   */
+  const sectionHtml = sections
+    .map(({ heading: sectionHeading, items: sectionItems = [] }) => {
+      const listItems = sectionItems
+        .filter((item) => item && String(item).trim())
+        .map((item) => `<li>${escapeHtml(item)}</li>`)
+        .join("");
+      if (!listItems) return "";
+      return (
+        `<section>` +
+        `<h2>${escapeHtml(sectionHeading)}</h2>` +
+        `<ul>${listItems}</ul>` +
+        `</section>`
+      );
+    })
     .join("");
 
   // Each entry renders as a semantic section: project name as eyebrow,
@@ -275,6 +302,7 @@ export function noscriptBody({ heading, description, links = [], note, entries =
     `<noscript>` +
     `<h1>${escapeHtml(heading)}</h1>` +
     (description ? `<p>${escapeHtml(description)}</p>` : "") +
+    sectionHtml +
     entryHtml +
     (items ? `<ul>${items}</ul>` : "") +
     (note ? `<p>${escapeHtml(note)}</p>` : "") +
