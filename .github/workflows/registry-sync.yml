@@ -23,6 +23,12 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # Required by "Report validation failure as an issue" at the bottom of this
+  # job. Without it that step fails with "Resource not accessible by
+  # integration", so a failed sync produced a second, misleading error instead
+  # of the issue that tells the owner what actually broke. deploy-monitor.yml
+  # already declares this; the sync workflow was the one that forgot.
+  issues: write
 
 jobs:
   sync:

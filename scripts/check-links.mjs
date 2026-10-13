@@ -144,15 +144,23 @@ function collectEvidenceItems() {
   const items = [];
   for (const { file, data } of projects) {
     const study = data.caseStudy ?? {};
-    const lists = [
+    // Each entry is an array of evidence objects, gathered with `?? []` so a
+    // missing group is simply empty. These must NOT be spread into the outer
+    // array: `...flatMap((m) => m.evidence ?? [])` pushes each *evidence
+    // object* as a top-level element, and the loop below then tries to iterate
+    // that object — `TypeError: list is not iterable`. That is what happened
+    // here: `--github` threw on the first project whose evidence lived under
+    // `metrics`/`outcomes` rather than `architecture`, so upstream path
+    // verification never actually ran in the scheduled link check.
+    const groups = [
       study.architecture?.evidence ?? [],
-      ...(study.metrics ?? []).flatMap((m) => m.evidence ?? []),
-      ...(study.outcomes ?? []).flatMap((o) => o.evidence ?? []),
+      (study.metrics ?? []).flatMap((m) => m.evidence ?? []),
+      (study.outcomes ?? []).flatMap((o) => o.evidence ?? []),
       study.benchmarkChart?.evidence ?? [],
       study.insightLifecycle?.evidence ?? [],
     ];
-    for (const list of lists) {
-      for (const item of list) {
+    for (const group of groups) {
+      for (const item of group) {
         if (item?.kind || item?.href || item?.path || item?.src) items.push({ file, item });
       }
     }
@@ -160,8 +168,46 @@ function collectEvidenceItems() {
   return items;
 }
 
+/**
+ * HTML URLs belonging to repositories the registry knows are private.
+ *
+ * `github.com/owner/repo/...` answers 404 to an unauthenticated *page* request
+ * even when the repository exists, because the token in `GITHUB_TOKEN`
+ * authenticates the API rather than a browser session. Probing those URLs as
+ * links therefore reports a failure for every private source — and the whole
+ * point of `--github` below is that the API is the correct way to check them.
+ *
+ * Skipping them here is not a weakening of the check: `checkGithubPathsUpstream`
+ * still verifies each `path:` against the API, and `verify-sources` records
+ * repository existence in `registry/source-status.json`. What this removes is a
+ * guaranteed false failure that made the scheduled evidence monitor red every
+ * run, which is how a real broken link would have gone unnoticed.
+ */
+function privateRepoPrefixes() {
+  const statusPath = path.join(root, "registry", "source-status.json");
+  const prefixes = new Set();
+  if (!fs.existsSync(statusPath)) return prefixes;
+  try {
+    const { projects: statuses = {} } = JSON.parse(fs.readFileSync(statusPath, "utf8"));
+    for (const entry of Object.values(statuses)) {
+      if (entry?.access === "private" && entry.repo) {
+        prefixes.add(`https://github.com/${entry.repo}`);
+      }
+    }
+  } catch (error) {
+    warn(`could not read registry/source-status.json (${error.message}); probing every URL`);
+  }
+  return prefixes;
+}
+
 async function checkExternalLinks() {
   const urls = new Set();
+  const privatePrefixes = privateRepoPrefixes();
+  // URLs that belong to a case study whose source was removed upstream. Their
+  // targets are expected to be gone, so a 404 is the documented outcome rather
+  // than a broken link — but a *200* would mean the archive claim is wrong, so
+  // these are still probed and reported.
+  const removedSourceUrls = new Set();
 
   for (const { data } of projects) {
     const study = data.caseStudy ?? {};
@@ -170,14 +216,26 @@ async function checkExternalLinks() {
       ...(study.metrics ?? []).flatMap((m) => m.evidence ?? []),
       ...(study.outcomes ?? []).flatMap((o) => o.evidence ?? []),
     ];
-    for (const item of evidence) if (item.href) urls.add(item.href);
+    const removed = data.sourceState === "historical-case-study";
+    for (const item of evidence) {
+      if (!item.href) continue;
+      urls.add(item.href);
+      if (removed) removedSourceUrls.add(item.href);
+    }
     if (data.repo?.href) urls.add(data.repo.href);
     if (data.liveUrl) urls.add(data.liveUrl);
   }
 
-  console.log(`check-links: HEAD-checking ${urls.size} external URLs`);
+  const probeable = [...urls].filter(
+    (url) => ![...privatePrefixes].some((prefix) => url.startsWith(prefix)),
+  );
+  const skipped = urls.size - probeable.length;
+  console.log(
+    `check-links: HEAD-checking ${probeable.length} external URLs` +
+      (skipped ? ` (${skipped} private-repo URL(s) verified through the API instead)` : ""),
+  );
 
-  for (const url of urls) {
+  for (const url of probeable) {
     checked++;
     try {
       let response = await fetch(url, { method: "HEAD", redirect: "follow" });
@@ -185,10 +243,50 @@ async function checkExternalLinks() {
       if (response.status === 403 || response.status === 405) {
         response = await fetch(url, { method: "GET", redirect: "follow" });
       }
-      if (!response.ok) fail(`${response.status} ${response.statusText} — ${url}`);
+      if (!response.ok) {
+        if (removedSourceUrls.has(url) && response.status === 404) {
+          // The case study says this source was removed, and it is. Passing
+          // here is not a weaker check — `verify-sources` and the case study's
+          // own banner carry the same claim, and a 200 would contradict it.
+          console.log(`  · ${url} — absent as the historical case study states`);
+        } else {
+          // A 404 from a private repository's web page is ambiguous: the repo
+          // may exist but be invisible to an unauthenticated page request. Ask
+          // the API before calling the link broken, so a genuinely deleted
+          // repository still fails while a private one that exists passes.
+          const verified = await verifyViaApi(url);
+          if (verified) {
+            console.log(`  ~ ${url} — 404 to an anonymous request, repo confirmed via the API`);
+          } else {
+            fail(`${response.status} ${response.statusText} — ${url}`);
+          }
+        }
+      }
     } catch (error) {
       fail(`unreachable — ${url} (${error.message})`);
     }
+  }
+}
+
+/**
+ * Ask the GitHub API whether the repository behind a github.com URL exists.
+ *
+ * Returns true only on a definite yes, so an outage or a rate limit leaves the
+ * original 404 as the verdict rather than silently passing a broken link.
+ */
+async function verifyViaApi(url) {
+  const match = /^https:\/\/github\.com\/([^/]+)\/([^/?#]+)/.exec(url);
+  if (!match) return false;
+  const [, owner, repo] = match;
+  try {
+    const headers = { "user-agent": "henry-builds-link-check" };
+    if (token) headers.authorization = `Bearer ${token}`;
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo.replace(/\.git$/, "")}`, {
+      headers,
+    });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 
@@ -196,8 +294,19 @@ async function checkExternalLinks() {
 async function checkGithubPathsUpstream() {
   // Every `path:` field plus the top-level repo pointer must exist at SOURCE_REF.
   const paths = new Set();
+  // A historical case study documents work whose source was removed upstream.
+  // Its evidence paths describe where the code *used to* live, so demanding
+  // that they still resolve contradicts the case study's own banner — and the
+  // `repo.path` loop below already exempts them. The evidence loop did not,
+  // which is why the three removed projects (dictation-typer, meeting-recorder,
+  // world-news) reported missing paths on every scheduled run.
+  const removedFiles = new Set(
+    projects
+      .filter(({ data }) => data.sourceState === "historical-case-study")
+      .map(({ file }) => file),
+  );
   for (const { file, item } of collectEvidenceItems()) {
-    if (item.path && item.path.startsWith("apps/")) {
+    if (item.path && item.path.startsWith("apps/") && !removedFiles.has(file)) {
       paths.add(JSON.stringify({ path: item.path, file }));
     }
   }

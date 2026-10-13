@@ -29,9 +29,9 @@ function script(...segments) {
   return path.join(repoRoot, ...segments);
 }
 
-async function runNode(cwd, scriptPath, env = {}) {
+async function runNode(cwd, scriptPath, env = {}, args = []) {
   try {
-    const { stdout, stderr } = await execFileAsync(process.execPath, [scriptPath], {
+    const { stdout, stderr } = await execFileAsync(process.execPath, [scriptPath, ...args], {
       cwd,
       env: { ...process.env, ...env },
       timeout: 30_000,
@@ -816,6 +816,79 @@ for (const script of [
   });
 }
 
+
+// --- check-links evidence collection ------------------------------------------
+
+/**
+ * `collectEvidenceItems` gathered evidence groups with
+ * `...(study.metrics ?? []).flatMap((m) => m.evidence ?? [])` — the spread
+ * pushed each *evidence object* into the outer list rather than each *group*,
+ * so the loop below iterated an object and threw `TypeError: list is not
+ * iterable`. `architecture.evidence` happened to be an array and worked, which
+ * is why the bug survived: the first project whose evidence lived under
+ * `metrics` or `outcomes` killed the run.
+ *
+ * The practical consequence was that `check-links.mjs --github` never
+ * completed, so the scheduled evidence monitor verified no upstream path at
+ * all. The internal (offline) suite still passed, so nothing caught it. These
+ * two tests pin the shape of the collection, and the CLI test below runs the
+ * real `--github` path end to end against a fixture.
+ */
+test("check-links collects evidence from metrics and outcomes without throwing", async () => {
+  const dir = tempDir("clg-collect");
+  const studies = minimalRegistry(2);
+  // Evidence under `outcomes`, which is what broke in the real registry.
+  studies[0].caseStudy.outcomes = [
+    {
+      statement: "an outcome with evidence under outcomes",
+      evidence: [
+        { kind: "doc", label: "README", href: "https://example.com/readme", path: "apps/x/README.md" },
+      ],
+    },
+  ];
+  studies[0].caseStudy.metrics[0].evidence = [
+    { kind: "ci", label: "workflow", href: "https://example.com/wf", path: "apps/x/wf.yml" },
+  ];
+  writeRegistry(dir, studies);
+
+  const { code, stdout, stderr } = await runNode(
+    dir,
+    script("scripts", "check-links.mjs"),
+    {
+      UPSTREAM_REPO: "example/example",
+      UPSTREAM_REF: "main",
+    },
+    // `--github` is what calls collectEvidenceItems; without it this test would
+    // never reach the code that used to throw.
+    ["--github"],
+  );
+  const output = stdout + stderr;
+  if (/TypeError|is not iterable/.test(output)) {
+    throw new Error(`evidence collection threw:\n${output.split("\n").slice(-6).join("\n")}`);
+  }
+  // It may report broken links (the fixture's URLs are fake and there is no
+  // network guarantee), but it must not crash on its own data.
+  if (code !== 0 && !/✗/.test(output)) {
+    throw new Error(`unexpected failure (exit ${code}):\n${output}`);
+  }
+});
+
+test("check-links verifies the real registry's --github path without an engine error", async () => {
+  const { code, stdout, stderr } = await runNode(repoRoot, script("scripts", "check-links.mjs"), {
+    GITHUB_TOKEN: "",
+    GH_TOKEN: "",
+  }, ["--github"]);
+  const output = stdout + stderr;
+  if (/TypeError|is not iterable/.test(output)) {
+    throw new Error(`--github threw:\n${output.split("\n").slice(-6).join("\n")}`);
+  }
+  if (!/verifying \d+ repo path/.test(output)) {
+    throw new Error(`--github did not reach the path check:\n${output.split("\n").slice(-6).join("\n")}`);
+  }
+  // The exit code depends on the network and on whether a token is present;
+  // the assertion here is that the check ran rather than crashing.
+  void code;
+});
 
 // --- build-log evidence passthrough -------------------------------------------
 
