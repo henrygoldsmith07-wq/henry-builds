@@ -177,37 +177,84 @@ function collectEvidenceItems() {
  * links therefore reports a failure for every private source — and the whole
  * point of `--github` below is that the API is the correct way to check them.
  *
+ * Built from two sources, because one is not enough:
+ *
+ *  1. `registry/source-status.json`, which names the repository behind each
+ *     project.
+ *  2. The evidence URLs of any project whose source is private. A repository
+ *     can be renamed upstream (rtk's source is now `slimout`), so the name in
+ *     source-status.json does not always match the name in an older evidence
+ *     link. The access level travels with the project, so keying off that
+ *     catches the alias too.
+ *
  * Skipping them here is not a weakening of the check: `checkGithubPathsUpstream`
  * still verifies each `path:` against the API, and `verify-sources` records
  * repository existence in `registry/source-status.json`. What this removes is a
  * guaranteed false failure that made the scheduled evidence monitor red every
  * run, which is how a real broken link would have gone unnoticed.
  */
-function privateRepoPrefixes() {
-  const statusPath = path.join(root, "registry", "source-status.json");
+function privateRepoPrefixes(projectsWithEvidence, privateSlugs) {
   const prefixes = new Set();
-  if (!fs.existsSync(statusPath)) return prefixes;
+  const add = (href) => {
+    const match = /^(https:\/\/github\.com\/[^/]+\/[^/?#]+)/.exec(href ?? "");
+    if (match) prefixes.add(match[1]);
+  };
+
+  const statusPath = path.join(root, "registry", "source-status.json");
+  if (fs.existsSync(statusPath)) {
+    try {
+      const { projects: statuses = {} } = JSON.parse(fs.readFileSync(statusPath, "utf8"));
+      for (const entry of Object.values(statuses)) {
+        if (entry?.access === "private" && entry.repo) {
+          prefixes.add(`https://github.com/${entry.repo}`);
+        }
+      }
+    } catch (error) {
+      warn(`could not read registry/source-status.json (${error.message}); probing every URL`);
+    }
+  }
+
+  for (const { data, evidenceUrls } of projectsWithEvidence) {
+    if (!privateSlugs.has(data.slug)) continue;
+    for (const href of evidenceUrls) add(href);
+    add(data.repo?.href);
+  }
+
+  return prefixes;
+}
+
+/**
+ * Slugs whose source the registry records as private.
+ *
+ * The case-study JSON does not carry the access level — it is derived in
+ * `registry/source-status.json` from the upstream repository — so it has to be
+ * read here rather than off `data`. Read separately from the prefix builder
+ * because both the skip list and the 404 fallback need it.
+ */
+function privateSourceSlugs() {
+  const statusPath = path.join(root, "registry", "source-status.json");
+  const slugs = new Set();
+  if (!fs.existsSync(statusPath)) return slugs;
   try {
     const { projects: statuses = {} } = JSON.parse(fs.readFileSync(statusPath, "utf8"));
-    for (const entry of Object.values(statuses)) {
-      if (entry?.access === "private" && entry.repo) {
-        prefixes.add(`https://github.com/${entry.repo}`);
-      }
+    for (const [slug, entry] of Object.entries(statuses)) {
+      if (entry?.access === "private") slugs.add(slug);
     }
-  } catch (error) {
-    warn(`could not read registry/source-status.json (${error.message}); probing every URL`);
+  } catch {
+    // Reported by privateRepoPrefixes; an unreadable file must not crash.
   }
-  return prefixes;
+  return slugs;
 }
 
 async function checkExternalLinks() {
   const urls = new Set();
-  const privatePrefixes = privateRepoPrefixes();
+  const privateSlugs = privateSourceSlugs();
   // URLs that belong to a case study whose source was removed upstream. Their
   // targets are expected to be gone, so a 404 is the documented outcome rather
   // than a broken link — but a *200* would mean the archive claim is wrong, so
   // these are still probed and reported.
   const removedSourceUrls = new Set();
+  const projectsWithEvidence = [];
 
   for (const { data } of projects) {
     const study = data.caseStudy ?? {};
@@ -217,15 +264,19 @@ async function checkExternalLinks() {
       ...(study.outcomes ?? []).flatMap((o) => o.evidence ?? []),
     ];
     const removed = data.sourceState === "historical-case-study";
+    const evidenceUrls = [];
     for (const item of evidence) {
       if (!item.href) continue;
       urls.add(item.href);
+      evidenceUrls.push(item.href);
       if (removed) removedSourceUrls.add(item.href);
     }
+    projectsWithEvidence.push({ data, evidenceUrls });
     if (data.repo?.href) urls.add(data.repo.href);
     if (data.liveUrl) urls.add(data.liveUrl);
   }
 
+  const privatePrefixes = privateRepoPrefixes(projectsWithEvidence, privateSlugs);
   const probeable = [...urls].filter(
     (url) => ![...privatePrefixes].some((prefix) => url.startsWith(prefix)),
   );
