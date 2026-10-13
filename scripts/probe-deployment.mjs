@@ -187,6 +187,47 @@ try {
   problem(`404 probe failed — ${error.message}`);
 }
 
+// --- the crawler-visible body is actually deployed -------------------------
+// Everything above checks that the route serves the *shell* and that its head
+// metadata is present. Both can be true while the `<noscript>` body is missing
+// — and that combination is not hypothetical: a CDN serving a cached deployment
+// kept returning HTML whose `<head>` was current but whose body was an empty
+// `<div id="root"></div>`, with the OG card still on disk from an older build.
+// Routes looked healthy, the deploy monitor passed, and the entire
+// crawler-visible layer this site exists for was absent from production.
+//
+// A crawler that never runs JavaScript reads only this body, so a route with
+// no `<noscript>` is invisible to it. `/` and the landing shell are exempt:
+// React Router renders those client-side and the static file is a fallback.
+const CRAWLER_VISIBLE_ROUTES = ["/build-log", "/compare", "/projects"];
+
+for (const route of CRAWLER_VISIBLE_ROUTES) {
+  try {
+    const response = await get(`${origin}${route}`);
+    if (!response.ok) {
+      problem(`${route} returned ${response.status} — cannot verify its crawler-visible body`);
+      continue;
+    }
+    const html = await response.text();
+    if (!html.includes("<noscript>")) {
+      problem(
+        `${route} serves no <noscript> body — a crawler that never runs JavaScript sees an empty page. ` +
+          `If the build is green, the deployment is stale: check x-vercel-cache on the response.`,
+      );
+      continue;
+    }
+    const body = html.slice(html.indexOf("<noscript>"), html.indexOf("</noscript>"));
+    const links = [...body.matchAll(/<a\s+href="([^"]+)"/g)].map((match) => match[1]);
+    if (links.length === 0) {
+      problem(`${route} <noscript> body has no links for a crawler to follow`);
+    } else {
+      ok(`${route} crawler-visible body present (${links.length} link(s))`);
+    }
+  } catch (error) {
+    problem(`${route} crawler-visible check failed — ${error.message}`);
+  }
+}
+
 // --- every published project's own live deployment -------------------------
 // A portfolio that links to dead products is lying by omission, so the monitor
 // probes each liveUrl too. Current-source projects must answer; archived or
