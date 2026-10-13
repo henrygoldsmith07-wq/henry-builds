@@ -57,6 +57,7 @@ function verifyRoute({
   image,
   noIndex = false,
   structuredType,
+  minBodyParagraphs = 0,
 }) {
   const relative = routeFile(route);
   const file = path.join(distDir, relative);
@@ -124,6 +125,21 @@ function verifyRoute({
       if (heading && !title.startsWith(heading.replace(/&quot;/g, '"'))) {
         fail(`${relative}: <noscript> heading does not match the page title`);
       }
+      // A route that publishes substantive content must carry some of it, not
+      // just a heading and a nav link. The build log shipped for weeks with an
+      // empty body — heading, description and one "All work" link — and passed
+      // every check here, because one internal link satisfied the rule above.
+      // `minBodyParagraphs` is the floor for routes whose value IS the content.
+      if (minBodyParagraphs) {
+        checked++;
+        const paragraphs = [...body.matchAll(/<p>/g)].length;
+        if (paragraphs < minBodyParagraphs) {
+          fail(
+            `${relative}: <noscript> body carries ${paragraphs} paragraph(s), expected at least ` +
+              `${minBodyParagraphs} — the route publishes content a crawler cannot see`,
+          );
+        }
+      }
     }
   }
 }
@@ -152,11 +168,19 @@ verifyRoute({
 // The build log was generated but never verified here, so a broken or missing
 // card for it would have passed the suite. It is now a route of its own in the
 // OG set rather than a fallback to the marketing card.
+//
+// The paragraph floor is the point of this entry: the body once carried only a
+// heading, a description and one "All work" link, and every check above still
+// passed because that link satisfied the "has internal links" rule. The build
+// log's value is its entries, so a crawler must actually see them. 40 is well
+// under the ~70 entries the registry holds today, which keeps the failure a
+// real regression signal rather than a tripwire that breaks on every new entry.
 verifyRoute({
   route: "/build-log",
   title: "Build log — Henry Goldsmith",
   image: "/og/build-log.png",
   structuredType: "CollectionPage",
+  minBodyParagraphs: 40,
 });
 
 for (const { data: project } of published) {
