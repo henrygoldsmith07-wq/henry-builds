@@ -12,8 +12,25 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import sharp from "sharp";
 import { loadCaseStudies } from "./lib/published-projects.mjs";
+
+/**
+ * `sharp` is a devDependency, but this script runs inside the deploy build.
+ *
+ * A static `import sharp from "sharp"` dies at *load* time in any environment
+ * that installs without devDependencies — before a single card is written and
+ * before any try/catch below can run — which aborts the whole build on its very
+ * first step. A failed build leaves the previous deployment live, so every
+ * commit since then stopped shipping. Importing lazily turns that crash into a
+ * missing-tool case `render()` can handle: fall back to the committed card, and
+ * fail only if there is nothing to fall back to.
+ */
+let sharp = null;
+try {
+  sharp = (await import("sharp")).default;
+} catch {
+  console.warn("generate-og: sharp is unavailable — will use committed cards where they exist");
+}
 
 const root = process.cwd();
 const outDir = path.join(root, "public/og");
@@ -116,6 +133,28 @@ function card({ eyebrow, title, subtitle, stage, footer }) {
 
 async function render(name, svg) {
   const file = path.join(outDir, `${name}.png`);
+
+  // sharp is a devDependency and this runs during the deploy build, so an
+  // environment that installs without devDependencies reaches here with no
+  // renderer. The cards are committed and Vite copies `public/` verbatim into
+  // `dist/`, so a pre-existing card is exactly as good as a freshly rendered
+  // one for the deployed site. Refusing to render would be a deploy outage,
+  // not a correctness win — so fall back when a valid card exists, and fail
+  // loudly when there is nothing to fall back to.
+  if (!sharp) {
+    const existing = fs.existsSync(file) ? fs.statSync(file).size : 0;
+    if (existing === 0) {
+      throw new Error(
+        `sharp is unavailable and ${path.relative(root, file)} does not exist to fall back on — ` +
+          `the OG card would ship missing`,
+      );
+    }
+    console.warn(
+      `  ! ${name}.png: sharp unavailable, using the committed card (${(existing / 1024).toFixed(1)} kB)`,
+    );
+    return;
+  }
+
   await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(file);
   const { size } = fs.statSync(file);
   console.log(`  ${name}.png  ${(size / 1024).toFixed(1)} kB`);
