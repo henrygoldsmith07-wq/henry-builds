@@ -35,6 +35,29 @@ const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? "";
 let errors = 0;
 let checked = 0;
 
+/**
+ * Per-project outcomes of the external URL probe.
+ *
+ * The results of this check used to be discarded — only the process exit code
+ * survived — so the single fact this site most wants to be able to state ("every
+ * evidence link was checked, and they resolve") was impossible for a reader to
+ * see. Recording them turns a pass/fail gate into something the product can
+ * actually show. Populated only under `--external`, which is the scheduled path.
+ */
+const linkHealth = new Map();
+
+function recordLink(slug, outcome) {
+  if (!slug) return;
+  let entry = linkHealth.get(slug);
+  if (!entry) {
+    entry = { checked: 0, broken: 0, unverifiable: 0 };
+    linkHealth.set(slug, entry);
+  }
+  entry.checked++;
+  if (outcome === "broken") entry.broken++;
+  else if (outcome === "unverifiable") entry.unverifiable++;
+}
+
 function fail(msg) {
   console.error(`✗ ${msg}`);
   errors++;
@@ -255,6 +278,9 @@ async function checkExternalLinks() {
   // these are still probed and reported.
   const removedSourceUrls = new Set();
   const projectsWithEvidence = [];
+  // Which project(s) cite each URL, so an outcome can be attributed back to a
+  // case study. A URL shared by two studies is recorded against both.
+  const slugsByUrl = new Map();
 
   for (const { data } of projects) {
     const study = data.caseStudy ?? {};
@@ -269,11 +295,19 @@ async function checkExternalLinks() {
       if (!item.href) continue;
       urls.add(item.href);
       evidenceUrls.push(item.href);
+      const owners = slugsByUrl.get(item.href) ?? new Set();
+      owners.add(data.slug);
+      slugsByUrl.set(item.href, owners);
       if (removed) removedSourceUrls.add(item.href);
     }
     projectsWithEvidence.push({ data, evidenceUrls });
-    if (data.repo?.href) urls.add(data.repo.href);
-    if (data.liveUrl) urls.add(data.liveUrl);
+    for (const url of [data.repo?.href, data.liveUrl]) {
+      if (!url) continue;
+      urls.add(url);
+      const owners = slugsByUrl.get(url) ?? new Set();
+      owners.add(data.slug);
+      slugsByUrl.set(url, owners);
+    }
   }
 
   const privatePrefixes = privateRepoPrefixes(projectsWithEvidence, privateSlugs);
@@ -286,8 +320,19 @@ async function checkExternalLinks() {
       (skipped ? ` (${skipped} private-repo URL(s) verified through the API instead)` : ""),
   );
 
+  // Private-repo URLs are never probed over HTTP — an anonymous 404 from a
+  // private repository says nothing. They are confirmed through the API in
+  // `privateRepoPrefixes`, so they are recorded as checked-but-not-probed
+  // rather than counted as failures or silently dropped.
+  const prefixList = [...privatePrefixes];
+  for (const url of urls) {
+    if (!prefixList.some((prefix) => url.startsWith(prefix))) continue;
+    for (const slug of slugsByUrl.get(url) ?? []) recordLink(slug, "unverifiable");
+  }
+
   for (const url of probeable) {
     checked++;
+    const owners = slugsByUrl.get(url) ?? [];
     try {
       let response = await fetch(url, { method: "HEAD", redirect: "follow" });
       // Some hosts refuse HEAD but answer GET.
@@ -300,6 +345,7 @@ async function checkExternalLinks() {
           // here is not a weaker check — `verify-sources` and the case study's
           // own banner carry the same claim, and a 200 would contradict it.
           console.log(`  · ${url} — absent as the historical case study states`);
+          for (const slug of owners) recordLink(slug, "ok");
         } else {
           // A 404 from a private repository's web page is ambiguous: the repo
           // may exist but be invisible to an unauthenticated page request. Ask
@@ -308,13 +354,22 @@ async function checkExternalLinks() {
           const verified = await verifyViaApi(url);
           if (verified) {
             console.log(`  ~ ${url} — 404 to an anonymous request, repo confirmed via the API`);
+            for (const slug of owners) recordLink(slug, "ok");
           } else {
             fail(`${response.status} ${response.statusText} — ${url}`);
+            for (const slug of owners) recordLink(slug, "broken");
           }
         }
+      } else {
+        for (const slug of owners) recordLink(slug, "ok");
       }
     } catch (error) {
+      // An unreachable host is not proof the link is dead — a timeout or a
+      // transient outage must not be published as a broken citation. The gate
+      // still fails (a human should look), but the recorded health says
+      // "unverifiable", which is the honest description.
       fail(`unreachable — ${url} (${error.message})`);
+      for (const slug of owners) recordLink(slug, "unverifiable");
     }
   }
 }
@@ -398,12 +453,57 @@ async function checkGithubPathsUpstream() {
   }
 }
 
+/**
+ * Persist what was actually checked, so the site can say it.
+ *
+ * Written only when the external probe ran: the internal-only mode (`bun run
+ * check:links`) is a fast offline gate and knows nothing about whether a remote
+ * evidence link resolves. Recording it then would let a build claim "links
+ * verified" on the strength of a run that never touched the network — which is
+ * exactly the kind of unearned assertion this site is built to avoid.
+ *
+ * The file is committed by `registry-sync` alongside the other generated
+ * registry layers, and `check-registry-freshness` ages it out like the rest, so
+ * a stale check stops being presented as a current one.
+ */
+function writeLinkHealth() {
+  if (!checkExternal) return;
+  const projectsOut = {};
+  for (const [slug, entry] of [...linkHealth].sort(([a], [b]) => a.localeCompare(b))) {
+    projectsOut[slug] = {
+      checked: entry.checked,
+      broken: entry.broken,
+      unverifiable: entry.unverifiable,
+    };
+  }
+  const payload = {
+    _generated: "Written by scripts/check-links.mjs --external. Do not edit by hand.",
+    checkedAt: new Date().toISOString(),
+    sourceRepo: SOURCE_REPO,
+    sourceRef: SOURCE_REF,
+    // The token matters to a reader: an unauthenticated run cannot see private
+    // repositories, so more of its results are "unverifiable" than a
+    // token-authenticated run's. Recording it keeps the two comparable.
+    authenticated: Boolean(token),
+    totalChecked: [...linkHealth.values()].reduce((sum, e) => sum + e.checked, 0),
+    totalBroken: [...linkHealth.values()].reduce((sum, e) => sum + e.broken, 0),
+    projects: projectsOut,
+  };
+  const target = path.join(root, "registry", "link-health.json");
+  fs.writeFileSync(target, `${JSON.stringify(payload, null, 2)}\n`);
+  console.log(
+    `check-links: wrote registry/link-health.json — ${payload.totalChecked} link(s) across ` +
+      `${Object.keys(projectsOut).length} project(s), ${payload.totalBroken} broken`,
+  );
+}
+
 const done = Promise.all([
   checkExternal ? checkExternalLinks() : Promise.resolve(),
   checkGithubPaths ? checkGithubPathsUpstream() : Promise.resolve(),
 ]);
 
 done.then(() => {
+  writeLinkHealth();
   console.log(`check-links: ${checked} checks, ${errors} broken`);
   process.exit(errors > 0 ? 1 : 0);
 });

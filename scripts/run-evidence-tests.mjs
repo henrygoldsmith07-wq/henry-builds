@@ -890,6 +890,52 @@ test("check-links verifies the real registry's --github path without an engine e
   void code;
 });
 
+test("link health is not written without --external", async () => {
+  // A local, internal-only link check never touches the network, so it is not
+  // in a position to certify anything. Writing a health file there would let a
+  // build claim "links verified" on the strength of a run that never left the
+  // machine — exactly the unearned assertion this site is built to avoid. The
+  // file must therefore not exist after a plain run.
+  await runNode(repoRoot, "scripts/check-links.mjs");
+  const target = path.join(repoRoot, "registry", "link-health.json");
+  if (fs.existsSync(target)) {
+    throw new Error(
+      "check-links without --external wrote registry/link-health.json — " +
+        "a network-free run cannot attest to link health",
+    );
+  }
+});
+
+test("check-links --external records link health in the registry", async () => {
+  // Mirrors the --github test above: the real outcome depends on the network, so
+  // we only assert that the probe ran without an engine error and that its
+  // output is a well-formed health record, not what verdict it reached.
+  const target = path.join(repoRoot, "registry", "link-health.json");
+  try {
+    const { code, stdout, stderr } = await runNode(repoRoot, "scripts/check-links.mjs", {
+      GITHUB_TOKEN: "",
+      GH_TOKEN: "",
+    }, ["--external"]);
+    const output = stdout + stderr;
+    if (/TypeError|is not iterable/.test(output)) {
+      throw new Error(`--external threw:\n${output.split("\n").slice(-6).join("\n")}`);
+    }
+    void code;
+    if (!fs.existsSync(target)) {
+      throw new Error("check-links --external did not write registry/link-health.json");
+    }
+    const parsed = JSON.parse(fs.readFileSync(target, "utf8"));
+    if (!parsed._generated || !parsed.checkedAt || typeof parsed.totalChecked !== "number") {
+      throw new Error(`malformed link-health.json: ${JSON.stringify(parsed)}`);
+    }
+    if (Object.keys(parsed.projects).length === 0) {
+      throw new Error("link-health.json has no project entries");
+    }
+  } finally {
+    if (fs.existsSync(target)) fs.unlinkSync(target);
+  }
+});
+
 // --- build-log evidence passthrough -------------------------------------------
 
 test("build-build-log carries failed-approach evidence into dead-end entries", async () => {

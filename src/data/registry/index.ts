@@ -8,6 +8,7 @@ import type {
   FactsSnapshot,
   LedgerClaim,
   LedgerStatus,
+  LinkHealthSnapshot,
   Metric,
   Project,
   ProofSummary,
@@ -25,6 +26,21 @@ import ciFactsRaw from "../../../registry/ci-facts.json";
 import evidenceLedgerRaw from "../../../registry/evidence-ledger.json";
 import sourceStatusRaw from "../../../registry/source-status.json";
 import factsHistoryRaw from "../../../registry/facts-history.json";
+
+/**
+ * Generated on the scheduled path only (`check-links --external`), never by a
+ * developer build or `vite build`. A missing file is an expected, unremarkable
+ * state, not an error — and `import.meta.glob` makes that literal: an absent
+ * path is simply absent from its result set, so no runtime or type error is
+ * raised. The UI treats the absence as "not checked yet", which is the honest
+ * rendering rather than fabricating a "verified" when nothing verified.
+ */
+const linkHealthG = import.meta.glob<{ default: LinkHealthSnapshot }>(
+  "../../../registry/link-health.json",
+  { eager: true },
+);
+const linkHealthFile =
+  (linkHealthG["/registry/link-health.json"]?.default as LinkHealthSnapshot | undefined) ?? null;
 
 /**
  * Case studies are hand-authored, one file per project. Loading them by glob
@@ -185,9 +201,16 @@ function hydrate(project: Project): HydratedProject {
     sourceSha: statusEntry?.sha,
     sourceShaUrl: statusEntry?.shaUrl,
     sourceCheckedAt: statusEntry ? sourceStatuses.checkedAt : undefined,
+    /** What the last scheduled link check found for this project's evidence. */
+    linkCheck: linkHealthFile?.projects?.[project.slug]
+      ? {
+          checkedAt: linkHealthFile.checkedAt,
+          authenticated: linkHealthFile.authenticated,
+          ...linkHealthFile.projects[project.slug],
+        }
+      : undefined,
     ledgerClaims: claimsByProduct.get(project.upstreamId) ?? [],
-    ledgerImportedAt: evidenceLedger.importedAt,
-    facts: factsFile.latest?.[project.upstreamId],
+    ledgerImportedAt: evidenceLedger.importedAt,    facts: factsFile.latest?.[project.upstreamId],
     factsHistory: factsFile.history?.[project.upstreamId] ?? [],
     factsGeneratedAt: factsFile.generatedAt,
     registryImportedAt: upstream.importedAt,
@@ -225,6 +248,18 @@ export type HydratedProject = Project & {
   sourceSha?: string;
   sourceShaUrl?: string;
   sourceCheckedAt?: string;
+  /**
+   * What the last scheduled external link check found for this project's
+   * evidence. Undefined when no such check has produced a file for this build —
+   * which the UI renders as "not checked" rather than assuming it passed.
+   */
+  linkCheck?: {
+    checkedAt: string;
+    authenticated: boolean;
+    checked: number;
+    broken: number;
+    unverifiable: number;
+  };
   /** Graded claims for this product from the monorepo's evidence ledger. */
   ledgerClaims: LedgerClaim[];
   ledgerImportedAt?: string;
@@ -435,6 +470,15 @@ export const registryMeta = {
   ledgerClaimCount: evidenceLedger.claims?.length ?? 0,
   sourcesCheckedAt: sourceStatuses.checkedAt,
   factsGeneratedAt: factsFile.generatedAt,
+  /** Null when no external link check has been run for this build. */
+  linkCheck: linkHealthFile
+    ? {
+        checkedAt: linkHealthFile.checkedAt,
+        authenticated: linkHealthFile.authenticated,
+        checked: linkHealthFile.totalChecked ?? 0,
+        broken: linkHealthFile.totalBroken ?? 0,
+      }
+    : null,
 };
 
 /**

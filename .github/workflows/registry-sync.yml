@@ -103,7 +103,7 @@ jobs:
             generated_only=true
             for f in $(git diff --name-only); do
               case "$f" in
-                registry/upstream.json|registry/evidence-ledger.json|registry/source-status.json|registry/ci-facts.json|registry/facts-history.json|registry/bundle-history.json|public/og/*|public/sitemap.xml|public/robots.txt)
+                registry/upstream.json|registry/evidence-ledger.json|registry/source-status.json|registry/ci-facts.json|registry/facts-history.json|registry/bundle-history.json|registry/link-health.json|public/og/*|public/sitemap.xml|public/robots.txt)
                   ;;
                 *)
                   generated_only=false

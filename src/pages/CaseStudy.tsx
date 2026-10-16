@@ -336,6 +336,7 @@ export default function CaseStudy() {
               freshWithinDays={FRESH_CLAIM_WINDOW_DAYS}
               deployAgeDays={deployAgeDays}
               deployWindowDays={DEPLOY_SNAPSHOT_WINDOW_DAYS}
+              linkCheck={project.linkCheck}
             />
 
             {/* ---- live-status caveat: shown when the generated facts and the

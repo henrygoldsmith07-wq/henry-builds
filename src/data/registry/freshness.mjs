@@ -54,6 +54,19 @@ export const GENERATED_LAYER_STRICT_AGE_DAYS = 2;
 export const DEPLOY_ALARM_AGE_DAYS = 3;
 
 /**
+ * How old an evidence-link verification may be before the site stops telling a
+ * reader that the links were checked.
+ *
+ * `check-links.mjs` HEAD-probes every external evidence URL on a schedule. Those
+ * results used to be thrown away — only an exit code survived — so the one thing
+ * this site most wants to be able to say ("we checked, they resolve") was
+ * unknowable to a reader. The window is deliberately short: a link check is
+ * cheap and runs often, and a months-old "verified" badge is exactly the kind of
+ * quiet overstatement the rest of this file exists to prevent.
+ */
+export const LINK_CHECK_MAX_AGE_DAYS = 7;
+
+/**
  * A green CI run older than this, sitting behind a failed newer run, stops
  * being news. Warn-level: it is a signal about maintenance, not a claim.
  */

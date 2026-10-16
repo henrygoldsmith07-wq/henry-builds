@@ -8,8 +8,10 @@ import type {
 import { sourceStateCopy } from "@/data/registry/schema";
 import {
   DEPLOY_SNAPSHOT_WINDOW_DAYS,
+  LINK_CHECK_MAX_AGE_DAYS,
   MAX_CAPTURE_AGE_DAYS,
   MAX_CLAIM_AGE_DAYS,
+  isWithinWindow,
 } from "@/data/registry/freshness.mjs";
 
 const gradeClass: Record<string, string> = {
@@ -133,6 +135,7 @@ export function SourceVerificationRow({
   freshWithinDays = MAX_CLAIM_AGE_DAYS,
   deployAgeDays = null,
   deployWindowDays = DEPLOY_SNAPSHOT_WINDOW_DAYS,
+  linkCheck,
 }: {
   status: SourceState;
   statusReason?: string;
@@ -164,12 +167,37 @@ export function SourceVerificationRow({
    */
   deployAgeDays?: number | null;
   deployWindowDays?: number;
+  /**
+   * What the last scheduled external link check found for this project.
+   *
+   * Absent when no such check has run for this build — which renders as
+   * "not checked", never as "verified". The distinction is the whole point: the
+   * site tells readers to go and check the evidence themselves, so it had
+   * better be able to say whether it has done so.
+   */
+  linkCheck?: {
+    checkedAt: string;
+    authenticated: boolean;
+    checked: number;
+    broken: number;
+    unverifiable: number;
+  };
 }) {
   const copy = sourceStateCopy[status];
   const deployedBehind = deploy?.upToDate === false;
   const newestRunRed = ci?.conclusion === "failure";
   const claimsStale =
     typeof claimsAgeDays === "number" && claimsAgeDays > freshWithinDays;
+
+  // A link check is only worth quoting while it is recent; a months-old
+  // "verified" badge is the quiet overstatement this file exists to prevent, so
+  // an expired one is described as such rather than dropped.
+  const linkCheckFresh = linkCheck
+    ? isWithinWindow(linkCheck.checkedAt, LINK_CHECK_MAX_AGE_DAYS)
+    : false;
+  const linkCheckStale = Boolean(linkCheck) && !linkCheckFresh;
+  const linksUnverified = linkCheck ? linkCheck.unverifiable > 0 : false;
+
   return (
     <dl className="verification-row" aria-label="Source verification state">
       <div>
@@ -290,6 +318,67 @@ export function SourceVerificationRow({
           </dd>
         </div>
       )}
+      <div>
+        <dt>Evidence links</dt>
+        <dd
+          title={
+            !linkCheck
+              ? "No automated link check has run for this build, so nothing here has been verified. The links are still worth following."
+              : linkCheck.broken > 0
+                ? `${linkCheck.broken} of ${linkCheck.checked} evidence link(s) for this project did not resolve on the last automated check.`
+                : linkCheckStale
+                  ? `The last check was ${formatDate(linkCheck.checkedAt)}, older than the ${LINK_CHECK_MAX_AGE_DAYS}-day window this site treats as current.`
+                  : linksUnverified
+                    ? `${linkCheck.unverifiable} link(s) could not be checked automatically (rate limit or unreachable host). Not broken, but not confirmed.`
+                    : `All ${linkCheck.checked} evidence link(s) for this project resolved on ${formatDate(linkCheck.checkedAt)}.`
+          }
+        >
+          {!linkCheck ? (
+            <>not checked</>
+          ) : linkCheck.broken > 0 ? (
+            <span className="freshness-stale">
+              {linkCheck.broken} of {linkCheck.checked} broken
+            </span>
+          ) : linkCheckFresh ? (
+            <>
+              <CalendarCheck className="inline size-3" aria-hidden="true" />
+              {" "}
+              {linkCheck.checked} checked
+              {linkCheckStale && (
+                <span className="freshness-stale">
+                  {" "}
+                  · {formatDate(linkCheck.checkedAt)}
+                </span>
+              )}
+              {!linkCheck.authenticated && (
+                <span title="Checked without a repository token, so private repositories could not be confirmed.">
+                  {" "}
+                  · anonymous
+                </span>
+              )}
+              {linksUnverified && (
+                <span title="A rate limit or unreachable host left these unconfirmed — not broken, but not verified either.">
+                  {" "}
+                  · {linkCheck.unverifiable} unverified
+                </span>
+              )}
+            </>
+          ) : (
+            // Stale: older than the window. The count still appears, but it is
+            // labelled with the date so a reader can see how old it is instead
+            // of reading a bare "checked" as current.
+            <>
+              <CalendarCheck className="inline size-3" aria-hidden="true" />
+              {" "}
+              {linkCheck.checked} checked
+              <span className="freshness-stale">
+                {" "}
+                · {formatDate(linkCheck.checkedAt)}
+              </span>
+            </>
+          )}
+        </dd>
+      </div>
       {release && (
         <div>
           <dt>Release</dt>

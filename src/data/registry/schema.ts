@@ -538,6 +538,33 @@ export type SourceStatusSnapshot = {
   projects: Record<string, SourceStatusEntry>;
 };
 
+/**
+ * Shape of the generated registry/link-health.json file.
+ *
+ * Written by `scripts/check-links.mjs --external` on the scheduled path. The
+ * results of that probe used to be discarded — only an exit code survived — so
+ * the site could not say "we checked these links", which is the one claim it
+ * most wants to make. `unverifiable` exists so an outage or a rate limit is
+ * never published as either a pass or a break.
+ */
+export type LinkHealthSnapshot = {
+  _generated: string;
+  checkedAt: string;
+  sourceRepo: string;
+  sourceRef: string;
+  /** Whether a token was used — anonymous runs cannot see private repositories. */
+  authenticated: boolean;
+  totalChecked: number;
+  totalBroken: number;
+  projects: Record<string, LinkHealthEntry>;
+};
+
+export type LinkHealthEntry = {
+  checked: number;
+  broken: number;
+  unverifiable: number;
+};
+
 /** Shape of the generated registry/ci-facts.json file. */
 export type CiFactsFile = {
   importedAt?: string;
