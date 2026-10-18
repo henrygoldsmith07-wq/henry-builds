@@ -1,0 +1,29 @@
+Put evidence-link verification in the crawler-visible build log
+
+The link-health file records the one positive fact this site makes about
+itself ("these links were checked, and they resolve"), but it only existed as
+a JSON file a crawler has no reason to fetch. The build log is where a reader
+audits what the site guarantees, so its no-JavaScript body now states the
+verification — and states it honestly at every state:
+
+- absent          -> "No automated evidence-link check has run for this build,
+                     so nothing here has been verified."
+- fresh, clean    -> "All 43 evidence links resolved on 2026-10-18."
+- broken          -> "3 of 43 evidence links did not resolve on the last
+                     automated check (2026-10-18)."  — never "all resolve"
+- stale           -> "The last evidence-link check was 2026-09-01, older than
+                     the 7-day window this site treats as current."
+
+The window and the predicate come from freshness.mjs rather than being
+restated, and the section reuses the existing `sections` list markup so no
+nested <div> is introduced (the generator replaces the whole #root subtree by
+matching the first </div>, so a nested one would truncate the body).
+
+Four tests pin each state, including the absence of the "all resolve" phrase
+when anything is broken or stale — the failure mode here is a silent wording
+edit that keeps every test passing while a dead citation is described as
+verified.
+
+Gates green: tsc, eslint, check-route-html (176), build, route-html.
+Evidence tests: 75 passed; the single failure is the pre-existing Windows-only
+audit-claims 0xC0000142 quirk, unchanged.

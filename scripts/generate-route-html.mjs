@@ -32,6 +32,7 @@ import {
   noscriptBody,
 } from "../src/data/registry/structured-data.mjs";
 import { profileData } from "../src/data/profile-data.mjs";
+import { LINK_CHECK_MAX_AGE_DAYS, isWithinWindow } from "../src/data/registry/freshness.mjs";
 
 const root = process.cwd();
 const distDir = path.join(root, "dist");
@@ -57,6 +58,49 @@ const buildLogPath = path.join(root, "registry", "build-log.json");
 const buildLogEntries = fs.existsSync(buildLogPath)
   ? JSON.parse(fs.readFileSync(buildLogPath, "utf8")).entries ?? []
   : [];
+
+/**
+ * Site-wide evidence-link verification, for crawlers.
+ *
+ * `registry/link-health.json` is produced by the scheduled
+ * `check-links --external` run. It is the one generated layer that states a
+ * positive fact about the site ("these links were checked, and they resolve"),
+ * so it belongs in the crawler-visible body — otherwise the only place it
+ * exists is a JSON file a crawler has no reason to fetch, and the claim is
+ * silently unavailable to exactly the reader it matters to.
+ *
+ * Absent file, stale check, or any broken link each render as a specific,
+ * honest sentence rather than being omitted or rounded to "verified".
+ */
+const linkHealthPath = path.join(root, "registry", "link-health.json");
+const linkHealth = fs.existsSync(linkHealthPath)
+  ? JSON.parse(fs.readFileSync(linkHealthPath, "utf8"))
+  : null;
+const linkHealthFresh = linkHealth && isWithinWindow(linkHealth.checkedAt, LINK_CHECK_MAX_AGE_DAYS);
+const linkHealthSections = linkHealth
+  ? [
+      {
+        heading: "Evidence links",
+        items: [
+          linkHealth.totalBroken > 0
+            ? `${linkHealth.totalBroken} of ${linkHealth.totalChecked} evidence links did not resolve on the last automated check (${String(linkHealth.checkedAt).slice(0, 10)}).`
+            : linkHealthFresh
+              ? `All ${linkHealth.totalChecked} evidence links resolved on ${String(linkHealth.checkedAt).slice(0, 10)}.`
+              : `The last evidence-link check was ${String(linkHealth.checkedAt).slice(0, 10)}, older than the ${LINK_CHECK_MAX_AGE_DAYS}-day window this site treats as current.`,
+          linkHealth.authenticated
+            ? `Checked with a repository token, so private repositories were verified through the API.`
+            : `Checked without a repository token, so private repositories could not be confirmed.`,
+        ],
+      },
+    ]
+  : [
+      {
+        heading: "Evidence links",
+        items: [
+          "No automated evidence-link check has run for this build, so nothing here has been verified.",
+        ],
+      },
+    ];
 const projects = published
   .map(({ data }) => data)
   .sort((a, b) => a.name.localeCompare(b.name));
@@ -302,6 +346,9 @@ write(
       // Give non-JS crawlers the actual entries rather than an empty shell.
       // The evidence pointers are the part that matters most for indexing.
       entries: buildLogEntries,
+      // And the site's own verification of them, so the claim "these were
+      // checked" is visible without executing JavaScript.
+      sections: linkHealthSections,
     }),
   }),
 );

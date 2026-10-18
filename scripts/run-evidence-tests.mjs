@@ -1159,6 +1159,84 @@ test("generate-route-html is idempotent across two consecutive runs", async () =
   }
 });
 
+/**
+ * The build-log page is where a reader audits what the site guarantees, so the
+ * evidence-link verification has to reach the crawler-visible body — not sit in
+ * a JSON file no crawler fetches.
+ *
+ * Each state is a distinct sentence, and the whole point is that "all resolve"
+ * never appears unless nothing was broken. These are pinned because the failure
+ * mode is silent and specific: a wording edit that swapped the condition for the
+ * date, or a refactor that dropped the broken branch, would keep every test
+ * passing while a dead citation was described as verified.
+ */
+const linkHealthStates = [
+  {
+    label: "no health file exists",
+    write: null,
+    expect: "No automated evidence-link check has run for this build, so nothing here has been verified.",
+    absent: ["all evidence links resolved"],
+  },
+  {
+    label: "a fresh check with nothing broken",
+    write: { checkedAt: new Date().toISOString(), totalChecked: 43, totalBroken: 0, authenticated: false },
+    expect: "All 43 evidence links resolved",
+    absent: ["did not resolve"],
+  },
+  {
+    label: "a check with broken links",
+    write: { checkedAt: new Date().toISOString(), totalChecked: 43, totalBroken: 3, authenticated: true },
+    expect: "3 of 43 evidence links did not resolve",
+    absent: ["all evidence links resolved"],
+  },
+  {
+    label: "a check older than the freshness window",
+    write: { checkedAt: "2020-01-01T00:00:00.000Z", totalChecked: 43, totalBroken: 0, authenticated: false },
+    expect: "older than the 7-day window",
+    absent: ["all evidence links resolved"],
+  },
+];
+
+for (const { label, write, expect, absent } of linkHealthStates) {
+  test(`build-log noscript: link-health state — ${label}`, async () => {
+    ensureDistTemplate();
+    const target = path.join(repoRoot, "registry", "link-health.json");
+    const existed = fs.existsSync(target);
+    const backup = existed ? fs.readFileSync(target, "utf8") : null;
+    try {
+      if (write === null) {
+        if (fs.existsSync(target)) fs.unlinkSync(target);
+      } else {
+        fs.writeFileSync(
+          target,
+          JSON.stringify({ _generated: "test", sourceRepo: "r", sourceRef: "main", projects: {}, ...write }, null, 2),
+        );
+      }
+      const { code, stderr } = await runNode(repoRoot, "scripts/generate-route-html.mjs");
+      if (code !== 0) throw new Error(`generator exited ${code}\n${stderr}`);
+      const html = fs.readFileSync(path.join(repoRoot, "dist", "build-log.html"), "utf8");
+      // Match the whole section rather than splitting on "<section>" and taking
+      // the following chunk: the build-log entries are also <section>s, so a
+      // split-chunk would run past the boundary and pick up unrelated prose
+      // (which is exactly how a "forbidden" phrase got matched spuriously).
+      const section = html.match(/<section>\s*<h2>Evidence links<\/h2>[\s\S]*?<\/section>/)?.[0];
+      if (!section) throw new Error("build-log noscript has no Evidence links section");
+      const text = section.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+      if (!text.includes(expect)) {
+        throw new Error(`expected the link-health section to say "${expect}"; got: ${text.trim()}`);
+      }
+      for (const forbidden of absent) {
+        if (text.includes(forbidden)) {
+          throw new Error(`link-health section said "${forbidden}" while ${label}: ${text.trim()}`);
+        }
+      }
+    } finally {
+      if (existed) fs.writeFileSync(target, backup);
+      else if (fs.existsSync(target)) fs.unlinkSync(target);
+    }
+  });
+}
+
 // --- the publication gate ---------------------------------------------------
 
 /**
