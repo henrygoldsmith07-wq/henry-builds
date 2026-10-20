@@ -82,7 +82,8 @@
         "src": "/media/rapport/screenshot.png",
         "alt": "Rapport running in a desktop browser, showing a practice conversation with skill-level feedback",
         "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
-        "capturedAt": "2026-09-01"
+        "capturedAt": "2026-09-01",
+        "fileSizeKB": 17
       },
       {
         "kind": "illustration",

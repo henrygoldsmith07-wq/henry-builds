@@ -42,7 +42,8 @@
         "src": "/media/daily-debate/screenshot.png",
         "alt": "Daily Debate running in a desktop browser, showing a debate round with the argument breakdown",
         "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
-        "capturedAt": "2026-09-01"
+        "capturedAt": "2026-09-01",
+        "fileSizeKB": 50
       },
       {
         "kind": "illustration",

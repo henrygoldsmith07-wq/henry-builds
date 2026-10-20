@@ -77,7 +77,8 @@
         "src": "/media/revise/screenshot.png",
         "alt": "Revise running in a desktop browser, showing the single recommended revision task and the mark breakdown",
         "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
-        "capturedAt": "2026-09-01"
+        "capturedAt": "2026-09-01",
+        "fileSizeKB": 57
       },
       {
         "kind": "illustration",

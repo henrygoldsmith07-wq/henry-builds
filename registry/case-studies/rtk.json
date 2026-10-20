@@ -68,7 +68,8 @@
         "src": "/media/rtk/screenshot.png",
         "alt": "RTK running in a terminal, showing a large raw test log collapsed to a summary with the critical failure lines kept",
         "caption": "Terminal capture at 1280x800, recorded 2026-09-01.",
-        "capturedAt": "2026-09-01"
+        "capturedAt": "2026-09-01",
+        "fileSizeKB": 51
       },
       {
         "kind": "illustration",

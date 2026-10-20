@@ -41,7 +41,8 @@
         "src": "/media/arise/screenshot.png",
         "alt": "Arise running in a desktop browser, showing a training session with programmed sets and logged history",
         "caption": "Captured from the running app. Desktop, 1280x800. Captured 2026-09-01.",
-        "capturedAt": "2026-09-01"
+        "capturedAt": "2026-09-01",
+        "fileSizeKB": 51
       },
       {
         "kind": "illustration",
