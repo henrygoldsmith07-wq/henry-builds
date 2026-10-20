@@ -16,6 +16,7 @@ import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { SourceStateBadge, VerificationLine } from "@/components/portfolio/SourceState";
 import { StageBadge } from "@/components/portfolio/StageBadge";
 import { TestTrend } from "@/components/portfolio/TestTrend";
+import { SimilarCapabilities } from "@/components/portfolio/SimilarCapabilities";
 import NotFound from "@/pages/NotFound";
 import {
   daysSinceVerified,
@@ -775,6 +776,9 @@ export default function CaseStudy() {
                 </ul>
               </Section>
             )}
+            
+            {/* ---- similar projects --------------------------------------- */}
+            <SimilarCapabilities currentProject={project} maxResults={3} />
           </div>
         </article>
         </EvidenceProjectContext.Provider>

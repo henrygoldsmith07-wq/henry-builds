@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUpRight, MoveUpRight } from "lucide-react";
 import { Link } from "react-router";
 import { ContactActions, ContactActionsCompact } from "@/components/portfolio/ContactActions";
+import { ContactIntelligence } from "@/components/portfolio/ContactIntelligence";
 import { ProjectPreview } from "@/components/portfolio/ProjectPreview";
 import { ProofSummaryBar } from "@/components/portfolio/ProofSummary";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
@@ -371,6 +372,11 @@ export default function Landing() {
                   benchmarks and the numbers on each case study — is what the claims
                   here actually rest on.
                 </p>
+                
+                {/* Smart contact form toggle */}
+                <div className="mt-8 max-w-xl">
+                  <ContactIntelligence />
+                </div>
               </div>
               <ContactActions />
             </div>

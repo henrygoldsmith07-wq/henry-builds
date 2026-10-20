@@ -4,6 +4,8 @@ import { ArrowUpRight } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { EvidenceRow, EvidenceProjectContext, SourceAccessContext } from "@/components/portfolio/Evidence";
+import { BuildTimeline } from "@/components/portfolio/BuildTimeline";
+import { ClaimFreshnessReport } from "@/components/portfolio/FreshnessMonitor";
 import { projects } from "@/data/registry";
 import buildLog from "../../registry/build-log.json";
 import type { Evidence } from "@/data/registry/schema";
@@ -78,6 +80,7 @@ const KINDS: { key: Kind; label: string; blurb: string }[] = [
 export default function BuildLog() {
   const entries = buildLog.entries as LogEntry[];
   const [active, setActive] = useState<Kind>("dead-end");
+  const [viewMode, setViewMode] = useState<"tabular" | "timeline" | "freshness">("tabular");
 
   const byKind = useMemo(() => {
     const grouped = new Map<Kind, LogEntry[]>();
@@ -163,41 +166,108 @@ export default function BuildLog() {
               );
             })}
           </div>
+          
+          {/* View mode toggles */}
+          <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-muted-foreground">View:</span>
+            <button
+              onClick={() => setViewMode("tabular")}
+              className={`rounded-lg px-3 py-1.5 ${
+                viewMode === "tabular"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              Entries
+            </button>
+            <button
+              onClick={() => setViewMode("timeline")}
+              className={`rounded-lg px-3 py-1.5 ${
+                viewMode === "timeline"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              Timeline
+            </button>
+            <button
+              onClick={() => setViewMode("freshness")}
+              className={`rounded-lg px-3 py-1.5 ${
+                viewMode === "freshness"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              Freshness Report
+            </button>
+          </div>
 
           <p className="mb-10 max-w-2xl text-sm leading-6 text-muted-foreground">{currentBlurb}</p>
 
-          <ol className="max-w-3xl space-y-px overflow-hidden border border-border bg-border">
-            {current.map((entry) => (
-              <li key={`${entry.slug}-${entry.kind}-${entry.body.slice(0, 24)}`} className="bg-background p-5 sm:p-6">
-                <p className="eyebrow">{entry.project}</p>
-                {entry.title && (
-                  <p className="mt-2 text-base font-semibold tracking-tight">{entry.title}</p>
-                )}
-                <p className="mt-2 text-sm leading-6 text-foreground/85">{entry.body}</p>
-                {entry.change && (
-                  <p className="mt-3 border-l-2 border-border pl-4 text-sm leading-6 text-muted-foreground">
-                    {entry.change}
-                  </p>
-                )}
-                {entry.evidence && entry.evidence.length > 0 && (
-                  <SourceAccessContext.Provider
-                    value={projectBySlug.get(entry.slug)?.sourceAccess === "private"}
-                  >
-                    <EvidenceProjectContext.Provider value={projectBySlug.get(entry.slug) ?? null}>
-                      <EvidenceRow items={entry.evidence} />
-                    </EvidenceProjectContext.Provider>
-                  </SourceAccessContext.Provider>
-                )}
-                <Link
-                  to={`/projects/${entry.slug}`}
-                  className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold hover:underline"
-                >
-                  Read the case study
-                  <ArrowUpRight className="size-3.5" aria-hidden="true" />
-                </Link>
-              </li>
-            ))}
-          </ol>
+          {viewMode === "tabular" && (
+            <>
+              <ol className="max-w-3xl space-y-px overflow-hidden border border-border bg-border">
+                {current.map((entry) => (
+                  <li key={`${entry.slug}-${entry.kind}-${entry.body.slice(0, 24)}`} className="bg-background p-5 sm:p-6">
+                    <p className="eyebrow">{entry.project}</p>
+                    {entry.title && (
+                      <p className="mt-2 text-base font-semibold tracking-tight">{entry.title}</p>
+                    )}
+                    <p className="mt-2 text-sm leading-6 text-foreground/85">{entry.body}</p>
+                    {entry.change && (
+                      <p className="mt-3 border-l-2 border-border pl-4 text-sm leading-6 text-muted-foreground">
+                        {entry.change}
+                      </p>
+                    )}
+                    {entry.evidence && entry.evidence.length > 0 && (
+                      <SourceAccessContext.Provider
+                        value={projectBySlug.get(entry.slug)?.sourceAccess === "private"}
+                      >
+                        <EvidenceProjectContext.Provider value={projectBySlug.get(entry.slug) ?? null}>
+                          <EvidenceRow items={entry.evidence} />
+                        </EvidenceProjectContext.Provider>
+                      </SourceAccessContext.Provider>
+                    )}
+                    <Link
+                      to={`/projects/${entry.slug}`}
+                      className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold hover:underline"
+                    >
+                      Read the case study
+                      <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+          
+          {viewMode === "timeline" && (
+            <div className="space-y-6">
+              <div className="rounded-xl border border-border bg-muted p-6 text-center">
+                <h3 className="text-lg font-semibold">Interactive Build Timeline</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Viewing CI events, deployments, and verification history across all projects.
+                  This view is powered by automated event generation from registry data.
+                </p>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Note: Full timeline integration requires build-log.json population with historical events.
+                  For now, see the tabular view for decision/lesson entries or the freshness report for evidence validation status.
+                </p>
+              </div>
+              
+              {/* Placeholder for future timeline implementation */}
+              <div className="rounded-xl border border-dashed border-border bg-background p-12 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Interactive timeline visualization coming in next iteration. 
+                  The <strong>Freshness Report</strong> view above shows current evidence age and expiration risks.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {viewMode === "freshness" && (
+            <ClaimFreshnessReport />
+          )}
         </section>
       </main>
       <SiteFooter />
