@@ -1,4 +1,4 @@
-import { BarChart3, FileText, GitBranch, Grid, LayoutTemplate, TrendingUp, Calendar } from "lucide-react";
+import { BarChart3, FileText, GitBranch, Grid, LayoutTemplate, ShieldAlert, TrendingUp } from "lucide-react";
 import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
@@ -9,6 +9,7 @@ import { ProjectComplexityVisualizer } from "@/components/portfolio/ProjectCompl
 import { EvidenceVerificationTimeline } from "@/components/portfolio/EvidenceVerificationTimeline";
 import { CapabilityEvolutionTimeline } from "@/components/portfolio/CapabilityEvolutionTimeline";
 import { InteractivePortfolioSimulator } from "@/components/portfolio/InteractivePortfolioSimulator";
+import { ProjectRiskScorecard } from "@/components/portfolio/ProjectRiskScorecard";
 import { projects, registryMeta, demonstratesOf } from "@/data/registry";
 import { useState } from "react";
 
@@ -29,7 +30,7 @@ const portfolioAnalytics = {
 };
 
 export default function PortfolioAnalytics() {
-  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator" | "risk">("overview");
 
   // Calculate portfolio-wide metrics
   const portfolioMetrics = {
@@ -80,6 +81,7 @@ export default function PortfolioAnalytics() {
                 { id: "verification", label: "Evidence Timeline", icon: Calendar },
                 { id: "evolution", label: "Capability Growth", icon: GitBranch },
                 { id: "simulator", label: "Challenge Simulator", icon: LayoutTemplate },
+                { id: "risk", label: "Risk Scorecard", icon: ShieldAlert },
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -270,6 +272,12 @@ export default function PortfolioAnalytics() {
           {activeTab === "simulator" && (
             <div className="max-w-6xl">
               <InteractivePortfolioSimulator />
+            </div>
+          )}
+
+          {activeTab === "risk" && (
+            <div className="max-w-6xl">
+              <ProjectRiskScorecard />
             </div>
           )}
         </section>
