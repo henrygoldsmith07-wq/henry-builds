@@ -1,4 +1,4 @@
-import { BarChart3, FileText, Grid, TrendingUp } from "lucide-react";
+import { BarChart3, FileText, GitBranch, Grid, TrendingUp, Calendar } from "lucide-react";
 import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
@@ -6,6 +6,8 @@ import { PROJECT_ANALYTICS_TITLE, PROJECT_ANALYTICS_DESCRIPTION, collectionGraph
 import { ResumeAnalyzer } from "@/components/portfolio/ResumeAnalyzer";
 import { SkillsHeatmap } from "@/components/portfolio/SkillsHeatmap";
 import { ProjectComplexityVisualizer } from "@/components/portfolio/ProjectComplexityVisualizer";
+import { EvidenceVerificationTimeline } from "@/components/portfolio/EvidenceVerificationTimeline";
+import { CapabilityEvolutionTimeline } from "@/components/portfolio/CapabilityEvolutionTimeline";
 import { projects, registryMeta, demonstratesOf } from "@/data/registry";
 import { useState } from "react";
 
@@ -26,7 +28,7 @@ const portfolioAnalytics = {
 };
 
 export default function PortfolioAnalytics() {
-  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution">("overview");
 
   // Calculate portfolio-wide metrics
   const portfolioMetrics = {
@@ -74,6 +76,8 @@ export default function PortfolioAnalytics() {
                 { id: "resume", label: "Resume Matcher", icon: FileText },
                 { id: "skills", label: "Skills Heatmap", icon: BarChart3 },
                 { id: "complexity", label: "Complexity Matrix", icon: TrendingUp },
+                { id: "verification", label: "Evidence Timeline", icon: Calendar },
+                { id: "evolution", label: "Capability Growth", icon: GitBranch },
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -139,7 +143,7 @@ export default function PortfolioAnalytics() {
               {/* Quick Access Links */}
               <div>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">Explore Deeply</h2>
-                <div className="grid gap-6 sm:grid-cols-3">
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {[
                     {
                       title: "Analyze Your Resume",
@@ -158,6 +162,18 @@ export default function PortfolioAnalytics() {
                       description: "Multi-dimensional scoring: architecture, innovation, evidence density",
                       link: "/analytics/complexity",
                       icon: TrendingUp,
+                    },
+                    {
+                      title: "Evidence Verification Timeline",
+                      description: "When each claim was last verified by CI - transparent proof tracking",
+                      link: "/analytics/verification",
+                      icon: Calendar,
+                    },
+                    {
+                      title: "Capability Evolution",
+                      description: "How technical skills grew over time through shipped projects",
+                      link: "/analytics/evolution",
+                      icon: GitBranch,
                     },
                   ].map(({ title, description, link, icon: Icon }) => (
                     <Link
@@ -191,12 +207,16 @@ export default function PortfolioAnalytics() {
                         description: "Understand architectural decisions and innovation factor for each deliverable."
                       },
                       {
+                        step: "Analyze Evidence Timeline",
+                        description: "When claims were verified - transparent proof tracking shows current vs. stale assertions."
+                      },
+                      {
                         step: "Upload Candidate Resume",
                         description: "Get instant skill gap analysis showing matches and missing competencies."
                       },
                       {
-                        step: "Verify Through Case Studies",
-                        description: "Every claim links to source code, CI runs, and deployed artifacts."
+                        step: "Study Capability Evolution",
+                        description: "How skills grew through real-world shipping pressure, not tutorial consumption."
                       }
                     ].map(({ step, description }) => (
                       <li key={step} className="flex gap-4">
@@ -230,6 +250,18 @@ export default function PortfolioAnalytics() {
           {activeTab === "complexity" && (
             <div className="max-w-6xl">
               <ProjectComplexityVisualizer />
+            </div>
+          )}
+
+          {activeTab === "verification" && (
+            <div className="max-w-6xl">
+              <EvidenceVerificationTimeline />
+            </div>
+          )}
+
+          {activeTab === "evolution" && (
+            <div className="max-w-6xl">
+              <CapabilityEvolutionTimeline />
             </div>
           )}
         </section>
