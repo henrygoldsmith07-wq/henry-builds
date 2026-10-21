@@ -1,4 +1,4 @@
-import { BarChart3, FileText, GitBranch, Grid, TrendingUp, Calendar } from "lucide-react";
+import { BarChart3, FileText, GitBranch, Grid, LayoutTemplate, TrendingUp, Calendar } from "lucide-react";
 import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
@@ -8,6 +8,7 @@ import { SkillsHeatmap } from "@/components/portfolio/SkillsHeatmap";
 import { ProjectComplexityVisualizer } from "@/components/portfolio/ProjectComplexityVisualizer";
 import { EvidenceVerificationTimeline } from "@/components/portfolio/EvidenceVerificationTimeline";
 import { CapabilityEvolutionTimeline } from "@/components/portfolio/CapabilityEvolutionTimeline";
+import { InteractivePortfolioSimulator } from "@/components/portfolio/InteractivePortfolioSimulator";
 import { projects, registryMeta, demonstratesOf } from "@/data/registry";
 import { useState } from "react";
 
@@ -28,7 +29,7 @@ const portfolioAnalytics = {
 };
 
 export default function PortfolioAnalytics() {
-  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator">("overview");
 
   // Calculate portfolio-wide metrics
   const portfolioMetrics = {
@@ -78,6 +79,7 @@ export default function PortfolioAnalytics() {
                 { id: "complexity", label: "Complexity Matrix", icon: TrendingUp },
                 { id: "verification", label: "Evidence Timeline", icon: Calendar },
                 { id: "evolution", label: "Capability Growth", icon: GitBranch },
+                { id: "simulator", label: "Challenge Simulator", icon: LayoutTemplate },
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -262,6 +264,12 @@ export default function PortfolioAnalytics() {
           {activeTab === "evolution" && (
             <div className="max-w-6xl">
               <CapabilityEvolutionTimeline />
+            </div>
+          )}
+
+          {activeTab === "simulator" && (
+            <div className="max-w-6xl">
+              <InteractivePortfolioSimulator />
             </div>
           )}
         </section>
