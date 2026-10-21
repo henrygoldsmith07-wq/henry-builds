@@ -22,6 +22,7 @@ const Projects = lazy(() => import("./pages/Projects.tsx"));
 const Compare = lazy(() => import("./pages/Compare.tsx"));
 const BuildLog = lazy(() => import("./pages/BuildLog.tsx"));
 const CaseStudy = lazy(() => import("./pages/CaseStudy.tsx"));
+const PortfolioAnalytics = lazy(() => import("./pages/PortfolioAnalytics.tsx"));
 
 const isVlyDeployment =
   typeof window !== "undefined" &&
@@ -275,6 +276,7 @@ function AppRoutes() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/build-log" element={<BuildLog />} />
+          <Route path="/analytics" element={<PortfolioAnalytics />} />
           <Route path="/projects/:slug" element={<CaseStudy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

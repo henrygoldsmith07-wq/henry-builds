@@ -60,6 +60,10 @@ export const BUILD_LOG_TITLE = "Build log — Henry Goldsmith";
 export const BUILD_LOG_DESCRIPTION =
   "Decisions, dead ends, lessons and stated limits recorded while building each project. Every entry comes from the case study it appears on; none is invented.";
 
+export const PROJECT_ANALYTICS_TITLE = "Portfolio Intelligence — Henry Goldsmith";
+export const PROJECT_ANALYTICS_DESCRIPTION =
+  "Deep analytics on engineering work: capability distribution, project complexity scoring, evidence density metrics, and resume-to-skills matching. Everything calculated from proven claims.";
+
 /**
  * A published project as JSON-LD needs it: name and slug, nothing else.
  * Both sides already hold this pair — the generator from
