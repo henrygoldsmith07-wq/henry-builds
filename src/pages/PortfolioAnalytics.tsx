@@ -1,4 +1,4 @@
-import { BarChart3, FileText, GitBranch, Grid, LayoutTemplate, ShieldAlert, TrendingUp } from "lucide-react";
+import { BarChart3, Calendar, FileText, GitBranch, Grid, LayoutTemplate, ShieldAlert, TrendingUp } from "lucide-react";
 import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
@@ -179,6 +179,24 @@ export default function PortfolioAnalytics() {
                       link: "/analytics/evolution",
                       icon: GitBranch,
                     },
+                    {
+                      title: "Challenge Simulator",
+                      description: "Walk through real engineering decisions made during development",
+                      link: "/analytics/simulator",
+                      icon: LayoutTemplate,
+                    },
+                    {
+                      title: "Risk Scorecard",
+                      description: "Where projects might fail - transparency about technical debt",
+                      link: "/analytics/risk",
+                      icon: ShieldAlert,
+                    },
+                    {
+                      title: "Featured Projects",
+                      description: "Production-ready work with proven impact and fresh verification",
+                      link: "/projects?featured=true",
+                      icon: Grid,
+                    },
                   ].map(({ title, description, link, icon: Icon }) => (
                     <Link
                       key={title}
@@ -215,12 +233,16 @@ export default function PortfolioAnalytics() {
                         description: "When claims were verified - transparent proof tracking shows current vs. stale assertions."
                       },
                       {
-                        step: "Upload Candidate Resume",
-                        description: "Get instant skill gap analysis showing matches and missing competencies."
-                      },
-                      {
                         step: "Study Capability Evolution",
                         description: "How skills grew through real-world shipping pressure, not tutorial consumption."
+                      },
+                      {
+                        step: "Walk Through Challenge Simulator",
+                        description: "Experience my decision-making process on real engineering problems."
+                      },
+                      {
+                        step: "Evaluate Risk Scorecard",
+                        description: "Understand where projects might fail before committing to hire."
                       }
                     ].map(({ step, description }) => (
                       <li key={step} className="flex gap-4">
