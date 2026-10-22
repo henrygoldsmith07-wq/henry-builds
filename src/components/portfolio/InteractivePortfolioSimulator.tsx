@@ -1,9 +1,6 @@
-import { ArrowRight, Code, GitPullRequest, LayoutTemplate, Lightbulb, Search, ShieldCheck, Terminal } from "lucide-react";
+import { ArrowRight, CheckCircle, Code, GitPullRequest, LayoutTemplate, Lightbulb, Search, ShieldCheck, Terminal } from "lucide-react";
 import { projects, demonstratesOf } from "@/data/registry";
 import { useState } from "react";
-
-// Import CheckCircle for completion indicator
-import { CheckCircle } from "lucide-react";
 
 /**
  * Interactive Portfolio Simulator
@@ -465,6 +462,3 @@ export function InteractivePortfolioSimulator() {
     </div>
   );
 }
-
-// Need to import CheckCircle
-import { CheckCircle } from "lucide-react";

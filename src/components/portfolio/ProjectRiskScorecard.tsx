@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, ShieldAlert, TrendingDown, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, ShieldAlert, TrendingDown, XCircle } from "lucide-react";
 import { projects, hasRedCi, hasCarriedCi, FRESH_CLAIM_WINDOW_DAYS } from "@/data/registry";
 import { useState } from "react";
 
@@ -588,6 +588,3 @@ export function ProjectRiskScorecard() {
     </div>
   );
 }
-
-// Need to import ArrowRight
-import { ArrowRight } from "lucide-react";
