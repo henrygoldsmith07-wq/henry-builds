@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, FileText, GitBranch, Grid, LayoutTemplate, ShieldAlert, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, Calendar, FileText, GitBranch, Grid, Hash, LayoutTemplate, ShieldAlert, ShieldCheck, TrendingUp } from "lucide-react";
 import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
@@ -10,6 +10,7 @@ import { EvidenceVerificationTimeline } from "@/components/portfolio/EvidenceVer
 import { CapabilityEvolutionTimeline } from "@/components/portfolio/CapabilityEvolutionTimeline";
 import { InteractivePortfolioSimulator } from "@/components/portfolio/InteractivePortfolioSimulator";
 import { ProjectRiskScorecard } from "@/components/portfolio/ProjectRiskScorecard";
+import { HiringDecisionScorecard } from "@/components/portfolio/HiringDecisionScorecard";
 import { projects, registryMeta, demonstratesOf } from "@/data/registry";
 import { useState } from "react";
 
@@ -30,7 +31,7 @@ const portfolioAnalytics = {
 };
 
 export default function PortfolioAnalytics() {
-  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator" | "risk">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator" | "risk" | "hiring">("overview");
 
   // Calculate portfolio-wide metrics
   const portfolioMetrics = {
@@ -82,6 +83,7 @@ export default function PortfolioAnalytics() {
                 { id: "evolution", label: "Capability Growth", icon: GitBranch },
                 { id: "simulator", label: "Challenge Simulator", icon: LayoutTemplate },
                 { id: "risk", label: "Risk Scorecard", icon: ShieldAlert },
+                { id: "hiring", label: "Hiring Scorecard", icon: ShieldCheck },
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -300,6 +302,12 @@ export default function PortfolioAnalytics() {
           {activeTab === "risk" && (
             <div className="max-w-6xl">
               <ProjectRiskScorecard />
+            </div>
+          )}
+
+          {activeTab === "hiring" && (
+            <div className="max-w-6xl">
+              <HiringDecisionScorecard />
             </div>
           )}
         </section>
