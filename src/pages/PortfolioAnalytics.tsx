@@ -1,4 +1,4 @@
-import { ArrowRight, BarChart3, Calendar, FileText, GitBranch, Grid, Hash, LayoutTemplate, ShieldAlert, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, BarChart3, Briefcase, Calendar, CheckCircle2, FileText, Globe, GitBranch, Grid, Hash, LayoutTemplate, ShieldAlert, ShieldCheck, TrendingUp } from "lucide-react";
 import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
@@ -109,18 +109,21 @@ export default function PortfolioAnalytics() {
               {/* Portfolio Summary Cards */}
               <div>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">At a Glance</h2>
-                <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                   {[
-                    { label: "Total Projects", value: portfolioMetrics.totalProjects.toString() },
-                    { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString() },
-                    { label: "Unique Skills", value: portfolioMetrics.techStackSize.toString() },
-                    { label: "Avg Evidence/project", value: portfolioMetrics.avgEvidencePerProject.toFixed(1) },
-                  ].map(({ label, value }) => (
+                    { label: "Total Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
+                    { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
+                    { label: "Unique Skills", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
+                    { label: "Avg Evidence/Project", value: portfolioMetrics.avgEvidencePerProject.toFixed(1), icon: FileText },
+                    { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
+                  ].map(({ label, value, icon: Icon }) => (
                     <div
                       key={label}
                       className="rounded-2xl border border-border bg-border p-6"
                     >
-                      <dt className="text-sm font-medium text-muted-foreground">{label}</dt>
+                      <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <Icon className="size-4" aria-hidden="true" /> {label}
+                      </dt>
                       <dd className="mt-2 text-4xl font-bold tracking-tight">{value}</dd>
                     </div>
                   ))}
@@ -216,48 +219,57 @@ export default function PortfolioAnalytics() {
                 </div>
               </div>
 
-              {/* How to Use This Data */}
+              {/* For Hiring Managers */}
               <div>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">For Hiring Managers & Evaluators</h2>
-                <div className="rounded-2xl border border-border bg-border p-8">
-                  <ol className="space-y-6">
+                <div className="rounded-2xl border border-border bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 p-8">
+                  <p className="mb-6 text-lg leading-7 text-muted-foreground">
+                    Use this platform to evaluate technical competence through actual shipped work, not resumes. Every metric is derived from verified evidence.
+                  </p>
+                  <ol className="space-y-4">
                     {[
-                      {
-                        step: "Review Skills Heatmap",
-                        description: "See proficiency levels backed by actual shipped projects, not just buzzwords."
-                      },
-                      {
-                        step: "Check Project Complexity",
-                        description: "Understand architectural decisions and innovation factor for each deliverable."
-                      },
-                      {
-                        step: "Analyze Evidence Timeline",
-                        description: "When claims were verified - transparent proof tracking shows current vs. stale assertions."
-                      },
-                      {
-                        step: "Study Capability Evolution",
-                        description: "How skills grew through real-world shipping pressure, not tutorial consumption."
-                      },
-                      {
-                        step: "Walk Through Challenge Simulator",
-                        description: "Experience my decision-making process on real engineering problems."
-                      },
-                      {
-                        step: "Evaluate Risk Scorecard",
-                        description: "Understand where projects might fail before committing to hire."
-                      }
-                    ].map(({ step, description }) => (
-                      <li key={step} className="flex gap-4">
-                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-sm font-bold text-foreground">
-                          {step.split(" ")[0]}
+                      { step: "Review Skills Heatmap", desc: "Proficiency levels backed by shipped projects" },
+                      { step: "Check Complexity Scores", desc: "Architectural depth across all deliverables" },
+                      { step: "Analyze Evidence Timeline", desc: "Verify what's current vs. stale claims" },
+                      { step: "Study Growth Trajectory", desc: "Skill evolution through shipping pressure" },
+                      { step: "Walk Challenge Simulator", desc: "Experience real engineering decision-making" },
+                      { step: "Evaluate Risk Factors", desc: "Understand where projects might need maintenance" },
+                      { step: "Review Hire Recommendation", desc: "Data-driven candidate assessment scorecard" }
+                    ].map(({ step, desc }, i) => (
+                      <li key={step} className="flex items-start gap-4 rounded-xl bg-background/50 p-4 transition-colors hover:bg-foreground/5">
+                        <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                          i < 3 ? "bg-emerald-500 text-white" :
+                          i < 6 ? "bg-blue-500 text-white" :
+                          "bg-purple-500 text-white"
+                        }`}>
+                          {i + 1}
                         </span>
-                        <div>
+                        <div className="flex-1">
                           <p className="font-semibold">{step}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
                         </div>
                       </li>
                     ))}
                   </ol>
+                  
+                  {/* Quick Action Cards */}
+                  <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {[
+                      { title: "Start Assessment", link: "/analytics/hiring", icon: ShieldCheck, color: "from-emerald-500 to-emerald-600" },
+                      { title: "Compare Projects", link: "/compare", icon: Grid, color: "from-blue-500 to-blue-600" },
+                      { title: "View Live Work", link: "/projects?featured=true", icon: Globe, color: "from-purple-500 to-purple-600" },
+                    ].map(({ title, link, icon: Icon, color }) => (
+                      <a
+                        key={title}
+                        href={link}
+                        className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${color} p-6 text-white transition-all hover:shadow-lg`}
+                      >
+                        <Icon className="size-6 opacity-90" aria-hidden="true" />
+                        <h4 className="mt-3 text-lg font-semibold">{title}</h4>
+                        <p className="mt-1 text-sm opacity-90">Open in new tab →</p>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
