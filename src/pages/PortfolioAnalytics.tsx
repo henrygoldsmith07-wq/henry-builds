@@ -68,6 +68,44 @@ export default function PortfolioAnalytics() {
             and evidence density. Upload your resume for personalized matching, or explore the
             data directly. Everything here is calculated from proven claims.
           </p>
+          
+          {/* Quick Stats */}
+          <dl className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: "Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
+              { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
+              { label: "Skills Tracked", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
+              { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
+            ].map(({ label, value, icon: Icon }) => (
+              <div key={label} className="rounded-xl bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-emerald-500/5 p-6 backdrop-blur-sm">
+                <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Icon className="size-4" aria-hidden="true" /> {label}
+                </dt>
+                <dd className="mt-2 text-3xl font-bold tracking-tight">{value}</dd>
+              </div>
+            ))}
+          </dl>
+          
+          {/* Featured Features */}
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { title: "Resume Analysis", desc: "Instant skill compatibility scoring", link: "/analytics/resume", icon: FileText },
+              { title: "Complexity Matrix", desc: "Multi-axis architectural depth scoring", link: "/analytics/complexity", icon: TrendingUp },
+              { title: "Hiring Assessment", desc: "Data-driven candidate evaluation", link: "/analytics/hiring", icon: ShieldCheck },
+            ].map(({ title, desc, link, icon: Icon }) => (
+              <a
+                key={title}
+                href={link}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-background p-6 transition-all hover:border-purple-500/40 hover:shadow-lg"
+              >
+                <div className="absolute -right-4 -top-4 size-24 rounded-full bg-gradient-to-br from-purple-500/10 to-blue-500/10 transition-all group-hover:scale-150" />
+                <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400" aria-hidden="true" />
+                <h3 className="relative z-10 mt-4 text-lg font-semibold">{title}</h3>
+                <p className="relative z-10 mt-2 text-sm text-foreground/70">{desc}</p>
+                <ArrowRight className="relative z-10 mt-4 inline-flex size-4 opacity-50 transition-transform group-hover:translate-x-1" />
+              </a>
+            ))}
+          </div>
         </section>
 
         {/* Tabs */}
