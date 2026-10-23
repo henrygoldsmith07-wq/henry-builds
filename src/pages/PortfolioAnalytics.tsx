@@ -98,11 +98,13 @@ export default function PortfolioAnalytics() {
                 href={link}
                 className="group relative overflow-hidden rounded-2xl border border-border bg-background p-6 transition-all hover:border-purple-500/40 hover:shadow-lg"
               >
-                <div className="absolute -right-4 -top-4 size-24 rounded-full bg-gradient-to-br from-purple-500/10 to-blue-500/10 transition-all group-hover:scale-150" />
-                <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400" aria-hidden="true" />
-                <h3 className="relative z-10 mt-4 text-lg font-semibold">{title}</h3>
+                <div className="absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
+                <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-colors group-hover:text-purple-500" aria-hidden="true" />
+                <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
                 <p className="relative z-10 mt-2 text-sm text-foreground/70">{desc}</p>
-                <ArrowRight className="relative z-10 mt-4 inline-flex size-4 opacity-50 transition-transform group-hover:translate-x-1" />
+                <div className="relative z-10 mt-4 flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 transition-all duration-300 group-hover:translate-x-2 group-hover:opacity-100">
+                  Explore Feature <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </div>
               </a>
             ))}
           </div>
