@@ -62,19 +62,22 @@ export default function PortfolioAnalytics() {
         {/* Hero Section */}
         <section className="mx-auto max-w-[1380px] px-5 pb-24 pt-36 sm:px-8 lg:px-12">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-emerald-600/5 p-10 sm:p-14 lg:p-16 backdrop-blur-sm ring-1 ring-white/10 shadow-xl">
-            {/* Animated Gradient Orbs */}
+            {/* Animated Gradient Orbs with Enhanced Motion */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
               <div className="absolute left-0 top-0 -z-10 h-full w-full">
                 <div className="absolute -left-20 -top-20 h-96 w-96 animate-pulse rounded-full bg-blue-400/10 blur-3xl [animation-delay:0ms]" />
                 <div className="absolute -bottom-20 -right-20 h-96 w-96 animate-pulse rounded-full bg-purple-400/10 blur-3xl [animation-delay:750ms]" />
                 <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-emerald-400/10 blur-3xl [animation-delay:1500ms]" />
+                {/* Additional ambient glow layers */}
+                <div className="absolute bottom-1/4 left-1/4 h-64 w-64 animate-pulse rounded-full bg-blue-300/5 blur-2xl [animation-delay:500ms]" />
+                <div className="absolute top-1/4 right-1/4 h-64 w-64 animate-pulse rounded-full bg-purple-300/5 blur-2xl [animation-delay:1250ms]" />
               </div>
             </div>
             
-            <h1 className="text-center text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
+            <h1 className="text-center text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent animate-[fade-in-up_0.6s_ease-out]">
               Portfolio Intelligence Platform
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-muted-foreground animate-[fade-in-up_0.8s_ease-out]">
               Advanced analytics on engineering work — capability distribution, project complexity scoring,
               evidence density metrics, and automated hiring recommendations. Everything derived from proven claims.
             </p>
@@ -88,7 +91,7 @@ export default function PortfolioAnalytics() {
                 { label: "Skills Tracked", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
                 { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
               ].map(({ label, value, icon: Icon }) => (
-                <div key={label} className="group relative overflow-hidden rounded-xl bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02]">
+                <div key={label} className="group relative overflow-hidden rounded-xl bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1s_ease-out_forwards] opacity-0" style={{ animationDelay: '1.2s' }}>
                   {/* Subtle gradient overlay on hover */}
                   <div className="absolute inset-0 -z-10 bg-gradient-to-br from-transparent to-white/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   <dt className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -109,7 +112,7 @@ export default function PortfolioAnalytics() {
                 <a
                   key={title}
                   href={link}
-                  className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02]"
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1.2s_ease-out_forwards] opacity-0"
                 >
                   {/* Animated gradient background on hover */}
                   <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
@@ -147,33 +150,33 @@ export default function PortfolioAnalytics() {
                 <button
                   key={id}
                   onClick={() => setActiveTab(id as typeof activeTab)}
-                  className={`group relative flex items-center gap-2 border-b-2 px-3 py-4 text-sm font-semibold transition-all duration-300 ${
-                    activeTab === id
-                      ? "border-purple-500 text-foreground shadow-[0_-2px_0_0_rgba(168,85,247,0.2)]"
-                      : "border-transparent text-muted-foreground hover:border-purple-500/40 hover:text-foreground"
-                  }`}
+                  className={`group relative flex items-center gap-2 border-b-2 px-3 py-4 text-sm font-semibold transition-all duration-300 animate-[fade-in_0.5s_ease-out_forwards] opacity-0`}
+                  style={{ animationDelay: `${0.3 + Object.keys({ overview: 0, resume: 1, skills: 2, complexity: 3, verification: 4, evolution: 5, simulator: 6, risk: 7, hiring: 8 }).indexOf(id) * 0.1}s` }}
                 >
                   {/* Tab indicator glow effect */}
                   {activeTab === id && (
-                    <span className="absolute inset-x-0 -bottom-px mx-auto w-1/2 rounded-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent blur-sm" />
+                    <>
+                      <span className="absolute inset-x-0 -bottom-px mx-auto w-1/2 rounded-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent blur-sm" />
+                      <span className="absolute -inset-px -z-10 animate-[pulse-circular_2s_ease-infinite] rounded-full bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-emerald-500/10 opacity-0" />
+                    </>
                   )}
-                  <Icon className={`size-4 transition-all duration-300 ${activeTab === id ? "scale-110 rotate-3" : "group-hover:scale-110"}`} aria-hidden="true" />
+                  <Icon className={`size-4 transition-all duration-300 ${activeTab === id ? "scale-110 rotate-3" : "group-hover:scale-110 group-hover:rotate-6"}`} aria-hidden="true" />
                   <span className={`transition-all duration-300 ${activeTab === id ? "tracking-wide" : ""}`}>{label}</span>
                 </button>
               ))}
             </nav>
             
-            {/* Tab content gradient line */}
-            <div className="mt-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+            {/* Tab content gradient line with subtle pulse */}
+            <div className="mt-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent animate-pulse" />
           </div>
         </section>
 
         {/* Tab Content */}
         <section className="mx-auto max-w-[1380px] px-5 pb-24 sm:px-8 lg:px-12">
           {activeTab === "overview" && (
-            <div className="space-y-16">
+            <div className="space-y-16 animate-[fade-in_0.5s_ease-out]">
               {/* Portfolio Summary Cards */}
-              <div>
+              <div className="animate-[fade-in-up_0.6s_ease-out_forwards] opacity-0" style={{ animationDelay: '0.5s' }}>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">At a Glance</h2>
                 <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                   {[
@@ -201,7 +204,7 @@ export default function PortfolioAnalytics() {
                 </dl>
 
                 {/* Stage Distribution */}
-                <div className="mt-8 rounded-2xl border border-border bg-border p-6 backdrop-blur-sm">
+                <div className="mt-8 rounded-2xl border border-border bg-border p-6 backdrop-blur-sm animate-[fade-in-up_0.8s_ease-out_forwards] opacity-0" style={{ animationDelay: '0.7s' }}>
                   <h3 className="mb-4 text-lg font-semibold tracking-tight">Project Stages</h3>
                   <div className="flex flex-wrap gap-4">
                     {[
@@ -210,7 +213,7 @@ export default function PortfolioAnalytics() {
                       { label: "Alpha", count: portfolioMetrics.stageDistribution.alpha, color: "bg-yellow-500" },
                       { label: "Historical", count: portfolioMetrics.stageDistribution.historical, color: "bg-slate-500" },
                     ].map(({ label, count, color }) => (
-                      <div key={label} className="group flex cursor-default items-center gap-3 rounded-xl bg-background/50 px-4 py-2.5 transition-all duration-300 hover:shadow-md hover:scale-105">
+                      <div key={label} className="group flex cursor-default items-center gap-3 rounded-xl bg-background/50 px-4 py-2.5 transition-all duration-300 hover:shadow-md hover:scale-105 animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0" style={{ animationDelay: `${0.8 + Object.keys({ Production: 0, Beta: 1, Alpha: 2, Historical: 3 }).indexOf(label) * 0.1}s` }}>
                         <span className={`relative size-3 rounded-full ${color} transition-all duration-300 group-hover:animate-pulse`}>
                           <span className={`absolute inline-flex size-full rounded-full opacity-75 animation-ping ${color} animate-ping`} />
                         </span>
@@ -223,7 +226,7 @@ export default function PortfolioAnalytics() {
               </div>
 
               {/* Quick Access Links */}
-              <div>
+              <div className="animate-[fade-in-up_0.8s_ease-out_forwards] opacity-0" style={{ animationDelay: '0.9s' }}>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">Explore Deeply</h2>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {[
@@ -279,7 +282,8 @@ export default function PortfolioAnalytics() {
                     <Link
                       key={title}
                       to={link}
-                      className="group relative overflow-hidden rounded-2xl border border-border bg-border p-6 transition-all duration-300 hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-lg hover:scale-[1.02]"
+                      className="group relative overflow-hidden rounded-2xl border border-border bg-border p-6 transition-all duration-300 hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0"
+                      style={{ animationDelay: `${1.0 + Math.floor(Object.keys({ resume: 0, skills: 1, complexity: 2, verification: 3, evolution: 4, simulator: 5, risk: 6, featured: 7 }).indexOf(link.split('?')[0]) % 8) * 0.1}s` }}
                     >
                       {/* Ambient glow effect */}
                       <div className="absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-xl opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150" />
@@ -301,7 +305,7 @@ export default function PortfolioAnalytics() {
               </div>
 
               {/* For Hiring Managers */}
-              <div>
+              <div className="animate-[fade-in-up_1s_ease-out_forwards] opacity-0" style={{ animationDelay: '1.1s' }}>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">For Hiring Managers & Evaluators</h2>
                 <div className="rounded-2xl border border-border bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 p-8 backdrop-blur-sm">
                   {/* Animated shimmer effect */}
@@ -322,11 +326,11 @@ export default function PortfolioAnalytics() {
                       { step: "Evaluate Risk Factors", desc: "Understand where projects might need maintenance" },
                       { step: "Review Hire Recommendation", desc: "Data-driven candidate assessment scorecard" }
                     ].map(({ step, desc }, i) => (
-                      <li key={step} className={`group relative flex items-start gap-4 rounded-xl bg-background/50 p-4 transition-all duration-300 hover:shadow-md hover:scale-[1.02] ${
+                      <li key={step} className={`group relative flex items-start gap-4 rounded-xl bg-background/50 p-4 transition-all duration-300 hover:shadow-md hover:scale-[1.02] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0 ${
                         i < 3 ? "hover:border-emerald-500/30" :
                         i < 6 ? "hover:border-blue-500/30" :
                         "hover:border-purple-500/30"
-                      }`}>
+                      }`} style={{ animationDelay: `${1.2 + i * 0.1}s` }}>
                         {/* Step indicator glow */}
                         <span className={`pointer-events-none absolute -inset-px -z-10 rounded-xl opacity-0 blur-md transition-all duration-500 group-hover:opacity-20 ${
                           i < 3 ? "bg-gradient-to-br from-emerald-500/50" :
@@ -350,7 +354,7 @@ export default function PortfolioAnalytics() {
                   </ol>
                   
                   {/* Quick Action Cards */}
-                  <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-[fade-in-up_0.8s_ease-out_forwards] opacity-0" style={{ animationDelay: '1.5s' }}>
                     {[
                       { title: "Start Assessment", link: "/analytics/hiring", icon: ShieldCheck, color: "from-emerald-500 to-emerald-600" },
                       { title: "Compare Projects", link: "/compare", icon: Grid, color: "from-blue-500 to-blue-600" },
@@ -359,7 +363,8 @@ export default function PortfolioAnalytics() {
                       <a
                         key={title}
                         href={link}
-                        className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${color} p-6 text-white transition-all duration-300 hover:shadow-2xl hover:scale-[1.03]`}
+                        className="group relative overflow-hidden rounded-xl bg-gradient-to-br p-6 text-white transition-all duration-300 hover:shadow-2xl hover:scale-[1.03] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0"
+                        style={{ animationDelay: `${1.6 + Object.keys({ hiring: 0, compare: 1, featured: 2 }).indexOf(link.includes('hiring') ? 'hiring' : link.includes('compare') ? 'compare' : 'featured') * 0.1}s` }}
                       >
                         {/* Glossy sheen effect */}
                         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -368,7 +373,7 @@ export default function PortfolioAnalytics() {
                         <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 blur-xl bg-white/20" />
                         
                         <div className="relative z-10">
-                          <Icon className="size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125" aria-hidden="true" />
+                          <Icon className={`size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125 ${link.includes('hiring') ? '' : link.includes('compare') ? '' : ''}`} aria-hidden="true" />
                           <h4 className="mt-3 text-lg font-semibold transition-transform duration-300 group-hover:-translate-y-0.5">{title}</h4>
                           <p className="mt-1 text-sm opacity-90 transition-opacity duration-300 group-hover:opacity-100">Open in new tab →</p>
                         </div>
