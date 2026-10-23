@@ -61,13 +61,13 @@ export default function PortfolioAnalytics() {
       <main id="main">
         {/* Hero Section */}
         <section className="mx-auto max-w-[1380px] px-5 pb-24 pt-36 sm:px-8 lg:px-12">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-emerald-600/5 p-10 sm:p-14 lg:p-16 backdrop-blur-sm">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-emerald-600/5 p-10 sm:p-14 lg:p-16 backdrop-blur-sm ring-1 ring-white/10 shadow-xl">
             {/* Animated Gradient Orbs */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
               <div className="absolute left-0 top-0 -z-10 h-full w-full">
-                <div className="absolute -left-20 -top-20 h-96 w-96 animate-pulse rounded-full bg-blue-400/10 blur-3xl" />
-                <div className="absolute -bottom-20 -right-20 h-96 w-96 animate-pulse rounded-full bg-purple-400/10 blur-3xl [animation-delay:1000ms]" />
-                <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-emerald-400/10 blur-3xl [animation-delay:2000ms]" />
+                <div className="absolute -left-20 -top-20 h-96 w-96 animate-pulse rounded-full bg-blue-400/10 blur-3xl [animation-delay:0ms]" />
+                <div className="absolute -bottom-20 -right-20 h-96 w-96 animate-pulse rounded-full bg-purple-400/10 blur-3xl [animation-delay:750ms]" />
+                <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-emerald-400/10 blur-3xl [animation-delay:1500ms]" />
               </div>
             </div>
             
@@ -88,7 +88,9 @@ export default function PortfolioAnalytics() {
                 { label: "Skills Tracked", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
                 { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
               ].map(({ label, value, icon: Icon }) => (
-                <div key={label} className="rounded-xl bg-white/5 p-6 backdrop-blur-sm">
+                <div key={label} className="group relative overflow-hidden rounded-xl bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02]">
+                  {/* Subtle gradient overlay on hover */}
+                  <div className="absolute inset-0 -z-10 bg-gradient-to-br from-transparent to-white/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   <dt className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     <Icon className="size-4" aria-hidden="true" /> {label}
                   </dt>
@@ -107,14 +109,19 @@ export default function PortfolioAnalytics() {
                 <a
                   key={title}
                   href={link}
-                  className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg"
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02]"
                 >
+                  {/* Animated gradient background on hover */}
                   <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
-                  <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-colors group-hover:text-purple-500" aria-hidden="true" />
-                  <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
-                  <p className="relative z-10 mt-2 text-sm text-foreground/70">{desc}</p>
+                  
+                  {/* Subtle shine effect */}
+                  <div className="pointer-events-none absolute -left-20 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-white/5 blur-2xl transition-all duration-700 group-hover:opacity-0" />
+                  
+                  <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-colors duration-300 group-hover:text-purple-500 group-hover:scale-110" aria-hidden="true" />
+                  <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
+                  <p className="relative z-10 mt-2 text-sm text-foreground/70 transition-colors duration-300 group-hover:text-foreground">{desc}</p>
                   <div className="relative z-10 mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 transition-all duration-300 group-hover:translate-x-2 group-hover:opacity-100">
-                    Explore Feature <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                    Explore Feature <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </div>
                 </a>
               ))}
@@ -123,7 +130,7 @@ export default function PortfolioAnalytics() {
         </section>
 
         {/* Tabs */}
-        <section className="border-b border-border bg-background">
+        <section className="border-b border-border bg-background/50 backdrop-blur-sm">
           <div className="mx-auto max-w-[1380px] px-5 sm:px-8 lg:px-12">
             <nav className="-mb-px flex gap-6" aria-label="Analytics sections">
               {[
@@ -140,17 +147,24 @@ export default function PortfolioAnalytics() {
                 <button
                   key={id}
                   onClick={() => setActiveTab(id as typeof activeTab)}
-                  className={`group flex items-center gap-2 border-b-2 px-3 py-4 text-sm font-semibold transition-colors ${
+                  className={`group relative flex items-center gap-2 border-b-2 px-3 py-4 text-sm font-semibold transition-all duration-300 ${
                     activeTab === id
-                      ? "border-foreground text-foreground"
-                      : "border-transparent text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+                      ? "border-purple-500 text-foreground shadow-[0_-2px_0_0_rgba(168,85,247,0.2)]"
+                      : "border-transparent text-muted-foreground hover:border-purple-500/40 hover:text-foreground"
                   }`}
                 >
-                  <Icon className="size-4" aria-hidden="true" />
-                  {label}
+                  {/* Tab indicator glow effect */}
+                  {activeTab === id && (
+                    <span className="absolute inset-x-0 -bottom-px mx-auto w-1/2 rounded-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent blur-sm" />
+                  )}
+                  <Icon className={`size-4 transition-all duration-300 ${activeTab === id ? "scale-110 rotate-3" : "group-hover:scale-110"}`} aria-hidden="true" />
+                  <span className={`transition-all duration-300 ${activeTab === id ? "tracking-wide" : ""}`}>{label}</span>
                 </button>
               ))}
             </nav>
+            
+            {/* Tab content gradient line */}
+            <div className="mt-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
           </div>
         </section>
 
@@ -171,18 +185,23 @@ export default function PortfolioAnalytics() {
                   ].map(({ label, value, icon: Icon }) => (
                     <div
                       key={label}
-                      className="rounded-2xl border border-border bg-border p-6"
+                      className="group relative overflow-hidden rounded-2xl border border-border bg-border p-6 transition-all duration-300 hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-lg hover:scale-[1.02]"
                     >
-                      <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                        <Icon className="size-4" aria-hidden="true" /> {label}
-                      </dt>
-                      <dd className="mt-2 text-4xl font-bold tracking-tight">{value}</dd>
+                      {/* Ambient background glow */}
+                      <div className="absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-transparent blur-xl opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150" />
+                      
+                      <div className="relative z-10">
+                        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                          <Icon className="size-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" /> {label}
+                        </dt>
+                        <dd className="mt-2 text-4xl font-bold tracking-tight transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{value}</dd>
+                      </div>
                     </div>
                   ))}
                 </dl>
 
                 {/* Stage Distribution */}
-                <div className="mt-8 rounded-2xl border border-border bg-border p-6">
+                <div className="mt-8 rounded-2xl border border-border bg-border p-6 backdrop-blur-sm">
                   <h3 className="mb-4 text-lg font-semibold tracking-tight">Project Stages</h3>
                   <div className="flex flex-wrap gap-4">
                     {[
@@ -191,10 +210,12 @@ export default function PortfolioAnalytics() {
                       { label: "Alpha", count: portfolioMetrics.stageDistribution.alpha, color: "bg-yellow-500" },
                       { label: "Historical", count: portfolioMetrics.stageDistribution.historical, color: "bg-slate-500" },
                     ].map(({ label, count, color }) => (
-                      <div key={label} className="flex items-center gap-3">
-                        <span className={`size-3 rounded-full ${color}`} />
-                        <span className="text-sm font-medium">{label}</span>
-                        <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold">{count}</span>
+                      <div key={label} className="group flex cursor-default items-center gap-3 rounded-xl bg-background/50 px-4 py-2.5 transition-all duration-300 hover:shadow-md hover:scale-105">
+                        <span className={`relative size-3 rounded-full ${color} transition-all duration-300 group-hover:animate-pulse`}>
+                          <span className={`absolute inline-flex size-full rounded-full opacity-75 animation-ping ${color} animate-ping`} />
+                        </span>
+                        <span className="text-sm font-medium transition-colors duration-300 group-hover:text-foreground">{label}</span>
+                        <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold transition-colors duration-300 group-hover:bg-purple-500/20 group-hover:text-purple-600 dark:group-hover:text-purple-400">{count}</span>
                       </div>
                     ))}
                   </div>
@@ -258,14 +279,22 @@ export default function PortfolioAnalytics() {
                     <Link
                       key={title}
                       to={link}
-                      className="group block rounded-2xl border border-border bg-border p-6 transition-all hover:border-foreground/40 hover:bg-foreground/5"
+                      className="group relative overflow-hidden rounded-2xl border border-border bg-border p-6 transition-all duration-300 hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-lg hover:scale-[1.02]"
                     >
-                      <Icon className="size-5 text-muted-foreground transition-colors group-hover:text-foreground" />
-                      <h3 className="mt-4 text-lg font-semibold tracking-tight">{title}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-                      <span className="mt-4 inline-flex items-center text-sm font-semibold text-foreground/80 group-hover:text-foreground">
-                        Explore →
-                      </span>
+                      {/* Ambient glow effect */}
+                      <div className="absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-xl opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150" />
+                      
+                      {/* Gradient border reveal on hover */}
+                      <div className="absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100 bg-gradient-to-br from-transparent via-purple-500/5 to-transparent" />
+                      
+                      <div className="relative z-10">
+                        <Icon className="size-5 text-muted-foreground transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:rotate-12 group-hover:scale-110" />
+                        <h3 className="mt-4 text-lg font-semibold tracking-tight transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
+                        <p className="mt-2 text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground/90">{description}</p>
+                        <span className="mt-4 inline-flex items-center text-sm font-semibold text-foreground/80 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-all duration-300 group-hover:translate-x-2">
+                          Explore →
+                        </span>
+                      </div>
                     </Link>
                   ))}
                 </div>
@@ -274,7 +303,12 @@ export default function PortfolioAnalytics() {
               {/* For Hiring Managers */}
               <div>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">For Hiring Managers & Evaluators</h2>
-                <div className="rounded-2xl border border-border bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 p-8">
+                <div className="rounded-2xl border border-border bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 p-8 backdrop-blur-sm">
+                  {/* Animated shimmer effect */}
+                  <div className="absolute inset-0 -z-10 overflow-hidden rounded-2xl">
+                    <div className="absolute -inset-full h-full w-full animate-[shimmer_3s_infinite] translate-x-full rotate-45 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                  </div>
+                  
                   <p className="mb-6 text-lg leading-7 text-muted-foreground">
                     Use this platform to evaluate technical competence through actual shipped work, not resumes. Every metric is derived from verified evidence.
                   </p>
@@ -288,17 +322,28 @@ export default function PortfolioAnalytics() {
                       { step: "Evaluate Risk Factors", desc: "Understand where projects might need maintenance" },
                       { step: "Review Hire Recommendation", desc: "Data-driven candidate assessment scorecard" }
                     ].map(({ step, desc }, i) => (
-                      <li key={step} className="flex items-start gap-4 rounded-xl bg-background/50 p-4 transition-colors hover:bg-foreground/5">
-                        <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                          i < 3 ? "bg-emerald-500 text-white" :
-                          i < 6 ? "bg-blue-500 text-white" :
-                          "bg-purple-500 text-white"
+                      <li key={step} className={`group relative flex items-start gap-4 rounded-xl bg-background/50 p-4 transition-all duration-300 hover:shadow-md hover:scale-[1.02] ${
+                        i < 3 ? "hover:border-emerald-500/30" :
+                        i < 6 ? "hover:border-blue-500/30" :
+                        "hover:border-purple-500/30"
+                      }`}>
+                        {/* Step indicator glow */}
+                        <span className={`pointer-events-none absolute -inset-px -z-10 rounded-xl opacity-0 blur-md transition-all duration-500 group-hover:opacity-20 ${
+                          i < 3 ? "bg-gradient-to-br from-emerald-500/50" :
+                          i < 6 ? "bg-gradient-to-br from-blue-500/50" :
+                          "bg-gradient-to-br from-purple-500/50"
+                        }`} />
+                        
+                        <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-lg transition-all duration-300 group-hover:scale-110 ${
+                          i < 3 ? "bg-emerald-500 text-white group-hover:bg-emerald-400" :
+                          i < 6 ? "bg-blue-500 text-white group-hover:bg-blue-400" :
+                          "bg-purple-500 text-white group-hover:bg-purple-400"
                         }`}>
                           {i + 1}
                         </span>
                         <div className="flex-1">
-                          <p className="font-semibold">{step}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
+                          <p className="font-semibold transition-colors duration-300 group-hover:text-foreground">{step}</p>
+                          <p className="mt-1 text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground/90">{desc}</p>
                         </div>
                       </li>
                     ))}
@@ -314,11 +359,19 @@ export default function PortfolioAnalytics() {
                       <a
                         key={title}
                         href={link}
-                        className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${color} p-6 text-white transition-all hover:shadow-lg`}
+                        className={`group relative overflow-hidden rounded-xl bg-gradient-to-br ${color} p-6 text-white transition-all duration-300 hover:shadow-2xl hover:scale-[1.03]`}
                       >
-                        <Icon className="size-6 opacity-90" aria-hidden="true" />
-                        <h4 className="mt-3 text-lg font-semibold">{title}</h4>
-                        <p className="mt-1 text-sm opacity-90">Open in new tab →</p>
+                        {/* Glossy sheen effect */}
+                        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                        
+                        {/* Inner glow on hover */}
+                        <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 blur-xl bg-white/20" />
+                        
+                        <div className="relative z-10">
+                          <Icon className="size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125" aria-hidden="true" />
+                          <h4 className="mt-3 text-lg font-semibold transition-transform duration-300 group-hover:-translate-y-0.5">{title}</h4>
+                          <p className="mt-1 text-sm opacity-90 transition-opacity duration-300 group-hover:opacity-100">Open in new tab →</p>
+                        </div>
                       </a>
                     ))}
                   </div>
