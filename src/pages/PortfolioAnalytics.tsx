@@ -59,54 +59,66 @@ export default function PortfolioAnalytics() {
       />
       <SiteHeader />
       <main id="main">
+        {/* Hero Section */}
         <section className="mx-auto max-w-[1380px] px-5 pb-24 pt-36 sm:px-8 lg:px-12">
-          <h1 className="section-title max-w-4xl">
-            Portfolio <span className="text-muted-foreground">Intelligence.</span>
-          </h1>
-          <p className="mt-7 max-w-2xl text-base leading-7 text-muted-foreground">
-            Deep analytics on my engineering work — capability distribution, project complexity,
-            and evidence density. Upload your resume for personalized matching, or explore the
-            data directly. Everything here is calculated from proven claims.
-          </p>
-          
-          {/* Quick Stats */}
-          <dl className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { label: "Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
-              { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
-              { label: "Skills Tracked", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
-              { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
-            ].map(({ label, value, icon: Icon }) => (
-              <div key={label} className="rounded-xl bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-emerald-500/5 p-6 backdrop-blur-sm">
-                <dt className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Icon className="size-4" aria-hidden="true" /> {label}
-                </dt>
-                <dd className="mt-2 text-3xl font-bold tracking-tight">{value}</dd>
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-emerald-600/5 p-10 sm:p-14 lg:p-16 backdrop-blur-sm">
+            {/* Animated Gradient Orbs */}
+            <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+              <div className="absolute left-0 top-0 -z-10 h-full w-full">
+                <div className="absolute -left-20 -top-20 h-96 w-96 animate-pulse rounded-full bg-blue-400/10 blur-3xl" />
+                <div className="absolute -bottom-20 -right-20 h-96 w-96 animate-pulse rounded-full bg-purple-400/10 blur-3xl [animation-delay:1000ms]" />
+                <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-emerald-400/10 blur-3xl [animation-delay:2000ms]" />
               </div>
-            ))}
-          </dl>
+            </div>
+            
+            <h1 className="text-center text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent">
+              Portfolio Intelligence Platform
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-muted-foreground">
+              Advanced analytics on engineering work — capability distribution, project complexity scoring,
+              evidence density metrics, and automated hiring recommendations. Everything derived from proven claims.
+            </p>
           
-          {/* Featured Features */}
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { title: "Resume Analysis", desc: "Instant skill compatibility scoring", link: "/analytics/resume", icon: FileText },
-              { title: "Complexity Matrix", desc: "Multi-axis architectural depth scoring", link: "/analytics/complexity", icon: TrendingUp },
-              { title: "Hiring Assessment", desc: "Data-driven candidate evaluation", link: "/analytics/hiring", icon: ShieldCheck },
-            ].map(({ title, desc, link, icon: Icon }) => (
-              <a
-                key={title}
-                href={link}
-                className="group relative overflow-hidden rounded-2xl border border-border bg-background p-6 transition-all hover:border-purple-500/40 hover:shadow-lg"
-              >
-                <div className="absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
-                <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-colors group-hover:text-purple-500" aria-hidden="true" />
-                <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
-                <p className="relative z-10 mt-2 text-sm text-foreground/70">{desc}</p>
-                <div className="relative z-10 mt-4 flex items-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 transition-all duration-300 group-hover:translate-x-2 group-hover:opacity-100">
-                  Explore Feature <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+            
+            {/* Quick Stats */}
+            <dl className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
+                { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
+                { label: "Skills Tracked", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
+                { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
+              ].map(({ label, value, icon: Icon }) => (
+                <div key={label} className="rounded-xl bg-white/5 p-6 backdrop-blur-sm">
+                  <dt className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <Icon className="size-4" aria-hidden="true" /> {label}
+                  </dt>
+                  <dd className="mt-2 text-center text-3xl font-bold tracking-tight">{value}</dd>
                 </div>
-              </a>
-            ))}
+              ))}
+            </dl>
+            
+            {/* Featured Features */}
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                { title: "Resume Analysis", desc: "Instant skill compatibility scoring", link: "/analytics/resume", icon: FileText },
+                { title: "Complexity Matrix", desc: "Multi-axis architectural depth scoring", link: "/analytics/complexity", icon: TrendingUp },
+                { title: "Hiring Assessment", desc: "Data-driven candidate evaluation", link: "/analytics/hiring", icon: ShieldCheck },
+              ].map(({ title, desc, link, icon: Icon }) => (
+                <a
+                  key={title}
+                  href={link}
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg"
+                >
+                  <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
+                  <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-colors group-hover:text-purple-500" aria-hidden="true" />
+                  <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
+                  <p className="relative z-10 mt-2 text-sm text-foreground/70">{desc}</p>
+                  <div className="relative z-10 mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 transition-all duration-300 group-hover:translate-x-2 group-hover:opacity-100">
+                    Explore Feature <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
         </section>
 
