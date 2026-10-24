@@ -90,14 +90,25 @@ export default function PortfolioAnalytics() {
                 { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
                 { label: "Skills Tracked", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
                 { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
-              ].map(({ label, value, icon: Icon }) => (
-                <div key={label} className="group relative overflow-hidden rounded-xl bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1s_ease-out_forwards] opacity-0" style={{ animationDelay: '1.2s' }}>
+              ].map(({ label, value, icon: Icon }, index) => (
+                <div key={label} className="group relative overflow-hidden rounded-xl bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1s_ease-out_forwards] opacity-0" style={{ animationDelay: `${1 + index * 0.15}s` }}>
                   {/* Subtle gradient overlay on hover */}
                   <div className="absolute inset-0 -z-10 bg-gradient-to-br from-transparent to-white/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  <dt className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    <Icon className="size-4" aria-hidden="true" /> {label}
+                  
+                  {/* Inner glow ring that expands on hover */}
+                  <div className="absolute inset-0 -z-10 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150">
+                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-emerald-500/10 blur-lg" />
+                  </div>
+                  
+                  <dt className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                    <Icon className="size-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" /> {label}
                   </dt>
-                  <dd className="mt-2 text-center text-3xl font-bold tracking-tight">{value}</dd>
+                  <dd className="mt-2 text-center text-3xl font-bold tracking-tight transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{value}</dd>
+                  
+                  {/* Ripple effect on hover */}
+                  <div className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+                    <div className="absolute inset-0 animate-[spin_3s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent rotate-45" />
+                  </div>
                 </div>
               ))}
             </dl>
@@ -108,11 +119,12 @@ export default function PortfolioAnalytics() {
                 { title: "Resume Analysis", desc: "Instant skill compatibility scoring", link: "/analytics/resume", icon: FileText },
                 { title: "Complexity Matrix", desc: "Multi-axis architectural depth scoring", link: "/analytics/complexity", icon: TrendingUp },
                 { title: "Hiring Assessment", desc: "Data-driven candidate evaluation", link: "/analytics/hiring", icon: ShieldCheck },
-              ].map(({ title, desc, link, icon: Icon }) => (
+              ].map(({ title, desc, link, icon: Icon }, index) => (
                 <a
                   key={title}
                   href={link}
                   className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1.2s_ease-out_forwards] opacity-0"
+                  style={{ animationDelay: `${1.2 + index * 0.2}s` }}
                 >
                   {/* Animated gradient background on hover */}
                   <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
@@ -120,12 +132,18 @@ export default function PortfolioAnalytics() {
                   {/* Subtle shine effect */}
                   <div className="pointer-events-none absolute -left-20 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-white/5 blur-2xl transition-all duration-700 group-hover:opacity-0" />
                   
-                  <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-colors duration-300 group-hover:text-purple-500 group-hover:scale-110" aria-hidden="true" />
+                  {/* Gradient border reveal on mount */}
+                  <div className="absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 bg-gradient-to-br from-transparent via-purple-500/5 to-transparent" />
+                  
+                  <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:text-purple-500 group-hover:scale-110 group-hover:-rotate-6" aria-hidden="true" />
                   <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
                   <p className="relative z-10 mt-2 text-sm text-foreground/70 transition-colors duration-300 group-hover:text-foreground">{desc}</p>
                   <div className="relative z-10 mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 transition-all duration-300 group-hover:translate-x-2 group-hover:opacity-100">
-                    Explore Feature <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    Explore Feature <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:rotate-12" />
                   </div>
+                  
+                  {/* Shimmer sweep across card on hover */}
+                  <div className="pointer-events-none absolute inset-0 -z-10 translate-x-[-150%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[150%]" />
                 </a>
               ))}
             </div>
@@ -146,12 +164,12 @@ export default function PortfolioAnalytics() {
                 { id: "simulator", label: "Challenge Simulator", icon: LayoutTemplate },
                 { id: "risk", label: "Risk Scorecard", icon: ShieldAlert },
                 { id: "hiring", label: "Hiring Scorecard", icon: ShieldCheck },
-              ].map(({ id, label, icon: Icon }) => (
+              ].map(({ id, label, icon: Icon }, index) => (
                 <button
                   key={id}
                   onClick={() => setActiveTab(id as typeof activeTab)}
                   className={`group relative flex items-center gap-2 border-b-2 px-3 py-4 text-sm font-semibold transition-all duration-300 animate-[fade-in_0.5s_ease-out_forwards] opacity-0`}
-                  style={{ animationDelay: `${0.3 + Object.keys({ overview: 0, resume: 1, skills: 2, complexity: 3, verification: 4, evolution: 5, simulator: 6, risk: 7, hiring: 8 }).indexOf(id) * 0.1}s` }}
+                  style={{ animationDelay: `${0.3 + index * 0.1}s` }}
                 >
                   {/* Tab indicator glow effect */}
                   {activeTab === id && (
@@ -160,8 +178,23 @@ export default function PortfolioAnalytics() {
                       <span className="absolute -inset-px -z-10 animate-[pulse-circular_2s_ease-infinite] rounded-full bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-emerald-500/10 opacity-0" />
                     </>
                   )}
-                  <Icon className={`size-4 transition-all duration-300 ${activeTab === id ? "scale-110 rotate-3" : "group-hover:scale-110 group-hover:rotate-6"}`} aria-hidden="true" />
+                  
+                  {/* Magnetic hover effect on icon container */}
+                  <span className={`relative inline-flex items-center justify-center overflow-hidden`}>
+                    <Icon className={`size-4 transition-all duration-300 ${activeTab === id ? "scale-110 rotate-3" : "group-hover:scale-110 group-hover:-rotate-6"} ${activeTab === id ? "text-foreground" : "text-muted-foreground"}`} aria-hidden="true" />
+                    
+                    {/* Subtle icon glow when active */}
+                    {activeTab === id && (
+                      <span className="absolute -inset-px animate-pulse rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 blur-sm" />
+                    )}
+                  </span>
+                  
                   <span className={`transition-all duration-300 ${activeTab === id ? "tracking-wide" : ""}`}>{label}</span>
+                  
+                  {/* Hover underline slide-in */}
+                  {!activeTab === id && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-purple-500/40 via-blue-500/40 to-transparent transition-transform duration-300 group-hover:scale-x-100" />
+                  )}
                 </button>
               ))}
             </nav>
@@ -185,19 +218,28 @@ export default function PortfolioAnalytics() {
                     { label: "Unique Skills", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
                     { label: "Avg Evidence/Project", value: portfolioMetrics.avgEvidencePerProject.toFixed(1), icon: FileText },
                     { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
-                  ].map(({ label, value, icon: Icon }) => (
+                  ].map(({ label, value, icon: Icon }, index) => (
                     <div
                       key={label}
                       className="group relative overflow-hidden rounded-2xl border border-border bg-border p-6 transition-all duration-300 hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-lg hover:scale-[1.02]"
+                      style={{ animationDelay: `${0.5 + index * 0.15}s` }}
                     >
                       {/* Ambient background glow */}
                       <div className="absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-transparent blur-xl opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150" />
+                      
+                      {/* Animated gradient ring on border */}
+                      <div className="absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 bg-gradient-to-br from-transparent via-purple-500/3 to-transparent animate-[spin_4s_linear_infinite]" />
                       
                       <div className="relative z-10">
                         <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
                           <Icon className="size-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" /> {label}
                         </dt>
                         <dd className="mt-2 text-4xl font-bold tracking-tight transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{value}</dd>
+                      </div>
+                      
+                      {/* Corner sparkle effect */}
+                      <div className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                        <span className="inline-block h-2 w-2 rotate-45 border-t border-r border-purple-500/50" />
                       </div>
                     </div>
                   ))}
@@ -283,20 +325,32 @@ export default function PortfolioAnalytics() {
                       key={title}
                       to={link}
                       className="group relative overflow-hidden rounded-2xl border border-border bg-border p-6 transition-all duration-300 hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0"
-                      style={{ animationDelay: `${1.0 + Math.floor(Object.keys({ resume: 0, skills: 1, complexity: 2, verification: 3, evolution: 4, simulator: 5, risk: 6, featured: 7 }).indexOf(link.split('?')[0]) % 8) * 0.1}s` }}
+                      style={{ animationDelay: `${1.0 + index * 0.1}s` }}
                     >
                       {/* Ambient glow effect */}
                       <div className="absolute -right-8 -top-8 size-24 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-xl opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150" />
                       
+                      {/* Shimmer sweep across card */}
+                      <div className="pointer-events-none absolute inset-0 -z-10 translate-x-[-150%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[150%]" />
+                      
                       {/* Gradient border reveal on hover */}
                       <div className="absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-300 group-hover:scale-100 group-hover:opacity-100 bg-gradient-to-br from-transparent via-purple-500/5 to-transparent" />
                       
+                      {/* Corner sparkle */}
+                      <div className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                        <span className="inline-block h-2 w-2 rotate-45 border-t border-r border-purple-500/50" />
+                      </div>
+                      
                       <div className="relative z-10">
-                        <Icon className="size-5 text-muted-foreground transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:rotate-12 group-hover:scale-110" />
+                        <div className="flex items-center gap-2">
+                          <Icon className="size-5 text-muted-foreground transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:rotate-12 group-hover:scale-110" />
+                          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:-translate-y-1">Deep Dive</span>
+                        </div>
                         <h3 className="mt-4 text-lg font-semibold tracking-tight transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
                         <p className="mt-2 text-sm text-muted-foreground transition-colors duration-300 group-hover:text-foreground/90">{description}</p>
-                        <span className="mt-4 inline-flex items-center text-sm font-semibold text-foreground/80 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-all duration-300 group-hover:translate-x-2">
+                        <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-foreground/80 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-all duration-300 group-hover:translate-x-2">
                           Explore →
+                          <ArrowRight className="size-3 transition-transform duration-300 group-hover:translate-x-1 group-hover:rotate-12" />
                         </span>
                       </div>
                     </Link>
@@ -338,6 +392,22 @@ export default function PortfolioAnalytics() {
                           "bg-gradient-to-br from-purple-500/50"
                         }`} />
                         
+                        {/* Shimmer sweep on left edge */}
+                        <span className={`pointer-events-none absolute left-0 top-0 h-full w-1 -translate-x-full bg-gradient-to-b ${
+                          i < 3 ? "from-emerald-500/0 via-emerald-500/50 to-emerald-500/0" :
+                          i < 6 ? "from-blue-500/0 via-blue-500/50 to-blue-500/0" :
+                          "from-purple-500/0 via-purple-500/50 to-purple-500/0"
+                        } opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-hover:translate-x-0`} />
+                        
+                        {/* Corner sparkle */}
+                        <div className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                          <span className={`inline-block h-1.5 w-1.5 rotate-45 border-t border-r ${
+                            i < 3 ? "border-emerald-500/50" :
+                            i < 6 ? "border-blue-500/50" :
+                            "border-purple-500/50"
+                          }`} />
+                        </div>
+                        
                         <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-lg transition-all duration-300 group-hover:scale-110 ${
                           i < 3 ? "bg-emerald-500 text-white group-hover:bg-emerald-400" :
                           i < 6 ? "bg-blue-500 text-white group-hover:bg-blue-400" :
@@ -359,21 +429,29 @@ export default function PortfolioAnalytics() {
                       { title: "Start Assessment", link: "/analytics/hiring", icon: ShieldCheck, color: "from-emerald-500 to-emerald-600" },
                       { title: "Compare Projects", link: "/compare", icon: Grid, color: "from-blue-500 to-blue-600" },
                       { title: "View Live Work", link: "/projects?featured=true", icon: Globe, color: "from-purple-500 to-purple-600" },
-                    ].map(({ title, link, icon: Icon, color }) => (
+                    ].map(({ title, link, icon: Icon, color }, index) => (
                       <a
                         key={title}
                         href={link}
                         className="group relative overflow-hidden rounded-xl bg-gradient-to-br p-6 text-white transition-all duration-300 hover:shadow-2xl hover:scale-[1.03] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0"
-                        style={{ animationDelay: `${1.6 + Object.keys({ hiring: 0, compare: 1, featured: 2 }).indexOf(link.includes('hiring') ? 'hiring' : link.includes('compare') ? 'compare' : 'featured') * 0.1}s` }}
+                        style={{ animationDelay: `${1.6 + index * 0.15}s` }}
                       >
+                        {/* Gradient border glow on hover */}
+                        <div className={`absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 blur-md bg-gradient-to-br ${color.replace('to-', '-to-')}`} />
+                        
                         {/* Glossy sheen effect */}
                         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                         
                         {/* Inner glow on hover */}
                         <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 blur-xl bg-white/20" />
                         
+                        {/* Corner sparkle */}
+                        <div className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                          <span className="inline-block h-2 w-2 rotate-45 border-t border-r border-white/50" />
+                        </div>
+                        
                         <div className="relative z-10">
-                          <Icon className={`size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125 ${link.includes('hiring') ? '' : link.includes('compare') ? '' : ''}`} aria-hidden="true" />
+                          <Icon className={`size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125`} aria-hidden="true" />
                           <h4 className="mt-3 text-lg font-semibold transition-transform duration-300 group-hover:-translate-y-0.5">{title}</h4>
                           <p className="mt-1 text-sm opacity-90 transition-opacity duration-300 group-hover:opacity-100">Open in new tab →</p>
                         </div>
