@@ -65,13 +65,49 @@ export default function PortfolioAnalytics() {
             {/* Animated Gradient Orbs with Enhanced Motion */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
               <div className="absolute left-0 top-0 -z-10 h-full w-full">
+                {/* Primary large orbs */}
                 <div className="absolute -left-20 -top-20 h-96 w-96 animate-pulse rounded-full bg-blue-400/10 blur-3xl [animation-delay:0ms]" />
                 <div className="absolute -bottom-20 -right-20 h-96 w-96 animate-pulse rounded-full bg-purple-400/10 blur-3xl [animation-delay:750ms]" />
                 <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-emerald-400/10 blur-3xl [animation-delay:1500ms]" />
-                {/* Additional ambient glow layers */}
+                
+                {/* Secondary medium orbs */}
                 <div className="absolute bottom-1/4 left-1/4 h-64 w-64 animate-pulse rounded-full bg-blue-300/5 blur-2xl [animation-delay:500ms]" />
                 <div className="absolute top-1/4 right-1/4 h-64 w-64 animate-pulse rounded-full bg-purple-300/5 blur-2xl [animation-delay:1250ms]" />
+                
+                {/* Tertiary small sparkles */}
+                <div className="absolute left-1/3 top-1/3 h-32 w-32 animate-pulse rounded-full bg-emerald-300/5 blur-xl [animation-delay:250ms]" />
+                <div className="absolute right-1/3 bottom-1/3 h-32 w-32 animate-pulse rounded-full bg-blue-300/5 blur-xl [animation-delay:1000ms]" />
+                
+                {/* Subtle grid overlay pattern */}
+                <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+                
+                {/* Radial gradient spotlight */}
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_rgba(168,85,247,0.1)_0%,transparent_75%)] animate-[pulse_4s_ease-in-out_infinite]" />
               </div>
+            </div>
+            
+            {/* Wave pattern overlay */}
+            <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+              <svg className="absolute left-0 top-0 h-full w-full" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="rgba(168,85,247,0)" />
+                    <stop offset="50%" stopColor="rgba(168,85,247,0.1)" />
+                    <stop offset="100%" stopColor="rgba(168,85,247,0)" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M0,30 Q25,60 50,30 T100,30 T150,30 T200,30 V150 H0 Z"
+                  fill="url(#wave-gradient)"
+                  className="animate-[move-wave_15s_linear_infinite]"
+                />
+                <path
+                  d="M0,60 Q25,90 50,60 T100,60 T150,60 T200,60 V150 H0 Z"
+                  fill="url(#wave-gradient)"
+                  style={{ animationDelay: '-7.5s' }}
+                  className="animate-[move-wave_15s_linear_infinite]"
+                />
+              </svg>
             </div>
             
             <h1 className="text-center text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 bg-clip-text text-transparent animate-[fade-in-up_0.6s_ease-out]">
@@ -100,6 +136,9 @@ export default function PortfolioAnalytics() {
                     <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-emerald-500/10 blur-lg" />
                   </div>
                   
+                  {/* Animated border gradient */}
+                  <div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-blue-500/0 via-purple-500/20 to-emerald-500/0 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:animate-[shimmer-border_2s_linear_infinite]" style={{ backgroundSize: '200% 100%' }} />
+                  
                   <dt className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
                     <Icon className="size-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" /> {label}
                   </dt>
@@ -109,6 +148,10 @@ export default function PortfolioAnalytics() {
                   <div className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-100">
                     <div className="absolute inset-0 animate-[spin_3s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent rotate-45" />
                   </div>
+                  
+                  {/* Corner glows */}
+                  <div className="absolute -left-4 -top-4 h-8 w-8 rounded-full bg-blue-500/10 blur-md opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-150" />
+                  <div className="absolute -bottom-4 -right-4 h-8 w-8 rounded-full bg-purple-500/10 blur-md opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-150" />
                 </div>
               ))}
             </dl>
@@ -135,6 +178,9 @@ export default function PortfolioAnalytics() {
                   {/* Gradient border reveal on mount */}
                   <div className="absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 bg-gradient-to-br from-transparent via-purple-500/5 to-transparent" />
                   
+                  {/* Animated border shimmer */}
+                  <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-r from-blue-500/0 via-purple-500/15 to-emerald-500/0 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:animate-[shimmer-border_2s_linear_infinite]" style={{ backgroundSize: '200% 100%' }} />
+                  
                   <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:text-purple-500 group-hover:scale-110 group-hover:-rotate-6" aria-hidden="true" />
                   <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
                   <p className="relative z-10 mt-2 text-sm text-foreground/70 transition-colors duration-300 group-hover:text-foreground">{desc}</p>
@@ -144,6 +190,14 @@ export default function PortfolioAnalytics() {
                   
                   {/* Shimmer sweep across card on hover */}
                   <div className="pointer-events-none absolute inset-0 -z-10 translate-x-[-150%] bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-[150%]" />
+                  
+                  {/* Floating particles on hover */}
+                  {index === 0 && (
+                    <>
+                      <div className="absolute left-4 top-4 h-1.5 w-1.5 rounded-full bg-blue-500/40 opacity-0 transition-all duration-300 group-hover:opacity-100 animate-[float_3s_ease-in-out_infinite]" />
+                      <div className="absolute right-6 bottom-6 h-1.5 w-1.5 rounded-full bg-purple-500/40 opacity-0 transition-all duration-300 group-hover:opacity-100 animate-[float_3s_ease-in-out_infinite_0.5s_delay]" />
+                    </>
+                  )}
                 </a>
               ))}
             </div>
