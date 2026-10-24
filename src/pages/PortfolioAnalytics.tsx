@@ -639,16 +639,53 @@ export default function PortfolioAnalytics() {
               {/* For Hiring Managers */}
               <div className="animate-[fade-in-up_1s_ease-out_forwards] opacity-0" style={{ animationDelay: '1.1s' }}>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">For Hiring Managers & Evaluators</h2>
-                <div className="rounded-2xl border border-border bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 p-8 backdrop-blur-sm">
-                  {/* Animated shimmer effect */}
-                  <div className="absolute inset-0 -z-10 overflow-hidden rounded-2xl">
-                    <div className="absolute -inset-full h-full w-full animate-[shimmer_3s_infinite] translate-x-full rotate-45 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                <div className="rounded-2xl border border-border bg-gradient-to-r from-emerald-500/5 via-blue-500/5 to-purple-500/5 p-8 backdrop-blur-sm relative overflow-hidden">
+                  {/* Animated shimmer effect with intensity sweep */}
+                  <div className="absolute inset-0 -z-10 overflow-hidden">
+                    <div className="absolute -inset-full h-full w-full animate-[shimmer_3s_infinite] translate-x-full rotate-45 bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+                    
+                    {/* Light rays emanating from center */}
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={`ray-${i}`}
+                        className="absolute inset-0 animate-[light-ray_4s_ease-in-out_infinite]"
+                        style={{
+                          transform: `rotate(${i * 72}deg)`,
+                          transformOrigin: 'center',
+                          opacity: i < 2 ? 0.3 : i < 4 ? 0.2 : 0.1,
+                          animationDelay: `${i * 0.8}s`,
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-purple-500/5 to-transparent blur-lg" />
+                      </div>
+                    ))}
+                    
+                    {/* Floating geometric particles */}
+                    {[...Array(15)].map((_, i) => {
+                      const shape = ['circle', 'square', 'triangle'][i % 3];
+                      return (
+                        <div
+                          key={`geo-${i}`}
+                          className={`absolute ${shape === 'circle' ? 'rounded-full' : shape === 'square' ? 'rounded-none' : 'clip-path-polygon'}`}
+                          style={{
+                            width: `${4 + Math.random() * 8}px`,
+                            height: `${4 + Math.random() * 8}px`,
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`,
+                            backgroundColor: ['rgba(59,130,246,0.1)', 'rgba(168,85,247,0.1)', 'rgba(16,185,129,0.1)'][i % 3],
+                            animation: `float-shape ${5 + Math.random() * 5}s ease-in-out infinite`,
+                            animationDelay: `${Math.random() * 3}s`,
+                            clipPath: shape === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : undefined,
+                          }}
+                        />
+                      );
+                    })}
                   </div>
                   
-                  <p className="mb-6 text-lg leading-7 text-muted-foreground">
+                  <p className="mb-6 text-lg leading-7 text-muted-foreground relative z-10">
                     Use this platform to evaluate technical competence through actual shipped work, not resumes. Every metric is derived from verified evidence.
                   </p>
-                  <ol className="space-y-4">
+                  <ol className="space-y-4 relative z-10">
                     {[
                       { step: "Review Skills Heatmap", desc: "Proficiency levels backed by shipped projects" },
                       { step: "Check Complexity Scores", desc: "Architectural depth across all deliverables" },
@@ -663,11 +700,11 @@ export default function PortfolioAnalytics() {
                         i < 6 ? "hover:border-blue-500/30" :
                         "hover:border-purple-500/30"
                       }`} style={{ animationDelay: `${1.2 + i * 0.1}s` }}>
-                        {/* Step indicator glow */}
+                        {/* Step indicator glow with bloom */}
                         <span className={`pointer-events-none absolute -inset-px -z-10 rounded-xl opacity-0 blur-md transition-all duration-500 group-hover:opacity-20 ${
-                          i < 3 ? "bg-gradient-to-br from-emerald-500/50" :
-                          i < 6 ? "bg-gradient-to-br from-blue-500/50" :
-                          "bg-gradient-to-br from-purple-500/50"
+                          i < 3 ? "bg-gradient-to-br from-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.4)]" :
+                          i < 6 ? "bg-gradient-to-br from-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.4)]" :
+                          "bg-gradient-to-br from-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.4)]"
                         }`} />
                         
                         {/* Shimmer sweep on left edge */}
@@ -683,13 +720,13 @@ export default function PortfolioAnalytics() {
                             i < 3 ? "border-emerald-500/50" :
                             i < 6 ? "border-blue-500/50" :
                             "border-purple-500/50"
-                          }`} />
+                          } drop-shadow-[0_0_4px_currentColor]`} />
                         </div>
                         
                         <span className={`flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-bold shadow-lg transition-all duration-300 group-hover:scale-110 ${
-                          i < 3 ? "bg-emerald-500 text-white group-hover:bg-emerald-400" :
-                          i < 6 ? "bg-blue-500 text-white group-hover:bg-blue-400" :
-                          "bg-purple-500 text-white group-hover:bg-purple-400"
+                          i < 3 ? "bg-emerald-500 text-white group-hover:bg-emerald-400 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.6)]" :
+                          i < 6 ? "bg-blue-500 text-white group-hover:bg-blue-400 group-hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]" :
+                          "bg-purple-500 text-white group-hover:bg-purple-400 group-hover:shadow-[0_0_15px_rgba(168,85,247,0.6)]"
                         }`}>
                           {i + 1}
                         </span>
@@ -701,7 +738,7 @@ export default function PortfolioAnalytics() {
                     ))}
                   </ol>
                   
-                  {/* Quick Action Cards */}
+                  {/* Quick Action Cards with holographic effects */}
                   <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-[fade-in-up_0.8s_ease-out_forwards] opacity-0" style={{ animationDelay: '1.5s' }}>
                     {[
                       { title: "Start Assessment", link: "/analytics/hiring", icon: ShieldCheck, color: "from-emerald-500 to-emerald-600" },
@@ -714,6 +751,9 @@ export default function PortfolioAnalytics() {
                         className="group relative overflow-hidden rounded-xl bg-gradient-to-br p-6 text-white transition-all duration-300 hover:shadow-2xl hover:scale-[1.03] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0"
                         style={{ animationDelay: `${1.6 + index * 0.15}s` }}
                       >
+                        {/* Holographic foil effect */}
+                        <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 bg-[linear-gradient(125deg,transparent_0%,rgba(255,255,255,0.3)_25%,rgba(255,255,255,0.5)_50%,rgba(255,255,255,0.3)_75%,transparent_100%)] animate-[foil-sweep_3s_linear_infinite]" />
+                        
                         {/* Gradient border glow on hover */}
                         <div className={`absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 blur-md bg-gradient-to-br ${color.replace('to-', '-to-')}`} />
                         
@@ -721,15 +761,15 @@ export default function PortfolioAnalytics() {
                         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                         
                         {/* Inner glow on hover */}
-                        <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 blur-xl bg-white/20" />
+                        <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 blur-xl bg-white/20 shadow-[0_0_30px_rgba(255,255,255,0.3)]" />
                         
                         {/* Corner sparkle */}
                         <div className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                          <span className="inline-block h-2 w-2 rotate-45 border-t border-r border-white/50" />
+                          <span className="inline-block h-2 w-2 rotate-45 border-t border-r border-white/50 drop-shadow-[0_0_4px_white]" />
                         </div>
                         
                         <div className="relative z-10">
-                          <Icon className={`size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125`} aria-hidden="true" />
+                          <Icon className={`size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]`} aria-hidden="true" />
                           <h4 className="mt-3 text-lg font-semibold transition-transform duration-300 group-hover:-translate-y-0.5">{title}</h4>
                           <p className="mt-1 text-sm opacity-90 transition-opacity duration-300 group-hover:opacity-100">Open in new tab →</p>
                         </div>
