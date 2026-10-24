@@ -65,28 +65,49 @@ export default function PortfolioAnalytics() {
             {/* Animated Gradient Orbs with Enhanced Motion */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
               <div className="absolute left-0 top-0 -z-10 h-full w-full">
-                {/* Primary large orbs */}
-                <div className="absolute -left-20 -top-20 h-96 w-96 animate-pulse rounded-full bg-blue-400/10 blur-3xl [animation-delay:0ms]" />
-                <div className="absolute -bottom-20 -right-20 h-96 w-96 animate-pulse rounded-full bg-purple-400/10 blur-3xl [animation-delay:750ms]" />
-                <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-emerald-400/10 blur-3xl [animation-delay:1500ms]" />
+                {/* Primary large orbs with chromatic aberration */}
+                <div className="absolute -left-20 -top-20 h-96 w-96 animate-pulse rounded-full bg-blue-400/10 blur-3xl [animation-delay:0ms]">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/20 via-transparent to-purple-500/20 blur-sm" />
+                </div>
+                <div className="absolute -bottom-20 -right-20 h-96 w-96 animate-pulse rounded-full bg-purple-400/10 blur-3xl [animation-delay:750ms]">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 via-transparent to-emerald-500/20 blur-sm" />
+                </div>
+                <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-emerald-400/10 blur-3xl [animation-delay:1500ms]">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 via-transparent to-blue-500/20 blur-sm" />
+                </div>
                 
-                {/* Secondary medium orbs */}
-                <div className="absolute bottom-1/4 left-1/4 h-64 w-64 animate-pulse rounded-full bg-blue-300/5 blur-2xl [animation-delay:500ms]" />
-                <div className="absolute top-1/4 right-1/4 h-64 w-64 animate-pulse rounded-full bg-purple-300/5 blur-2xl [animation-delay:1250ms]" />
+                {/* Secondary medium orbs with bloom */}
+                <div className="absolute bottom-1/4 left-1/4 h-64 w-64 animate-pulse rounded-full bg-blue-300/5 blur-2xl [animation-delay:500ms] shadow-[0_0_40px_rgba(59,130,246,0.3)]" />
+                <div className="absolute top-1/4 right-1/4 h-64 w-64 animate-pulse rounded-full bg-purple-300/5 blur-2xl [animation-delay:1250ms] shadow-[0_0_40px_rgba(168,85,247,0.3)]" />
                 
-                {/* Tertiary small sparkles */}
+                {/* Tertiary small sparkles with pulse intensity */}
                 <div className="absolute left-1/3 top-1/3 h-32 w-32 animate-pulse rounded-full bg-emerald-300/5 blur-xl [animation-delay:250ms]" />
                 <div className="absolute right-1/3 bottom-1/3 h-32 w-32 animate-pulse rounded-full bg-blue-300/5 blur-xl [animation-delay:1000ms]" />
                 
-                {/* Animated sparkle particles */}
+                {/* Dynamic sparkle particles with twinkle effect */}
                 {['sparkle-1', 'sparkle-2', 'sparkle-3', 'sparkle-4', 'sparkle-5'].map((id) => (
                   <div
                     key={id}
                     id={id}
-                    className="absolute h-1.5 w-1.5 rotate-45 rounded-full bg-white/30"
+                    className="absolute h-1.5 w-1.5 rotate-45 rounded-full bg-white/30 animate-[twinkle_2s_ease-in-out_infinite]"
                     style={{
                       left: `${[15, 45, 70, 25, 85][parseInt(id.split('-')[1])]}%`,
                       top: `${[20, 55, 35, 75, 60][parseInt(id.split('-')[1])]}%`,
+                      opacity: Math.random() * 0.5 + 0.3,
+                    }}
+                  />
+                ))}
+                
+                {/* Shooting stars */}
+                {[...Array(3)].map((_, i) => (
+                  <div
+                    key={`star-${i}`}
+                    className="absolute h-40 w-1 rotate-[-45deg] bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0"
+                    style={{
+                      left: `${20 + i * 25}%`,
+                      top: '-10%',
+                      animation: `shooting-star ${8 + i * 2}s linear infinite`,
+                      animationDelay: `${i * 2.5}s`,
                     }}
                   />
                 ))}
@@ -94,25 +115,46 @@ export default function PortfolioAnalytics() {
                 {/* Subtle grid overlay pattern */}
                 <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
                 
-                {/* Radial gradient spotlight */}
+                {/* Radial gradient spotlight with flicker */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_rgba(168,85,247,0.1)_0%,transparent_75%)] animate-[pulse_4s_ease-in-out_infinite]" />
+                
+                {/* Atmospheric haze layers */}
+                <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 via-transparent to-purple-500/5 animate-[float-haze_10s_ease-in-out_infinite]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 via-transparent to-blue-500/5 animate-[float-haze_10s_ease-in-out_infinite_reverse]" />
               </div>
               
-              {/* Floating glass orbs */}
+              {/* Floating glass orbs with depth perception */}
               <div className="absolute inset-0 -z-10 overflow-hidden">
-                {[...Array(8)].map((_, i) => (
+                {[...Array(12)].map((_, i) => (
                   <div
                     key={i}
-                    className="absolute h-8 w-8 rounded-full bg-gradient-to-br from-white/5 to-white/2 backdrop-blur-sm"
+                    className="absolute rounded-lg bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md transition-opacity duration-500 hover:opacity-100"
                     style={{
+                      width: `${8 + Math.random() * 12}px`,
+                      height: `${8 + Math.random() * 12}px`,
                       left: `${Math.random() * 100}%`,
                       top: `${Math.random() * 100}%`,
-                      animation: `float-orb ${3 + Math.random() * 4}s ease-in-out infinite`,
-                      animationDelay: `${Math.random() * 3}s`,
+                      animation: `float-orb ${4 + Math.random() * 5}s ease-in-out infinite`,
+                      animationDelay: `${Math.random() * 4}s`,
+                      filter: `blur(${Math.random() * 2}px)`,
+                      transform: `translateZ(${Math.random() * 50 - 25}px)`,
                     }}
                   />
                 ))}
               </div>
+              
+              {/* Magnetic field lines */}
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={`field-${i}`}
+                  className="absolute h-px w-full bg-gradient-to-r from-transparent via-purple-500/5 to-transparent"
+                  style={{
+                    top: `${20 + i * 15}%`,
+                    animation: `field-wave ${6 + i}s ease-in-out infinite`,
+                    animationDelay: `${i * 1.2}s`,
+                  }}
+                />
+              ))}
             </div>
             
             {/* Wave pattern overlay */}
@@ -162,25 +204,29 @@ export default function PortfolioAnalytics() {
                   
                   {/* Inner glow ring that expands on hover */}
                   <div className="absolute inset-0 -z-10 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-150">
-                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-emerald-500/10 blur-lg" />
+                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-emerald-500/10 blur-lg shadow-[0_0_60px_rgba(168,85,247,0.4)]" />
                   </div>
                   
-                  {/* Animated border gradient */}
+                  {/* Animated border gradient with intensity pulse */}
                   <div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-blue-500/0 via-purple-500/20 to-emerald-500/0 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:animate-[shimmer-border_2s_linear_infinite]" style={{ backgroundSize: '200% 100%' }} />
+                  
+                  {/* Gradient intensity pulsing on active state */}
+                  <div className="absolute inset-0 -z-10 animate-[pulse-gradient_4s_ease-in-out_infinite] bg-gradient-to-br from-blue-500/3 via-purple-500/3 to-emerald-500/3 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ mixBlendMode: 'overlay' }} />
                   
                   <dt className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
                     <Icon className="size-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" /> {label}
                   </dt>
                   <dd className="mt-2 text-center text-3xl font-bold tracking-tight transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{value}</dd>
                   
-                  {/* Ripple effect on hover */}
+                  {/* Ripple effect on hover with decay */}
                   <div className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-100">
                     <div className="absolute inset-0 animate-[spin_3s_linear_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent rotate-45" />
+                    <div className="absolute inset-0 animate-[ripple_2s_ease-out_forwards] scale-150 border border-white/20 rounded-xl" />
                   </div>
                   
-                  {/* Corner glows */}
-                  <div className="absolute -left-4 -top-4 h-8 w-8 rounded-full bg-blue-500/10 blur-md opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-150" />
-                  <div className="absolute -bottom-4 -right-4 h-8 w-8 rounded-full bg-purple-500/10 blur-md opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-150" />
+                  {/* Corner glows with rotation */}
+                  <div className="absolute -left-4 -top-4 h-8 w-8 rounded-full bg-blue-500/10 blur-md opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-150 group-hover:-rotate-12" />
+                  <div className="absolute -bottom-4 -right-4 h-8 w-8 rounded-full bg-purple-500/10 blur-md opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-150 group-hover:rotate-12" />
                   
                   {/* Sparkle burst on hover */}
                   <div className="pointer-events-none absolute inset-0 -z-10">
@@ -191,8 +237,23 @@ export default function PortfolioAnalytics() {
                         style={{
                           left: `${[25, 50, 75, 50][i]}%`,
                           top: `${[25, 25, 25, 75][i]}%`,
-                          animation: `sparkle-burst ${0.8 + (i * 0.1)}s ease-out forwards`,
+                          transform: `translate(-50%, -50%) rotate(${index * 90 + i * 45}deg)`,
+                          animation: `sparkle-burst ${0.8 + (i * 0.1)}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
                           animationDelay: `${0.3 + (i * 0.1)}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Magnetic attraction effect */}
+                  <div className="pointer-events-none absolute inset-0 -z-10">
+                    {[...Array(3)].map((_, i) => (
+                      <div
+                        key={`mag-${i}`}
+                        className="absolute h-12 w-12 rounded-full border border-purple-500/10 opacity-0 transition-all duration-300 group-hover:opacity-100"
+                        style={{
+                          animation: `magnetic-pulse ${2 + i * 0.5}s ease-in-out infinite`,
+                          animationDelay: `${i * 0.3}s`,
                         }}
                       />
                     ))}
@@ -214,8 +275,8 @@ export default function PortfolioAnalytics() {
                   className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1.2s_ease-out_forwards] opacity-0"
                   style={{ animationDelay: `${1.2 + index * 0.2}s`, transformStyle: 'preserve-3d' }}
                 >
-                  {/* Animated gradient background on hover */}
-                  <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
+                  {/* Animated gradient background on hover with bloom */}
+                  <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl shadow-[0_0_60px_rgba(168,85,247,0.3)] transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
                   
                   {/* Subtle shine effect */}
                   <div className="pointer-events-none absolute -left-20 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-white/5 blur-2xl transition-all duration-700 group-hover:opacity-0" />
@@ -223,16 +284,22 @@ export default function PortfolioAnalytics() {
                   {/* Gradient border reveal on mount */}
                   <div className="absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 bg-gradient-to-br from-transparent via-purple-500/5 to-transparent" />
                   
-                  {/* Animated border shimmer */}
+                  {/* Animated border shimmer with gradient pulse */}
                   <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-r from-blue-500/0 via-purple-500/15 to-emerald-500/0 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:animate-[shimmer-border_2s_linear_infinite]" style={{ backgroundSize: '200% 100%' }} />
+                  
+                  {/* Gradient intensity pulsing */}
+                  <div className="absolute inset-0 -z-10 animate-[pulse-gradient_4s_ease-in-out_infinite] bg-gradient-to-br from-blue-500/3 via-purple-500/3 to-emerald-500/3 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ mixBlendMode: 'overlay' }} />
                   
                   {/* 3D perspective effect container */}
                   <div className="relative z-10 transition-all duration-500 group-hover:[transform:rotateX(5deg)_rotateY(-5deg)_rotateZ(2deg)_perspective(1000px)]">
-                    <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:text-purple-500 group-hover:scale-110 group-hover:-rotate-6" aria-hidden="true" />
+                    {/* Icon with chromatic aberration effect */}
+                    <div className="relative flex justify-center">
+                      <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:text-purple-500 group-hover:scale-110 group-hover:-rotate-6 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" aria-hidden="true" />
+                    </div>
                     <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
                     <p className="relative z-10 mt-2 text-sm text-foreground/70 transition-colors duration-300 group-hover:text-foreground">{desc}</p>
                     <div className="relative z-10 mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 transition-all duration-300 group-hover:translate-x-2 group-hover:opacity-100">
-                      Explore Feature <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:rotate-12" />
+                      Explore Feature <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:rotate-12 drop-shadow-[0_0_6px_rgba(168,85,247,0.5)]" />
                     </div>
                   </div>
                   
@@ -261,6 +328,36 @@ export default function PortfolioAnalytics() {
                           transformOrigin: 'center',
                           animation: `starburst ${0.6 + (i * 0.1)}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
                           animationDelay: `${0.2 + (i * 0.08)}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Magnetic field rings */}
+                  <div className="pointer-events-none absolute inset-0 -z-10">
+                    {[...Array(3)].map((_, i) => (
+                      <div
+                        key={`field-ring-${i}`}
+                        className="absolute inset-0 rounded-2xl border border-purple-500/10 opacity-0 transition-all duration-500 group-hover:opacity-100"
+                        style={{
+                          animation: `magnetic-rings ${2.5 + i}s ease-in-out infinite`,
+                          animationDelay: `${i * 0.4}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* Vortex particle effect */}
+                  <div className="pointer-events-none absolute inset-0 -z-10">
+                    {[...Array(6)].map((_, i) => (
+                      <div
+                        key={`vortex-${i}`}
+                        className="absolute h-1 w-1 rounded-full bg-gradient-to-r from-blue-500/40 via-purple-500/40 to-emerald-500/40 opacity-0 transition-all duration-500 group-hover:opacity-100"
+                        style={{
+                          left: '50%',
+                          top: '50%',
+                          animation: `vortex-particle ${1.2 + (i * 0.2)}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                          animationDelay: `${0.4 + (i * 0.1)}s`,
                         }}
                       />
                     ))}
