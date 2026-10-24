@@ -392,26 +392,60 @@ export default function PortfolioAnalytics() {
                   {/* Tab indicator glow effect */}
                   {activeTab === id && (
                     <>
-                      <span className="absolute inset-x-0 -bottom-px mx-auto w-1/2 rounded-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent blur-sm" />
-                      <span className="absolute -inset-px -z-10 animate-[pulse-circular_2s_ease-infinite] rounded-full bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-emerald-500/10 opacity-0" />
+                      <span className="absolute inset-x-0 -bottom-px mx-auto w-1/2 rounded-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent blur-sm shadow-[0_0_20px_rgba(168,85,247,0.3)]" />
+                      <span className="absolute -inset-px -z-10 animate-[pulse-circular_2s_ease-infinite] rounded-full bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-emerald-500/10 opacity-0 shadow-[0_0_40px_rgba(168,85,247,0.2)]" />
+                      
+                      {/* Particle emission trail when active */}
+                      {[...Array(3)].map((_, i) => (
+                        <span
+                          key={`trail-${i}`}
+                          className="absolute -inset-px -z-10 animate-[particle-trail_1.5s_ease-out_infinite]"
+                          style={{
+                            background: `radial-gradient(circle, rgba(168,85,247,${0.3 - i * 0.1}) 0%, transparent 70%)`,
+                            animationDelay: `${i * 0.4}s`,
+                          }}
+                        />
+                      ))}
                     </>
                   )}
                   
                   {/* Magnetic hover effect on icon container */}
-                  <span className={`relative inline-flex items-center justify-center overflow-hidden`}>
-                    <Icon className={`size-4 transition-all duration-300 ${activeTab === id ? "scale-110 rotate-3" : "group-hover:scale-110 group-hover:-rotate-6"} ${activeTab === id ? "text-foreground" : "text-muted-foreground"}`} aria-hidden="true" />
+                  <span className={`relative inline-flex items-center justify-center overflow-hidden ${activeTab === id ? '' : 'group-hover:[transform:rotate(-6deg)_scale(1.15)]'}`}>
+                    {/* Glow halo behind icon */}
+                    <span className={`absolute inset-0 m-auto h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-emerald-500/20 opacity-0 transition-all duration-300 group-hover:opacity-100 ${activeTab === id ? '!opacity-100' : ''} blur-md`} />
                     
-                    {/* Subtle icon glow when active */}
-                    {activeTab === id && (
-                      <span className="absolute -inset-px animate-pulse rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 blur-sm" />
+                    <Icon className={`relative z-10 size-4 transition-all duration-300 ${activeTab === id ? "scale-110 rotate-3" : "group-hover:scale-110"} ${activeTab === id ? "text-foreground drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" : "text-muted-foreground"}`} aria-hidden="true" />
+                    
+                    {/* Icon sparkle burst on hover */}
+                    {!activeTab === id && (
+                      <div className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                        {[...Array(4)].map((_, i) => (
+                          <span
+                            key={`icon-sparkle-${i}`}
+                            className="absolute h-1 w-1 rotate-45 rounded-full bg-white/60"
+                            style={{
+                              left: `${[25, 50, 75, 50][i]}%`,
+                              top: `${[25, 25, 25, 75][i]}%`,
+                              animation: `icon-sparkle ${0.6 + (i * 0.15)}s ease-out forwards`,
+                              animationDelay: `${0.2 + (i * 0.1)}s`,
+                            }}
+                          />
+                        ))}
+                      </div>
                     )}
                   </span>
                   
                   <span className={`transition-all duration-300 ${activeTab === id ? "tracking-wide" : ""}`}>{label}</span>
                   
-                  {/* Hover underline slide-in */}
-                  {!activeTab === id && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-purple-500/40 via-blue-500/40 to-transparent transition-transform duration-300 group-hover:scale-x-100" />
+                  {/* Hover underline slide-in with gradient flow */}
+                  <span className={`absolute bottom-0 left-0 right-0 h-0.5 origin-left scale-x-0 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 transition-transform duration-300 group-hover:scale-x-100 ${activeTab === id ? 'scale-x-100' : ''} animate-gradient-shift`} style={{ animationDuration: '3s' }} />
+                  
+                  {/* Corner markers */}
+                  {index === 0 && (
+                    <span className="absolute left-0 top-0 h-2 w-2 border-l border-t border-purple-500/30" />
+                  )}
+                  {index === 8 && (
+                    <span className="absolute right-0 top-0 h-2 w-2 border-r border-t border-purple-500/30" />
                   )}
                 </button>
               ))}
@@ -419,6 +453,32 @@ export default function PortfolioAnalytics() {
             
             {/* Tab content gradient line with subtle pulse */}
             <div className="mt-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent animate-pulse" />
+            
+            {/* Decorative corner accents */}
+            <div className="absolute left-0 top-0 h-8 w-8 pointer-events-none">
+              <svg viewBox="0 0 32 32" className="h-full w-full">
+                <path d="M0,32 L0,8 Q0,0 8,0 L32,0" fill="none" stroke="url(#corner-gradient)" strokeWidth="2" strokeLinecap="round" />
+                <defs>
+                  <linearGradient id="corner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="rgba(59,130,246,0)" />
+                    <stop offset="50%" stopColor="rgba(168,85,247,0.3)" />
+                    <stop offset="100%" stopColor="rgba(16,185,129,0)" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+            <div className="absolute right-0 top-0 h-8 w-8 pointer-events-none">
+              <svg viewBox="0 0 32 32" className="h-full w-full">
+                <path d="M32,32 L24,32 Q16,32 16,24 L0,24" fill="none" stroke="url(#corner-gradient-2)" strokeWidth="2" strokeLinecap="round" />
+                <defs>
+                  <linearGradient id="corner-gradient-2" x1="100%" y1="100%" x2="0%" y2="0%">
+                    <stop offset="0%" stopColor="rgba(16,185,129,0)" />
+                    <stop offset="50%" stopColor="rgba(168,85,247,0.3)" />
+                    <stop offset="100%" stopColor="rgba(59,130,246,0)" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
           </div>
         </section>
 
