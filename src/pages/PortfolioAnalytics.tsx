@@ -78,11 +78,40 @@ export default function PortfolioAnalytics() {
                 <div className="absolute left-1/3 top-1/3 h-32 w-32 animate-pulse rounded-full bg-emerald-300/5 blur-xl [animation-delay:250ms]" />
                 <div className="absolute right-1/3 bottom-1/3 h-32 w-32 animate-pulse rounded-full bg-blue-300/5 blur-xl [animation-delay:1000ms]" />
                 
+                {/* Animated sparkle particles */}
+                {['sparkle-1', 'sparkle-2', 'sparkle-3', 'sparkle-4', 'sparkle-5'].map((id) => (
+                  <div
+                    key={id}
+                    id={id}
+                    className="absolute h-1.5 w-1.5 rotate-45 rounded-full bg-white/30"
+                    style={{
+                      left: `${[15, 45, 70, 25, 85][parseInt(id.split('-')[1])]}%`,
+                      top: `${[20, 55, 35, 75, 60][parseInt(id.split('-')[1])]}%`,
+                    }}
+                  />
+                ))}
+                
                 {/* Subtle grid overlay pattern */}
                 <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
                 
                 {/* Radial gradient spotlight */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_rgba(168,85,247,0.1)_0%,transparent_75%)] animate-[pulse_4s_ease-in-out_infinite]" />
+              </div>
+              
+              {/* Floating glass orbs */}
+              <div className="absolute inset-0 -z-10 overflow-hidden">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute h-8 w-8 rounded-full bg-gradient-to-br from-white/5 to-white/2 backdrop-blur-sm"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 100}%`,
+                      animation: `float-orb ${3 + Math.random() * 4}s ease-in-out infinite`,
+                      animationDelay: `${Math.random() * 3}s`,
+                    }}
+                  />
+                ))}
               </div>
             </div>
             
@@ -152,6 +181,22 @@ export default function PortfolioAnalytics() {
                   {/* Corner glows */}
                   <div className="absolute -left-4 -top-4 h-8 w-8 rounded-full bg-blue-500/10 blur-md opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-150" />
                   <div className="absolute -bottom-4 -right-4 h-8 w-8 rounded-full bg-purple-500/10 blur-md opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-150" />
+                  
+                  {/* Sparkle burst on hover */}
+                  <div className="pointer-events-none absolute inset-0 -z-10">
+                    {[...Array(4)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute h-1.5 w-1.5 rotate-45 rounded-full bg-purple-500/40 opacity-0 transition-all duration-500 group-hover:opacity-100"
+                        style={{
+                          left: `${[25, 50, 75, 50][i]}%`,
+                          top: `${[25, 25, 25, 75][i]}%`,
+                          animation: `sparkle-burst ${0.8 + (i * 0.1)}s ease-out forwards`,
+                          animationDelay: `${0.3 + (i * 0.1)}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
                 </div>
               ))}
             </dl>
@@ -167,7 +212,7 @@ export default function PortfolioAnalytics() {
                   key={title}
                   href={link}
                   className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1.2s_ease-out_forwards] opacity-0"
-                  style={{ animationDelay: `${1.2 + index * 0.2}s` }}
+                  style={{ animationDelay: `${1.2 + index * 0.2}s`, transformStyle: 'preserve-3d' }}
                 >
                   {/* Animated gradient background on hover */}
                   <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-emerald-500/10 blur-2xl transition-all duration-700 group-hover:scale-150 group-hover:opacity-100" />
@@ -181,11 +226,14 @@ export default function PortfolioAnalytics() {
                   {/* Animated border shimmer */}
                   <div className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-r from-blue-500/0 via-purple-500/15 to-emerald-500/0 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:animate-[shimmer-border_2s_linear_infinite]" style={{ backgroundSize: '200% 100%' }} />
                   
-                  <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:text-purple-500 group-hover:scale-110 group-hover:-rotate-6" aria-hidden="true" />
-                  <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
-                  <p className="relative z-10 mt-2 text-sm text-foreground/70 transition-colors duration-300 group-hover:text-foreground">{desc}</p>
-                  <div className="relative z-10 mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 transition-all duration-300 group-hover:translate-x-2 group-hover:opacity-100">
-                    Explore Feature <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:rotate-12" />
+                  {/* 3D perspective effect container */}
+                  <div className="relative z-10 transition-all duration-500 group-hover:[transform:rotateX(5deg)_rotateY(-5deg)_rotateZ(2deg)_perspective(1000px)]">
+                    <Icon className="relative z-10 size-8 text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:text-purple-500 group-hover:scale-110 group-hover:-rotate-6" aria-hidden="true" />
+                    <h3 className="relative z-10 mt-4 text-lg font-semibold transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{title}</h3>
+                    <p className="relative z-10 mt-2 text-sm text-foreground/70 transition-colors duration-300 group-hover:text-foreground">{desc}</p>
+                    <div className="relative z-10 mt-4 flex items-center justify-center gap-2 text-sm font-semibold text-purple-600 dark:text-purple-400 opacity-0 transition-all duration-300 group-hover:translate-x-2 group-hover:opacity-100">
+                      Explore Feature <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1 group-hover:rotate-12" />
+                    </div>
                   </div>
                   
                   {/* Shimmer sweep across card on hover */}
@@ -198,6 +246,25 @@ export default function PortfolioAnalytics() {
                       <div className="absolute right-6 bottom-6 h-1.5 w-1.5 rounded-full bg-purple-500/40 opacity-0 transition-all duration-300 group-hover:opacity-100 animate-[float_3s_ease-in-out_infinite_0.5s_delay]" />
                     </>
                   )}
+                  
+                  {/* Starburst effect on hover */}
+                  <div className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`absolute h-1.5 w-1.5 rounded-full bg-gradient-to-r from-${['blue', 'purple', 'emerald', 'blue', 'purple'][i]}-500/40`}
+                        style={{
+                          left: '50%',
+                          top: '50%',
+                          width: ['3px', '4px', '3px', '5px', '3px'][i],
+                          height: ['3px', '4px', '3px', '5px', '3px'][i],
+                          transformOrigin: 'center',
+                          animation: `starburst ${0.6 + (i * 0.1)}s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                          animationDelay: `${0.2 + (i * 0.08)}s`,
+                        }}
+                      />
+                    ))}
+                  </div>
                 </a>
               ))}
             </div>
