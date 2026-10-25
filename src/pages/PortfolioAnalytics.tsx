@@ -12,7 +12,7 @@ import { InteractivePortfolioSimulator } from "@/components/portfolio/Interactiv
 import { ProjectRiskScorecard } from "@/components/portfolio/ProjectRiskScorecard";
 import { HiringDecisionScorecard } from "@/components/portfolio/HiringDecisionScorecard";
 import { projects, registryMeta, demonstratesOf } from "@/data/registry";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 /**
  * Portfolio Intelligence Hub - Advanced analytics and insights
@@ -32,6 +32,28 @@ const portfolioAnalytics = {
 
 export default function PortfolioAnalytics() {
   const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator" | "risk" | "hiring">("overview");
+  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+  const [isMouseDown, setIsMouseDown] = useState(false);
+
+  // Track cursor position
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setCursorPosition({ x: e.clientX, y: e.clientY });
+    };
+
+    const handleMouseDown = () => setIsMouseDown(true);
+    const handleMouseUp = () => setIsMouseDown(false);
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
 
   // Calculate portfolio-wide metrics
   const portfolioMetrics = {
@@ -50,6 +72,57 @@ export default function PortfolioAnalytics() {
 
   return (
     <div className="portfolio-shell">
+      {/* Cursor follower */}
+      <div 
+        className="pointer-events-none fixed inset-0 -z-50"
+        style={{ zIndex: -1 }}
+      >
+        {/* Main cursor glow */}
+        <div 
+          className="absolute h-64 w-64 rounded-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-emerald-500/20 blur-3xl transition-transform duration-75 ease-out"
+          style={{
+            left: cursorPosition.x - 128,
+            top: cursorPosition.y - 128,
+            transform: isMouseDown ? 'scale(1.5)' : 'scale(1)',
+          }}
+        />
+        
+        {/* Secondary smaller glow */}
+        <div 
+          className="absolute h-32 w-32 rounded-full bg-gradient-to-br from-purple-500/15 via-blue-500/15 to-emerald-500/15 blur-2xl transition-transform duration-75 ease-out"
+          style={{
+            left: cursorPosition.x - 64,
+            top: cursorPosition.y - 64,
+            transform: `scale(${isMouseDown ? 1.3 : 1}) rotate(${cursorPosition.x * 0.1}deg)`,
+          }}
+        />
+        
+        {/* Particle trail */}
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={`trail-${i}`}
+            className="absolute h-2 w-2 rounded-full bg-white/40 transition-all duration-100"
+            style={{
+              left: cursorPosition.x - 10 + (i - 2) * 15,
+              top: cursorPosition.y - 10 + Math.sin(i) * 10,
+              opacity: 1 - i * 0.15,
+              transform: `scale(${1 - i * 0.15})`,
+              filter: 'blur(2px)',
+            }}
+          />
+        ))}
+        
+        {/* Ripple effect on clicks */}
+        {isMouseDown && (
+          <div
+            className="absolute left-1/2 top-1/2 h-40 w-40 rounded-full border-2 border-purple-500/30"
+            style={{
+              transform: 'translate(-50%, -50%)',
+              animation: 'ripple-click 0.6s ease-out forwards',
+            }}
+          />
+        )}
+      </div>
       <SiteMetadata
         title={PROJECT_ANALYTICS_TITLE}
         description={PROJECT_ANALYTICS_DESCRIPTION}
