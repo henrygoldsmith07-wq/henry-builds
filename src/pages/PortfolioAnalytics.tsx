@@ -77,37 +77,96 @@ export default function PortfolioAnalytics() {
         className="pointer-events-none fixed inset-0 -z-50"
         style={{ zIndex: -1 }}
       >
-        {/* Main cursor glow */}
-        <div 
-          className="absolute h-64 w-64 rounded-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-emerald-500/20 blur-3xl transition-transform duration-75 ease-out"
-          style={{
-            left: cursorPosition.x - 128,
-            top: cursorPosition.y - 128,
-            transform: isMouseDown ? 'scale(1.5)' : 'scale(1)',
-          }}
-        />
-        
-        {/* Secondary smaller glow */}
-        <div 
-          className="absolute h-32 w-32 rounded-full bg-gradient-to-br from-purple-500/15 via-blue-500/15 to-emerald-500/15 blur-2xl transition-transform duration-75 ease-out"
-          style={{
-            left: cursorPosition.x - 64,
-            top: cursorPosition.y - 64,
-            transform: `scale(${isMouseDown ? 1.3 : 1}) rotate(${cursorPosition.x * 0.1}deg)`,
-          }}
-        />
-        
-        {/* Particle trail */}
-        {[...Array(5)].map((_, i) => (
+        {/* Multi-layer glow effect */}
+        {[...Array(3)].map((_, layer) => (
           <div
-            key={`trail-${i}`}
-            className="absolute h-2 w-2 rounded-full bg-white/40 transition-all duration-100"
+            key={`glow-${layer}`}
+            className="absolute rounded-full transition-all duration-75 ease-out"
             style={{
-              left: cursorPosition.x - 10 + (i - 2) * 15,
-              top: cursorPosition.y - 10 + Math.sin(i) * 10,
-              opacity: 1 - i * 0.15,
-              transform: `scale(${1 - i * 0.15})`,
-              filter: 'blur(2px)',
+              width: `${96 - layer * 32}px`,
+              height: `${96 - layer * 32}px`,
+              left: cursorPosition.x - 48 + layer * 16,
+              top: cursorPosition.y - 48 + layer * 16,
+              transform: `translate(-50%, -50%) scale(${isMouseDown ? 1.8 : 1}) rotate(${cursorPosition.x * (0.05 - layer * 0.01)}deg)`,
+              background: `radial-gradient(circle, ${['rgba(59,130,246,0.3)', 'rgba(168,85,247,0.25)', 'rgba(16,185,129,0.2)'][layer]} 0%, transparent 70%)`,
+              filter: `blur(${36 - layer * 8}px)`,
+              opacity: isMouseDown ? 0.6 : 0.4,
+              animation: `pulse-${layer === 0 ? 'fast' : layer === 1 ? 'medium' : 'slow'}_${Date.now()}_infinite`,
+            }}
+          />
+        ))}
+        
+        {/* Core cursor marker */}
+        <div
+          className="fixed pointer-events-none z-[9999]"
+          style={{
+            left: cursorPosition.x,
+            top: cursorPosition.y,
+            transform: 'translate(-50%, -50%)',
+          }}
+        >
+          {/* Inner core dot */}
+          <div
+            className="h-2 w-2 rounded-full bg-white animate-pulse shadow-[0_0_20px_rgba(255,255,255,0.8)]"
+          />
+          
+          {/* Outer ring */}
+          <div
+            className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-500/50"
+            style={{
+              animation: 'ring-expand_1.5s_ease-out_infinite',
+            }}
+          />
+          
+          {/* Secondary rotating ring */}
+          <div
+            className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-transparent border-t-purple-500/70 border-b-blue-500/70"
+            style={{
+              animation: 'ring-spin_2s_linear_infinite',
+            }}
+          />
+        </div>
+        
+        {/* Extended particle trail system */}
+        {[...Array(20)].map((_, i) => {
+          const angle = (i / 20) * Math.PI * 4;
+          const distance = 20 + i * 8;
+          return (
+            <div
+              key={`trail-${i}`}
+              className="fixed pointer-events-none"
+              style={{
+                left: cursorPosition.x + Math.cos(angle) * distance,
+                top: cursorPosition.y + Math.sin(angle) * distance,
+                width: `${3 - i * 0.1}px`,
+                height: `${3 - i * 0.1}px`,
+                backgroundColor: ['rgba(59,130,246,0.5)', 'rgba(168,85,247,0.5)', 'rgba(16,185,129,0.5)'][i % 3],
+                borderRadius: i % 3 === 0 ? '50%' : i % 3 === 1 ? '3px' : 'clip-path-polygon(50% 0%, 0% 100%, 100% 100%)',
+                opacity: 1 - i * 0.05,
+                transform: `scale(${1 - i * 0.04})`,
+                filter: 'blur(1px)',
+                animationDelay: `${i * 0.05}s`,
+                transition: 'all 0.1s ease-out',
+              }}
+            />
+          );
+        })}
+        
+        {/* Magnetic attraction field lines */}
+        {[...Array(8)].map((_, i) => (
+          <div
+            key={`field-${i}`}
+            className="fixed pointer-events-none"
+            style={{
+              left: cursorPosition.x,
+              top: cursorPosition.y,
+              width: `${100 + i * 25}px`,
+              height: `${2}px`,
+              transform: `translate(-50%, -50%) rotate(${i * 22.5}deg)`,
+              backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(168,85,247,0.3) 50%, transparent 100%)',
+              opacity: isMouseDown ? 0.5 : 0.3,
+              animation: 'field-wobble_2s_ease-in-out_infinite',
+              animationDelay: `${i * 0.25}s`,
             }}
           />
         ))}
@@ -115,12 +174,48 @@ export default function PortfolioAnalytics() {
         {/* Ripple effect on clicks */}
         {isMouseDown && (
           <div
-            className="absolute left-1/2 top-1/2 h-40 w-40 rounded-full border-2 border-purple-500/30"
+            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
             style={{
-              transform: 'translate(-50%, -50%)',
-              animation: 'ripple-click 0.6s ease-out forwards',
+              animation: 'ripple-click_0.8s_ease-out_forwards',
             }}
-          />
+          >
+            {[...Array(3)].map((_, r) => (
+              <div
+                key={r}
+                className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
+                style={{
+                  borderColor: ['rgba(59,130,246,0.6)', 'rgba(168,85,247,0.6)', 'rgba(16,185,129,0.6)'][r],
+                  animation: `ripple-expand_${r}_0.8s_ease-out_forwards`,
+                  width: `${64 + r * 32}px`,
+                  height: `${64 + r * 32}px`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Spark burst on click */}
+        {isMouseDown && (
+          <div
+            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
+          >
+            {[...Array(12)].map((_, s) => (
+              <div
+                key={`spark-${s}`}
+                className="absolute h-1.5 w-1.5"
+                style={{
+                  left: '50%',
+                  top: '50%',
+                  backgroundColor: ['#3b82f6', '#a855f7', '#10b981'][s % 3],
+                  transformOrigin: 'center',
+                  transform: `rotate(${s * 30}deg) translateX(40px)`,
+                  borderRadius: '50%',
+                  opacity: 0,
+                  animation: `spark-explode_${s * 0.05}_0.6s_cubic-bezier(0.4, 0, 0.2, 1)_forwards`,
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
       <SiteMetadata
