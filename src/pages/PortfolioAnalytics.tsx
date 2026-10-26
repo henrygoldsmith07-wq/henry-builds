@@ -341,30 +341,121 @@ export default function PortfolioAnalytics() {
                 }}
               />
             ))}
+            
+            {/* Tachyon ring expansion on extreme speed */}
+            {velocity > 1000 && (
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  animation: 'tachyon-ring_0.6s_ease-out_infinite',
+                }}
+              >
+                {[...Array(5)].map((_, r) => (
+                  <div
+                    key={`tachyon-${r}`}
+                    className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
+                    style={{
+                      borderColor: ['rgba(255,255,255,0.8)', 'rgba(59,130,246,0.6)', 'rgba(168,85,247,0.6)', 'rgba(16,185,129,0.6)', 'rgba(255,255,255,0.8)'][r],
+                      borderWidth: `${2 + r * 1.5}px`,
+                      width: `${80 + r * 40}px`,
+                      height: `${80 + r * 40}px`,
+                      animation: `tachyon-expand_${r}_0.6s_ease-out_forwards`,
+                      boxShadow: `0 0 ${20 + r * 10}px rgba(255,255,255,${0.5 - r * 0.1})`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
         
-        {/* Spark burst on click */}
+        {/* Quantum entanglement particles on hover interactions */}
+        {isMouseDown && velocity > 200 && (
+          <div
+            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
+          >
+            {[...Array(16)].map((_, q) => {
+              const entangleOffset = Date.now() * 0.002 * (q % 2 === 0 ? 1 : -1);
+              return (
+                <div
+                  key={`quantum-${q}`}
+                  className="absolute h-2 w-2"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    backgroundColor: ['#ffffff', '#3b82f6', '#a855f7', '#10b981', '#f59e0b'][q % 5],
+                    transformOrigin: 'center',
+                    transform: `rotate(${entangleOffset}rad) translateX(${60 + Math.random() * 40}px) rotate(${-entangleOffset}rad)`,
+                    borderRadius: q % 3 === 0 ? '50%' : '3px',
+                    opacity: 0.7 - q * 0.03,
+                    boxShadow: `0 0 ${15 + q * 2}px rgba(255,255,255,0.6)`,
+                    animation: `quantum-entangle_${q * 0.04}_0.8s_cubic-bezier(0.68, -0.55, 0.265, 1.55)_forwards`,
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
+        
+        {/* Dimensional rift effect at maximum velocity */}
+        {velocity > 1200 && (
+          <div
+            className="fixed inset-0 pointer-events-none -z-50 overflow-hidden"
+          >
+            {[...Array(8)].map((_, d) => (
+              <div
+                key={`rift-${d}`}
+                className="absolute inset-0"
+                style={{
+                  transform: `rotate(${d * 45}deg) scale(${0.8 + Math.sin(Date.now() * 0.003 + d) * 0.2})`,
+                  backgroundImage: 'linear-gradient(90deg, transparent 45%, rgba(255,255,255,0.6) 50%, transparent 55%)',
+                  backgroundSize: '200% 100%',
+                  animation: `dimensional-rift_${d}_0.3s_linear_infinite`,
+                  opacity: 0.4 - d * 0.04,
+                  filter: `blur(${d}px)`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+        
+        {/* Fractal ripple cascade on click */}
         {isMouseDown && (
           <div
             className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
           >
-            {[...Array(12)].map((_, s) => (
+            {[...Array(7)].map((_, f) => (
               <div
-                key={`spark-${s}`}
-                className="absolute h-1.5 w-1.5"
+                key={`fractal-${f}`}
+                className="absolute left-1/2 top-1/2"
                 style={{
-                  left: '50%',
-                  top: '50%',
-                  backgroundColor: ['#3b82f6', '#a855f7', '#10b981'][s % 3],
-                  transformOrigin: 'center',
-                  transform: `rotate(${s * 30}deg) translateX(40px)`,
-                  borderRadius: '50%',
-                  opacity: 0,
-                  animation: `spark-explode_${s * 0.05}_0.6s_cubic-bezier(0.4, 0, 0.2, 1)_forwards`,
+                  width: `${40 + f * 30}px`,
+                  height: `${40 + f * 30}px`,
+                  transform: `translate(-50%, -50%) scale(${1 + f * 0.3})`,
+                  border: `${1 + f * 0.5}px solid`,
+                  borderColor: ['rgba(255,255,255,0.9)', 'rgba(59,130,246,0.7)', 'rgba(168,85,247,0.7)', 'rgba(16,185,129,0.7)', 'rgba(255,255,255,0.7)', 'rgba(59,130,246,0.5)', 'rgba(168,85,247,0.5)'][f],
+                  borderRadius: f % 2 === 0 ? '50%' : '8px',
+                  opacity: 1 - f * 0.12,
+                  animation: `fractal-ripple_${f}_0.7s_ease-out_forwards`,
+                  boxShadow: `0 0 ${10 + f * 5}px currentColor`,
                 }}
-              />
+              >
+                {/* Nested fractal details */}
+                {[...Array(4)].map((_, nested) => (
+                  <div
+                    key={`fractal-nested-${nested}`}
+                    className="absolute inset-0"
+                    style={{
+                      transform: `rotate(${nested * 90}deg) translateX(${15 + f * 5}px)`,
+                      border: `1px dashed`,
+                      borderColor: ['rgba(255,255,255,0.4)', 'rgba(59,130,246,0.3)', 'rgba(168,85,247,0.3)', 'rgba(16,185,129,0.3)'][nested],
+                      borderRadius: f % 2 === 0 ? '50%' : '4px',
+                      animation: `fractal-spin_${nested}_0.5s_linear_infinite`,
+                    }}
+                  />
+                ))}
+              </div>
             ))}
           </div>
         )}
