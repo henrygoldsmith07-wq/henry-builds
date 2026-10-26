@@ -152,6 +152,55 @@ export default function PortfolioAnalytics() {
           );
         })}
         
+        {/* Chaotic orbiting particles */}
+        {[...Array(8)].map((_, i) => {
+          const orbitRadius = 60 + i * 20;
+          const speed = 0.5 + i * 0.1;
+          const offset = Date.now() * speed * 0.001;
+          return (
+            <div
+              key={`orbit-${i}`}
+              className="fixed pointer-events-none"
+              style={{
+                left: cursorPosition.x + Math.cos(offset + i * (Math.PI * 2 / 8)) * orbitRadius,
+                top: cursorPosition.y + Math.sin(offset + i * (Math.PI * 2 / 8)) * orbitRadius,
+                width: `${8 + (i % 3) * 4}px`,
+                height: `${8 + (i % 3) * 4}px`,
+                backgroundColor: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#06b6d4'][i],
+                borderRadius: '50%',
+                boxShadow: `0 0 ${10 + i * 3}px rgba(168,85,247,${0.4 - i * 0.04})`,
+                opacity: 0.7 + (i % 2) * 0.3,
+                filter: `blur(${2 - i * 0.2}px)`,
+                transition: 'all 0.08s ease-out',
+              }}
+            />
+          );
+        })}
+        
+        {/* Echo trail system */}
+        {[...Array(10)].map((_, i) => {
+          const echoOffset = i * 3;
+          const timeDelay = i * 0.1;
+          return (
+            <div
+              key={`echo-${i}`}
+              className="fixed pointer-events-none"
+              style={{
+                left: cursorPosition.x + Math.sin(Date.now() * 0.001 + i) * echoOffset * 2,
+                top: cursorPosition.y + Math.cos(Date.now() * 0.002 + i * 0.5) * echoOffset * 1.5,
+                width: `${6 - i * 0.5}px`,
+                height: `${6 - i * 0.5}px`,
+                borderRadius: i % 2 === 0 ? '50%' : '2px',
+                backgroundColor: i % 3 === 0 ? 'rgba(59,130,246,0.3)' : i % 3 === 1 ? 'rgba(168,85,247,0.3)' : 'rgba(16,185,129,0.3)',
+                opacity: 0.4 - i * 0.035,
+                transform: `scale(${0.8 - i * 0.05}) rotate(${Date.now() * 0.05 + i * 36}deg)`,
+                filter: 'blur(2px)',
+                transition: 'all 0.15s ease-out',
+              }}
+            />
+          );
+        })}
+        
         {/* Magnetic attraction field lines */}
         {[...Array(8)].map((_, i) => (
           <div
