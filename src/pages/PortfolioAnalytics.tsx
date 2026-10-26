@@ -34,11 +34,23 @@ export default function PortfolioAnalytics() {
   const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator" | "risk" | "hiring">("overview");
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [isMouseDown, setIsMouseDown] = useState(false);
+  const [lastCursorPosition, setLastCursorPosition] = useState({ x: 0, y: 0 });
+  const [velocity, setVelocity] = useState(0);
+  const [highSpeedMode, setHighSpeedMode] = useState(false);
 
-  // Track cursor position
+  // Track cursor position with velocity calculation
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - lastCursorPosition.x;
+      const deltaY = e.clientY - lastCursorPosition.y;
+      const dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      const vel = dist / 0.016; // Normalize to per-second
+      
+      setVelocity(vel);
+      setHighSpeedMode(vel > 500);
+      
       setCursorPosition({ x: e.clientX, y: e.clientY });
+      setLastCursorPosition({ x: e.clientX, y: e.clientY });
     };
 
     const handleMouseDown = () => setIsMouseDown(true);
@@ -53,7 +65,7 @@ export default function PortfolioAnalytics() {
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, []);
+  }, [lastCursorPosition]);
 
   // Calculate portfolio-wide metrics
   const portfolioMetrics = {
@@ -77,24 +89,29 @@ export default function PortfolioAnalytics() {
         className="pointer-events-none fixed inset-0 -z-50"
         style={{ zIndex: -1 }}
       >
-        {/* Multi-layer glow effect */}
-        {[...Array(3)].map((_, layer) => (
-          <div
-            key={`glow-${layer}`}
-            className="absolute rounded-full transition-all duration-75 ease-out"
-            style={{
-              width: `${96 - layer * 32}px`,
-              height: `${96 - layer * 32}px`,
-              left: cursorPosition.x - 48 + layer * 16,
-              top: cursorPosition.y - 48 + layer * 16,
-              transform: `translate(-50%, -50%) scale(${isMouseDown ? 1.8 : 1}) rotate(${cursorPosition.x * (0.05 - layer * 0.01)}deg)`,
-              background: `radial-gradient(circle, ${['rgba(59,130,246,0.3)', 'rgba(168,85,247,0.25)', 'rgba(16,185,129,0.2)'][layer]} 0%, transparent 70%)`,
-              filter: `blur(${36 - layer * 8}px)`,
-              opacity: isMouseDown ? 0.6 : 0.4,
-              animation: `pulse-${layer === 0 ? 'fast' : layer === 1 ? 'medium' : 'slow'}_${Date.now()}_infinite`,
-            }}
-          />
-        ))}
+        {/* Chromatic aberration layers */}
+        {[...Array(3)].map((_, layer) => {
+          const offset = (layer - 1) * 2;
+          const color = ['#ff0000', '#00ff00', '#0000ff'][layer];
+          return (
+            <div
+              key={`ab-${layer}`}
+              className="absolute rounded-full transition-all duration-75 ease-out"
+              style={{
+                width: `${96 - layer * 32}px`,
+                height: `${96 - layer * 32}px`,
+                left: cursorPosition.x - 48 + layer * 16 + offset * (highSpeedMode ? 4 : 0),
+                top: cursorPosition.y - 48 + layer * 16 + offset * (highSpeedMode ? 4 : 0),
+                transform: `translate(-50%, -50%) scale(${isMouseDown ? 1.8 : 1}) rotate(${cursorPosition.x * (0.05 - layer * 0.01)}deg)`,
+                background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
+                filter: `blur(${36 - layer * 8}px)`,
+                opacity: isMouseDown ? 0.6 : 0.4,
+                mixBlendMode: 'screen' as const,
+                boxShadow: highSpeedMode ? `0 0 ${20 + layer * 10}px ${color}` : 'none',
+              }}
+            />
+          );
+        })}
         
         {/* Core cursor marker */}
         <div
@@ -105,24 +122,40 @@ export default function PortfolioAnalytics() {
             transform: 'translate(-50%, -50%)',
           }}
         >
-          {/* Inner core dot */}
+          {/* Inner core dot with pulse intensity based on velocity */}
           <div
             className="h-2 w-2 rounded-full bg-white animate-pulse shadow-[0_0_20px_rgba(255,255,255,0.8)]"
-          />
-          
-          {/* Outer ring */}
-          <div
-            className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-500/50"
             style={{
-              animation: 'ring-expand_1.5s_ease-out_infinite',
+              opacity: 0.5 + (velocity / 2000),
+              transform: `scale(${1 + velocity / 1000})`,
             }}
           />
           
-          {/* Secondary rotating ring */}
+          {/* Outer ring expanding based on velocity */}
+          <div
+            className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-500/50"
+            style={{
+              animation: velocity > 300 ? 'ring-expand-fast_0.3s_ease-out_infinite' : 'ring-expand_1.5s_ease-out_infinite',
+              borderColor: highSpeedMode ? '#fff' : '#a855f7',
+            }}
+          />
+          
+          {/* Secondary rotating ring with dual colors */}
           <div
             className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-transparent border-t-purple-500/70 border-b-blue-500/70"
             style={{
-              animation: 'ring-spin_2s_linear_infinite',
+              animation: `ring-spin_${highSpeedMode ? 'fast' : 'normal'}_2s_linear_infinite`,
+              borderWidth: `${2 + velocity * 0.002}px`,
+            }}
+          />
+          
+          {/* Velocity-based glow halo */}
+          <div
+            className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              background: `radial-gradient(circle, rgba(168,85,247,${0.3 + velocity / 1000}) 0%, transparent 70%)`,
+              animation: 'halo-pulse_2s_ease-in-out_infinite',
+              opacity: Math.min(velocity / 500, 0.8),
             }}
           />
         </div>
@@ -225,7 +258,7 @@ export default function PortfolioAnalytics() {
           <div
             className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
             style={{
-              animation: 'ripple-click_0.8s_ease-out_forwards',
+              animation: `ripple-click_0.8s_ease-out_forwards`,
             }}
           >
             {[...Array(3)].map((_, r) => (
@@ -237,11 +270,80 @@ export default function PortfolioAnalytics() {
                   animation: `ripple-expand_${r}_0.8s_ease-out_forwards`,
                   width: `${64 + r * 32}px`,
                   height: `${64 + r * 32}px`,
+                  boxShadow: velocity > 300 ? `0 0 ${30 + r * 10}px currentColor` : 'none',
+                  borderWidth: `${2 + velocity * 0.001}px`,
+                }}
+              />
+            ))}
+            
+            {/* Shockwave burst on click */}
+            {velocity > 300 && (
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)',
+                  transform: 'scale(2)',
+                  opacity: 0,
+                  animation: 'shockwave_0.4s_ease-out_forwards',
+                }}
+              />
+            )}
+          </div>
+        )}
+        
+        {/* Screen shake on high velocity */}
+        {highSpeedMode && (
+          <div className="fixed inset-0 -z-50 overflow-hidden">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={`shake-${i}`}
+                className="absolute inset-0"
+                style={{
+                  animation: `screen-shake_${0.1 + i * 0.05}_0.2s_cubic-bezier(0.36, 0, 0.66, -0.54)_infinite`,
+                  opacity: 0.3 - i * 0.05,
+                  filter: `blur(${i}px)`,
+                  backgroundImage: i === 0 
+                    ? 'linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.5) 50%, transparent 52%)'
+                    : i === 1
+                    ? 'linear-gradient(-45deg, transparent 48%, rgba(255,255,255,0.5) 50%, transparent 52%)'
+                    : i === 2
+                    ? 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(168,85,247,0.3) 4px)'
+                    : i === 3
+                    ? 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(59,130,246,0.3) 4px)'
+                    : 'radial-gradient(circle at center, transparent 60%, rgba(16,185,129,0.3))',
                 }}
               />
             ))}
           </div>
         )}
+        
+        {/* Photon bursts on very high speed */}
+        {velocity > 800 && (
+          <div
+            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
+          >
+            {[...Array(24)].map((_, b) => (
+              <div
+                key={`photon-${b}`}
+                className="absolute h-1 bg-white"
+                style={{
+                  left: '50%',
+                  top: '50%',
+                  width: `${20 + Math.random() * 60}px`,
+                  backgroundColor: ['#ffffff', '#3b82f6', '#a855f7', '#10b981'][b % 4],
+                  transformOrigin: 'center',
+                  transform: `rotate(${b * 15}deg) translateY(-${40 + Math.random() * 60}px)`,
+                  borderRadius: '50%',
+                  opacity: 0.6 + Math.random() * 0.4,
+                  boxShadow: `0 0 ${10 + Math.random() * 20}px currentColor`,
+                  animationDelay: `${Math.random() * 0.2}s`,
+                  animation: 'photon-explode_0.4s_cubic-bezier(0, 0, 0.2, 1)_forwards',
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
         
         {/* Spark burst on click */}
         {isMouseDown && (
