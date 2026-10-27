@@ -2,6 +2,19 @@
 
 Portfolio site for Henry Goldsmith. Vite + React 19 + React Router 7 + Tailwind 4.
 
+## Setup
+
+The project pins Bun via `packageManager`. To work on it:
+
+```bash
+bun install                    # or npm install / pnpm install — lockfile is bun.lock
+bun run dev                    # Vite dev server (default http://localhost:5173)
+```
+
+Node's own package manager also works for the plain-node scripts (`node
+scripts/validate-registry.mjs` etc. have zero dependencies); only `vite`,
+`tsc`, `eslint` and Playwright need `node_modules` present.
+
 The organising idea: **nothing appears on this site unless it points at something
 checkable.** Project data is imported from a registry rather than hand-maintained,
 every number states how it was measured, every claim carries an evidence link,
@@ -31,13 +44,15 @@ and records operational history. `registry:refresh:ci` also refreshes Actions fa
 
 ## The reading surfaces
 
-Four routes, all fed from the same merged registry:
+Five routes, all fed from the same merged registry:
 
 | Route | What it is for |
 |---|---|
 | `/` | The story, the principles, and **the receipts** — a proof summary counted from the registry as the page loads |
 | `/projects` | Every project, filterable, with evidence counts and what each one demonstrates |
 | `/compare` | All projects on one table: stage, source state, CI health, evidence density, measured numbers, ledger grade, claim freshness, and what each demonstrates |
+| `/build-log` | Dead ends, decisions, lessons and stated limits, grouped from the generated build log |
+| `/analytics` | Portfolio intelligence hub: skills heatmap, complexity analysis, verification timeline, hiring scorecard |
 | `/projects/<slug>` | The full case study |
 
 The proof summary and the comparison table are the two surfaces that make this a
@@ -179,7 +194,7 @@ bun run record:bundle          # record built JS/CSS weight into bundle history
 bun run route-html             # after Vite: emit crawler-visible HTML per public route
 
 bun run audit:claims           # ban self-ratings and unfalsifiable superlatives
-bun run test:evidence           # regression-test the evidence gates themselves
+bun run test:evidence          # regression-test the evidence gates themselves
 bun run check:links            # internal assets, sitemap, built output
 bun run check:links:external   # also HEAD every external evidence link
 bun run check:links:github     # also verify GitHub blob/tree paths exist in their repos
