@@ -210,7 +210,8 @@ function hydrate(project: Project): HydratedProject {
         }
       : undefined,
     ledgerClaims: claimsByProduct.get(project.upstreamId) ?? [],
-    ledgerImportedAt: evidenceLedger.importedAt,    facts: factsFile.latest?.[project.upstreamId],
+    ledgerImportedAt: evidenceLedger.importedAt,
+    facts: factsFile.latest?.[project.upstreamId],
     factsHistory: factsFile.history?.[project.upstreamId] ?? [],
     factsGeneratedAt: factsFile.generatedAt,
     registryImportedAt: upstream.importedAt,
