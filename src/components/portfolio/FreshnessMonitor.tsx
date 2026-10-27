@@ -8,7 +8,13 @@
 
 import { AlertTriangle, CheckCircle2, Clock, TriangleAlert } from "lucide-react";
 import { projects } from "@/data/registry";
-import { daysSinceVerified, FRESH_CLAIM_WINDOW_DAYS } from "@/data/registry";
+import {
+  daysSinceVerified,
+  deploySnapshotAgeDays,
+  DEPLOY_SNAPSHOT_WINDOW_DAYS,
+  FRESH_CLAIM_WINDOW_DAYS,
+} from "@/data/registry";
+import type { HydratedProject } from "@/data/registry";
 
 interface FreshnessMetrics {
   projectSlug: string;
@@ -23,43 +29,54 @@ interface FreshnessMetrics {
 /**
  * Calculate freshness metrics for a project.
  */
-function calculateFreshnessMetrics(project: any): FreshnessMetrics | null {
+function calculateFreshnessMetrics(project: HydratedProject): FreshnessMetrics | null {
   const verifiedAgeDays = daysSinceVerified(project);
+
+  // `daysSinceVerified` returns null when the case study carries no usable
+  // date. Reading null through `>` made the comparison always false, so any
+  // project without a stamp silently counted as fresh. It belongs in the
+  // "stale" bucket instead: unknown age is not the same as verified now.
+  if (verifiedAgeDays === null) return null;
+
   const isStale = verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS;
-  
-  // Get deployment snapshot age
-  const deploySnapshot = project.facts?.deploy;
-  const deployAgeDays = deploySnapshot ? Math.floor((Date.now() - new Date(deploySnapshot.date).getTime()) / (1000 * 60 * 60 * 24)) : 0;
-  
+
+  // The deployment snapshot is stamped once for the whole file
+  // (`facts-history.json` -> `generatedAt`), falling back to the deployment's
+  // own creation date. Reading `deploySnapshot.date` read a field that does
+  // not exist on `FactsSnapshot`, producing `new Date(undefined)` -> NaN, and
+  // `deployAgeDays: NaN` sorted the report to the bottom and broke the
+  // average. `deploySnapshotAgeDays` in the registry module owns this rule.
+  const deployAgeDays = deploySnapshotAgeDays(project) ?? 0;
+
   // Generate warnings
   const warnings: Array<{ type: "evidence" | "deployment" | "verification"; message: string }> = [];
-  
+
   if (isStale) {
     warnings.push({
       type: "evidence",
       message: `Case study last verified ${verifiedAgeDays} days ago (${FRESH_CLAIM_WINDOW_DAYS} day threshold)`,
     });
   }
-  
-  if (deployAgeDays > 30) {
+
+  if (deployAgeDays > DEPLOY_SNAPSHOT_WINDOW_DAYS) {
     warnings.push({
       type: "deployment",
-      message: `Production deployment not updated in ${deployAgeDays} days`,
+      message: `Deployment snapshot unchecked for ${deployAgeDays} days (window: ${DEPLOY_SNAPSHOT_WINDOW_DAYS} days)`,
     });
   }
-  
+
   // Count unverified outcomes
   const unverifiedOutcomes = project.caseStudy.outcomes.filter(
-    (outcome: any) => outcome.evidence.length === 0
+    (outcome) => outcome.evidence.length === 0
   ).length;
-  
+
   if (unverifiedOutcomes > 0) {
     warnings.push({
       type: "verification",
       message: `${unverifiedOutcomes} outcome${unverifiedOutcomes > 1 ? "s" : ""} without evidence`,
     });
   }
-  
+
   return {
     projectSlug: project.slug,
     projectName: project.name,
@@ -85,7 +102,12 @@ export function ClaimFreshnessReport() {
   // Calculate summary statistics
   const staleProjects = metrics.filter((m) => m.needsRefresh);
   const healthyProjects = metrics.filter((m) => !m.needsRefresh);
-  const averageAge = Math.round(metrics.reduce((sum, m) => sum + m.verifiedAgeDays, 0) / metrics.length);
+  // `metrics` is non-empty whenever any case study is published, so the mean
+  // cannot divide by zero in practice; `Number.isFinite` keeps a hypothetical
+  // empty registry from rendering `NaN` as the headline average.
+  const averageAgeRaw =
+    metrics.reduce((sum, m) => sum + m.verifiedAgeDays, 0) / metrics.length;
+  const averageAge = Number.isFinite(averageAgeRaw) ? Math.round(averageAgeRaw) : 0;
   
   return (
     <div className="space-y-6">
@@ -238,12 +260,25 @@ export function ClaimFreshnessReport() {
 /**
  * Individual freshness indicator component for use on project pages.
  */
-export function ClaimFreshnessIndicator({ project }: { project: any }) {
+export function ClaimFreshnessIndicator({ project }: { project: HydratedProject }) {
   const verifiedAgeDays = daysSinceVerified(project);
+
+  // No usable verification date: say so rather than rendering "NaN" or
+  // pretending the claim was checked today (a null date used to satisfy the
+  // `=== 0` shortcut below and show "Just verified").
+  if (verifiedAgeDays === null) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+        <TriangleAlert className="size-3.5" />
+        Verification date missing
+      </span>
+    );
+  }
+
   const isStale = verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS;
   const isApproachingStale = verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS * 0.75;
-  
-  if (verifiedAgeDays === 0) {
+
+  if (verifiedAgeDays <= 0) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-500">
         <CheckCircle2 className="size-3.5" />
