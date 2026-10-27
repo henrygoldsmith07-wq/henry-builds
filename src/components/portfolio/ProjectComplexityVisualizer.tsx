@@ -9,7 +9,7 @@
  */
 
 import { useMemo } from "react";
-import { projects } from "@/data/registry";
+import { projects, hasCarriedCi } from "@/data/registry";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -31,9 +31,9 @@ const calculateProjectMetrics = (): ProjectMetrics[] => {
     
     // Tech stack score: variety + modernity
     const hasModernTech = [
-      ...project.tags.includes("TypeScript"),
-      ...project.caseStudy.metrics.length > 0,
-      ...project.stage !== "research"
+      project.tags.includes("TypeScript"),
+      project.caseStudy.metrics.length > 0,
+      project.stage !== "research",
     ];
     const techStackScore = Math.round(70 + (hasModernTech.length * 8) + (project.caseStudy.metrics.length * 2));
     
@@ -44,9 +44,18 @@ const calculateProjectMetrics = (): ProjectMetrics[] => {
     const architectureComplexity = Math.min(100, Math.round(40 + (featureCount * 5) + (tradeoffCount * 8) + (limitationCount * 3)));
     
     // Code quality: test coverage proxies, validation rules, CI strength
-    const evidencePoints = project.caseStudy.metrics.reduce((sum, m) => sum + (m.evidence?.length || 0), 0);
+    const evidencePoints = project.caseStudy.metrics.reduce((sum, m) => sum + m.evidence.length, 0);
     const claimEvidenceRatio = evidencePoints / (project.caseStudy.outcomes.length || 1);
-    const codeQualityScore = Math.min(100, Math.round(60 + (claimEvidenceRatio * 15) + (project.ci?.greenRuns || 0)));
+    // `HydratedProject.ci` carries { workflow, runUrl, conclusion, lastRunAt,
+    // lastVerifiedAt, carriedForward } — there is no `greenRuns` counter, so
+    // this read undefined and silently added 0. What the record does say about
+    // CI strength is the conclusion and whether the fact is still current.
+    const ciIsGreenAndCurrent =
+      project.ci?.conclusion === "success" && !hasCarriedCi(project);
+    const codeQualityScore = Math.min(
+      100,
+      Math.round(60 + (claimEvidenceRatio * 15) + (ciIsGreenAndCurrent ? 10 : 0)),
+    );
     
     // Evidence density: ratio of verified claims to total claims
     const evidencedOutcomes = project.caseStudy.outcomes.filter(o => o.evidence.length > 0).length;
@@ -54,10 +63,10 @@ const calculateProjectMetrics = (): ProjectMetrics[] => {
     
     // Innovation factor: unique approaches, novel patterns
     const hasUniquePatterns = [
-      ...project.caseStudy.architecture !== undefined,
-      ...project.caseStudy.insightLifecycle !== undefined,
-      ...project.caseStudy.failedApproaches.length > 0,
-      ...project.tags.some(t => t.includes("Offline")) || t.includes("AI") || t.includes("ML")
+      project.caseStudy.architecture !== undefined,
+      project.caseStudy.insightLifecycle !== undefined,
+      project.caseStudy.failedApproaches.length > 0,
+      project.tags.some((t) => t === "Offline" || t === "AI" || t === "ML"),
     ];
     const innovationFactor = Math.round(50 + (hasUniquePatterns.length * 12) + (project.factsHistory.length * 3));
     
