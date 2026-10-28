@@ -37,6 +37,7 @@ export default function PortfolioAnalytics() {
   const [lastCursorPosition, setLastCursorPosition] = useState({ x: 0, y: 0 });
   const [velocity, setVelocity] = useState(0);
   const [highSpeedMode, setHighSpeedMode] = useState(false);
+  const [singularityActive, setSingularityActive] = useState(false);
 
   // Track cursor position with velocity calculation
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function PortfolioAnalytics() {
       
       setVelocity(vel);
       setHighSpeedMode(vel > 500);
+      setSingularityActive(vel > 1500);
       
       setCursorPosition({ x: e.clientX, y: e.clientY });
       setLastCursorPosition({ x: e.clientX, y: e.clientY });
@@ -457,6 +459,80 @@ export default function PortfolioAnalytics() {
                 ))}
               </div>
             ))}
+          </div>
+        )}
+        
+        {/* Singularity black hole at extreme velocity */}
+        {singularityActive && (
+          <div
+            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
+          >
+            {/* Event horizon glow */}
+            <div
+              className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black"
+              style={{
+                boxShadow: '0 0 60px 20px rgba(255,255,255,0.8)',
+                animation: 'event-horizon-pulse_0.3s_ease-in-out_infinite',
+              }}
+            />
+            
+            {/* Accretion disk matter spiral */}
+            {[...Array(32)].map((_, m) => {
+              const angle = (Date.now() * 0.003 * (m % 2 === 0 ? 1 : -1)) + (m * (Math.PI * 2 / 32));
+              const radius = 80 + Math.sin(angle * 4) * 20 + m * 3;
+              return (
+                <div
+                  key={`matter-${m}`}
+                  className="absolute h-1.5 w-1.5"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    backgroundColor: ['#ffffff', '#3b82f6', '#a855f7', '#10b981', '#f59e0b'][m % 5],
+                    transformOrigin: 'center',
+                    transform: `rotate(${angle}rad) translateX(${radius}px) rotate(${-angle * 2}rad)`,
+                    borderRadius: '50%',
+                    opacity: 0.8 - (m % 8) * 0.08,
+                    filter: `blur(${(m % 4)}px)`,
+                    boxShadow: `0 0 ${10 + (m % 5) * 5}px currentColor`,
+                    animation: `accretion-spin_${m % 8}_0.8s_linear_infinite`,
+                    animationDelay: `${-(m * 0.025)}s`,
+                  }}
+                />
+              );
+            })}
+            
+            {/* Gravitational lensing effect */}
+            <div
+              className="absolute inset-0 -z-10 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, transparent 40%, rgba(255,255,255,0.2) 60%, transparent 80%)',
+                backdropFilter: 'blur(20px)',
+                animation: 'lens-distortion_0.4s_ease-in-out_infinite',
+              }}
+            />
+            
+            {/* Time dilation particle slow-motion */}
+            {[...Array(20)].map((_, t) => {
+              const timeOffset = Date.now() * 0.0005 * (-1);
+              return (
+                <div
+                  key={`time-${t}`}
+                  className="absolute h-1 w-8"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    backgroundColor: 'rgba(255,255,255,0.6)',
+                    transformOrigin: 'center',
+                    transform: `rotate(${timeOffset + t * 18}deg) translateY(-120px)`,
+                    borderRadius: '50%',
+                    opacity: 0.5 - t * 0.02,
+                    filter: 'blur(1px)',
+                    animation: 'time-dilation_1.2s_linear_infinite',
+                    animationDelay: `${t * 0.05}s`,
+                  }}
+                />
+              );
+            })}
           </div>
         )}
       </div>
