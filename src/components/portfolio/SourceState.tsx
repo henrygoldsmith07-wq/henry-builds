@@ -1,5 +1,6 @@
 import { Archive, BookOpen, FlaskConical, GitBranch } from "lucide-react";
 import { sourceStateCopy, type SourceState } from "@/data/registry/schema";
+import { formatDisplayDate } from "@/data/registry/freshness.mjs";
 
 const stateIcon: Record<SourceState, typeof GitBranch> = {
   "current-source": GitBranch,
@@ -63,9 +64,9 @@ export function VerificationLine({
   importedAt?: string;
 }) {
   if (!ci && !importedAt) return null;
-  const verified = ci?.lastVerifiedAt ? new Date(ci.lastVerifiedAt).toISOString().slice(0, 10) : null;
-  const ran = ci?.lastRunAt ? new Date(ci.lastRunAt).toISOString().slice(0, 10) : null;
-  const imported = importedAt ? new Date(importedAt).toISOString().slice(0, 10) : null;
+  const verified = formatDisplayDate(ci?.lastVerifiedAt);
+  const ran = formatDisplayDate(ci?.lastRunAt);
+  const imported = formatDisplayDate(importedAt);
 
   return (
     <p className="text-xs leading-5 text-muted-foreground">
@@ -73,18 +74,22 @@ export function VerificationLine({
         <>
           Last code verification (green CI):{" "}
           {verified ? (
-            <a
-              className="underline underline-offset-2 hover:text-foreground"
-              href={ci.runUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {verified}
-            </a>
+            ci.runUrl ? (
+              <a
+                className="underline underline-offset-2 hover:text-foreground"
+                href={ci.runUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {verified}
+              </a>
+            ) : (
+              <span>{verified}</span>
+            )
           ) : (
-            <span>none recorded</span>
+            <span>unknown</span>
           )}
-          {ran && ran !== verified && <> · newest run {ran} ({ci.conclusion})</>}
+          {ran && ran !== verified && <> · newest run {ran} ({ci.conclusion ?? "unknown"})</>}
           {ci.carriedForward && <> · carried forward from an earlier import</>}
         </>
       ) : (

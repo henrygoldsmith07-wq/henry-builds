@@ -127,3 +127,13 @@ export function captureAgeLabel(iso, nowMs = Date.now()) {
   if (days < 60) return `captured ${days}d ago`;
   return `captured ~${Math.round(days / 30)}mo ago`;
 }
+
+/** A compact date for optional generated timestamps; invalid data stays visible as unknown. */
+export function formatDisplayDate(iso) {
+  if (!iso || !/^\d{4}-\d{2}-\d{2}(?:$|T| )/.test(iso)) return null;
+  const datePart = iso.slice(0, 10);
+  const parsed = new Date(`${datePart}T00:00:00.000Z`);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== datePart) return null;
+  if (!Number.isFinite(Date.parse(iso))) return null;
+  return datePart;
+}
