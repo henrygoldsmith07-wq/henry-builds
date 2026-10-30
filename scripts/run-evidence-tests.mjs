@@ -1540,6 +1540,72 @@ test("generate-og removes cards for projects that are no longer published", asyn
   }
 });
 
+// --- the freshness windows module -------------------------------------------
+
+/**
+ * `src/data/registry/freshness.mjs` is the single source of truth for every
+ * "how old may X be" question, shared by the validator, the freshness gate and
+ * the browser bundle. Its two exported helpers carry null/NaN contracts that
+ * callers rely on (a null return means "unknown", never "fresh"), so the
+ * contract itself gets asserted here — the UI bugs this class of drift causes
+ * render as NaN badges, which no validator currently catches.
+ */
+const freshnessWindowCases = [
+  { label: "a fresh date is inside its window", iso: daysAgoIso(3), windowDays: 14, expect: true },
+  // A boundary test built from Date.now() is a race against the clock tick, so
+  // the "exactly at the window edge" case is pinned: pass the comparison point
+  // explicitly through the helper's optional `nowMs` argument.
+  { label: "a date exactly on the window boundary counts as inside", iso: "2026-01-01T00:00:00.000Z", windowDays: 14, nowMs: Date.parse("2026-01-15T00:00:00.000Z"), expect: true },
+  { label: "a date one ms past the boundary is outside it", iso: "2026-01-01T00:00:00.000Z", windowDays: 14, nowMs: Date.parse("2026-01-15T00:00:00.001Z"), expect: false },
+  { label: "a date past the window is outside it", iso: daysAgoIso(15), windowDays: 14, expect: false },
+  // A timestamp ahead of the clock is treated as fresh rather than expiring in
+  // negative days — the validator separately rejects implausible future stamps.
+  { label: "a future date counts as fresh, not negative", iso: daysAgoIso(-5), windowDays: 14, expect: true },
+  { label: "a missing date is never inside a window", iso: undefined, windowDays: 14, expect: false },
+  { label: "an unparseable date is never inside a window", iso: "last Tuesday", windowDays: 14, expect: false },
+];
+
+for (const { label, iso, windowDays, expect, nowMs } of freshnessWindowCases) {
+  test(`freshness windows: isWithinWindow — ${label}`, async () => {
+    const { isWithinWindow } = await import(
+      pathToFileURL(path.join(repoRoot, "src", "data", "registry", "freshness.mjs")).href
+    );
+    if (isWithinWindow(iso, windowDays, nowMs) !== expect) {
+      throw new Error(`isWithinWindow(${iso}, ${windowDays}) expected ${expect}`);
+    }
+  });
+}
+
+const daysSinceCases = [
+  { label: "one day ago yields 1", iso: daysAgoIso(1), expect: 1 },
+  { label: "under a day floors to 0", iso: daysAgoIso(0.2), expect: 0 },
+  { label: "a missing date yields null, not NaN", iso: undefined, expect: null },
+  { label: "an unparseable date yields null, not NaN", iso: "not a date", expect: null },
+];
+
+for (const { label, iso, expect } of daysSinceCases) {
+  test(`freshness windows: daysSince — ${label}`, async () => {
+    const { daysSince } = await import(
+      pathToFileURL(path.join(repoRoot, "src", "data", "registry", "freshness.mjs")).href
+    );
+    const actual = daysSince(iso);
+    if (actual !== expect) {
+      throw new Error(`daysSince(${iso}) expected ${expect}, got ${actual}`);
+    }
+  });
+}
+
+test("freshness windows: captureAgeLabel stops calling old captures current", async () => {
+  const { captureAgeLabel, MAX_CAPTURE_AGE_DAYS } = await import(
+    pathToFileURL(path.join(repoRoot, "src", "data", "registry", "freshness.mjs")).href
+  );
+  const fresh = captureAgeLabel(daysAgoIso(2), Date.now());
+  const stale = captureAgeLabel(daysAgoIso(MAX_CAPTURE_AGE_DAYS + 1), Date.now());
+  if (fresh !== "captured 2d ago") throw new Error(`fresh label: ${fresh}`);
+  if (stale !== "historical capture") throw new Error(`stale label: ${stale}`);
+  if (captureAgeLabel(null, Date.now()) !== null) throw new Error("null iso must yield null");
+});
+
 // --- runner ------------------------------------------------------------------
 
 console.log(`run-evidence-tests: ${tests.length} scenarios\n`);

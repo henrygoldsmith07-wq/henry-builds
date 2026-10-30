@@ -89,11 +89,14 @@ export default function BuildLog() {
       list.push(entry);
       grouped.set(entry.kind, list);
     }
-    // Dead ends first — they are the reason to read the page — then the rest by
-    // project name so the order is stable and re-running the generator does not
-    // reshuffle the page.
+    // Keep every group's order independent of filesystem enumeration order.
     for (const list of grouped.values()) {
-      if (list[0]?.kind !== "dead-end") list.sort((a, b) => a.project.localeCompare(b.project));
+      list.sort((a, b) =>
+        a.project.localeCompare(b.project)
+        || a.slug.localeCompare(b.slug)
+        || (a.title ?? "").localeCompare(b.title ?? "")
+        || a.body.localeCompare(b.body),
+      );
     }
     return grouped;
   }, [entries]);

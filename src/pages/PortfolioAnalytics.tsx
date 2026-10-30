@@ -73,14 +73,16 @@ export default function PortfolioAnalytics() {
   const portfolioMetrics = {
     totalProjects: projects.length,
     totalEvidence: projects.reduce((acc, p) => acc + (p.caseStudy.outcomes.filter(o => o.evidence.length > 0).length), 0),
-    verifiedClaims: projects.reduce((acc, p) => acc + p.caseStudy.metrics.filter(m => m.evidence?.length ?? 0 > 0).length, 0),
+    verifiedClaims: projects.reduce((acc, p) => acc + p.caseStudy.metrics.filter(m => (m.evidence?.length ?? 0) > 0).length, 0),
     techStackSize: Array.from(new Set(projects.flatMap(p => demonstratesOf(p).technical))).length,
     avgEvidencePerProject: projects.reduce((acc, p) => acc + p.caseStudy.outcomes.filter(o => o.evidence.length > 0).length, 0) / projects.length,
+    // The real stage vocabulary (`Stage` in schema.ts): "production" and
+    // "alpha" are not stages, so those filters always counted zero.
     stageDistribution: {
-      production: projects.filter(p => p.stage === "production").length,
+      shipped: projects.filter(p => p.stage === "shipped").length,
       beta: projects.filter(p => p.stage === "beta").length,
-      alpha: projects.filter(p => p.stage === "alpha").length,
-      historical: projects.filter(p => p.sourceState === "historical-case-study").length,
+      prototype: projects.filter(p => p.stage === "prototype").length,
+      archived: projects.filter(p => p.stage === "archived").length,
     },
   };
 
@@ -1014,12 +1016,12 @@ export default function PortfolioAnalytics() {
                   <h3 className="mb-4 text-lg font-semibold tracking-tight">Project Stages</h3>
                   <div className="flex flex-wrap gap-4">
                     {[
-                      { label: "Production", count: portfolioMetrics.stageDistribution.production, color: "bg-emerald-500" },
+                      { label: "Shipped", count: portfolioMetrics.stageDistribution.shipped, color: "bg-emerald-500" },
                       { label: "Beta", count: portfolioMetrics.stageDistribution.beta, color: "bg-blue-500" },
-                      { label: "Alpha", count: portfolioMetrics.stageDistribution.alpha, color: "bg-yellow-500" },
-                      { label: "Historical", count: portfolioMetrics.stageDistribution.historical, color: "bg-slate-500" },
+                      { label: "Prototype", count: portfolioMetrics.stageDistribution.prototype, color: "bg-amber-500" },
+                      { label: "Archived", count: portfolioMetrics.stageDistribution.archived, color: "bg-slate-500" },
                     ].map(({ label, count, color }) => (
-                      <div key={label} className="group flex cursor-default items-center gap-3 rounded-xl bg-background/50 px-4 py-2.5 transition-all duration-300 hover:shadow-md hover:scale-105 animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0" style={{ animationDelay: `${0.8 + Object.keys({ Production: 0, Beta: 1, Alpha: 2, Historical: 3 }).indexOf(label) * 0.1}s` }}>
+                      <div key={label} className="group flex cursor-default items-center gap-3 rounded-xl bg-background/50 px-4 py-2.5 transition-all duration-300 hover:shadow-md hover:scale-105 animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0" style={{ animationDelay: `${0.8 + Object.keys({ Shipped: 0, Beta: 1, Prototype: 2, Archived: 3 }).indexOf(label) * 0.1}s` }}>
                         <span className={`relative size-3 rounded-full ${color} transition-all duration-300 group-hover:animate-pulse`}>
                           <span className={`absolute inline-flex size-full rounded-full opacity-75 animation-ping ${color} animate-ping`} />
                         </span>

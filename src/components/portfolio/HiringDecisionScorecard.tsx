@@ -100,7 +100,7 @@ export function HiringDecisionScorecard() {
       name: "Code Quality",
       score: calculateCodeQuality(),
       weight: 0.9,
-      description: "Consistent production-ready code standards",
+      description: "Consistent coding standards held up by types and review",
       evidence: ["Radix UI Primitives implementation", "TypeScript strict mode throughout", "Comprehensive documentation"]
     });
 
@@ -338,11 +338,13 @@ export function HiringDecisionScorecard() {
   }
 
   function getProductionStats(): string[] {
-    const production = projects.filter(p => p.stage === "production").length;
+    // `Stage` is "research" | "prototype" | "beta" | "shipped" | "archived";
+    // there is no "production" stage, so the old filter always counted zero.
+    const shipped = projects.filter(p => p.stage === "shipped").length;
     const beta = projects.filter(p => p.stage === "beta").length;
-    
+
     return [
-      `${production} production-ready applications`,
+      `${shipped} applications shipped with a live URL`,
       `${beta} active beta deployments`
     ];
   }

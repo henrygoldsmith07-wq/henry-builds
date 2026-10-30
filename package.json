@@ -26,6 +26,7 @@
     "verify:sources": "node scripts/verify-sources.mjs",
     "record:bundle": "node scripts/record-bundle.mjs",
     "test:evidence": "node scripts/run-evidence-tests.mjs",
+    "test:freshness-display-date": "node scripts/test-freshness-display-date.mjs",
 
     "og": "node scripts/generate-og.mjs",
     "build-log": "node scripts/build-build-log.mjs",
