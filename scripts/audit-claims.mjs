@@ -25,6 +25,12 @@ const TARGETS = [
   "src/pages/Landing.tsx",
   "src/pages/Projects.tsx",
   "src/pages/CaseStudy.tsx",
+  // These three pages carry public copy too. Leaving them out let a
+  // self-rating or an unmeasured claim ship on /analytics, /compare and
+  // /build-log while the other pages passed the same audit.
+  "src/pages/PortfolioAnalytics.tsx",
+  "src/pages/Compare.tsx",
+  "src/pages/BuildLog.tsx",
   "src/components/portfolio",
   "index.html",
 ];

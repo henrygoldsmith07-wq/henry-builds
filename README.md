@@ -31,13 +31,15 @@ and records operational history. `registry:refresh:ci` also refreshes Actions fa
 
 ## The reading surfaces
 
-Four routes, all fed from the same merged registry:
+Six routes, all fed from the same merged registry:
 
 | Route | What it is for |
 |---|---|
 | `/` | The story, the principles, and **the receipts** — a proof summary counted from the registry as the page loads |
 | `/projects` | Every project, filterable, with evidence counts and what each one demonstrates |
 | `/compare` | All projects on one table: stage, source state, CI health, evidence density, measured numbers, ledger grade, claim freshness, and what each demonstrates |
+| `/build-log` | Trials, dead ends and decisions, with the dated link checks behind them |
+| `/analytics` | Evidence review, risk signals and a local skill matcher — facts from the registry, no composite scores |
 | `/projects/<slug>` | The full case study |
 
 The proof summary and the comparison table are the two surfaces that make this a
@@ -278,9 +280,9 @@ combined issue closes itself on recovery.
 `Content-Security-Policy`. The policy allows only same-origin scripts plus a
 sha256 hash for the one inline script in `index.html` (the theme bootstrap that
 prevents a light-mode flash). `style-src` keeps `'unsafe-inline'` because React
-and Framer Motion write inline styles at runtime; the Vly editor origins are
-allowed for `frame-ancestors` and `connect-src` so the preview bridge still
-works on managed `.vly.sh` deployments.
+and Framer Motion write inline styles at runtime. `frame-ancestors` is `'self'`:
+the Vly toolbar is opt-in behind `VITE_VLY_APP_ID`, is stripped from a normal
+build, and a managed Vly deployment sets its own headers.
 
 Because `script-src` is pinned to a hash rather than `'unsafe-inline'`, editing
 that inline script would break the deployed page while leaving local dev green.

@@ -1,5 +1,10 @@
 # 📋 Henry Builds Portfolio - Current Status Summary
 
+> **Historical agent report, 19 Oct 2026.** Kept for provenance only. The
+> README is the current description of the site's routes and rules. The
+> "Production-ready" wording below predates the claim audit and is not a claim
+> the site makes today.
+
 ## ✅ Implementation Complete
 
 Your portfolio has been successfully enhanced with three major features:

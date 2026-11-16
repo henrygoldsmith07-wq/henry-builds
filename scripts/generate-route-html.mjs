@@ -21,6 +21,8 @@ import {
   COMPARE_TITLE,
   LANDING_DESCRIPTION,
   LANDING_TITLE,
+  PROJECT_ANALYTICS_DESCRIPTION,
+  PROJECT_ANALYTICS_TITLE,
   PROJECTS_DESCRIPTION,
   PROJECTS_TITLE,
   SITE_NAME,
@@ -275,6 +277,7 @@ write(
         { href: "/projects", label: "All work" },
         { href: "/compare", label: "Compare the work" },
         { href: "/build-log", label: "Build log" },
+        { href: "/analytics", label: "Evidence review" },
       ],
     }),
   }),
@@ -349,6 +352,31 @@ write(
       // And the site's own verification of them, so the claim "these were
       // checked" is visible without executing JavaScript.
       sections: linkHealthSections,
+    }),
+  }),
+);
+
+write(
+  "analytics.html",
+  renderPage({
+    title: PROJECT_ANALYTICS_TITLE,
+    description: PROJECT_ANALYTICS_DESCRIPTION,
+    route: "/analytics",
+    image: "/og/default.png",
+    imageAlt: `${SITE_NAME} — evidence review and risk signals`,
+    structuredData: collectionGraph({
+      origin,
+      route: "/analytics",
+      title: PROJECT_ANALYTICS_TITLE,
+      description: PROJECT_ANALYTICS_DESCRIPTION,
+    }),
+    body: noscriptBody({
+      heading: PROJECT_ANALYTICS_TITLE,
+      description: PROJECT_ANALYTICS_DESCRIPTION,
+      links: [
+        { href: "/projects", label: "All work" },
+        { href: "/compare", label: "Compare the work" },
+      ],
     }),
   }),
 );

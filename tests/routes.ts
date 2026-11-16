@@ -28,6 +28,7 @@ export const coreRoutes = [
   // Published and crawler-visible since it was added, but absent from this
   // list until now — the accessibility suite never audited it.
   { name: "build-log", path: "/build-log" },
+  { name: "analytics", path: "/analytics" },
 ];
 
 export const notFoundRoute = {

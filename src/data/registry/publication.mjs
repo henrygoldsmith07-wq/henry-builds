@@ -103,6 +103,10 @@ export const CORE_ROUTES = Object.freeze([
   // The build log is a thin index over content that already lives on the case
   // studies, so it is discoverable but not competing with them.
   Object.freeze({ path: "/build-log", changefreq: "monthly", priority: "0.6" }),
+  // The analytics page reads the same registry; it is a real public route and
+  // must appear in the manifest so the sitemap, crawler HTML, link check and
+  // deploy probe all know about it.
+  Object.freeze({ path: "/analytics", changefreq: "monthly", priority: "0.6" }),
 ]);
 
 /**

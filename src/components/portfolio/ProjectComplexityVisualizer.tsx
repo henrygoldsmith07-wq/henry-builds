@@ -109,7 +109,7 @@ export function ProjectComplexityVisualizer() {
         <Card className="p-4 text-center">
           <p className="text-sm text-muted-foreground">Most Innovative</p>
           <p className="mt-1 font-semibold truncate">{metrics.find(m => m.innovationFactor === Math.max(...metrics.map(m => m.innovationFactor)))?.name || "-"}</p>
-          <p className="text-xs text-blue-500">{Math.max(...metrics.map(m => m.innovationFactor))/100</p>
+          <p className="text-xs text-blue-500">{Math.max(...metrics.map(m => m.innovationFactor))}/100</p>
         </Card>
         <Card className="p-4 text-center">
           <p className="text-sm text-muted-foreground">Avg Evidence Density</p>

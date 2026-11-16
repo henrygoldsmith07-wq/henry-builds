@@ -33,6 +33,7 @@ const navItems = [
   { label: "Work", to: "/projects" },
   { label: "Compare", to: "/compare" },
   { label: "Build log", to: "/build-log" },
+  { label: "Evidence", to: "/analytics" },
   { label: "About", to: "/#about" },
   { label: "Approach", to: "/#approach" },
   { label: "Contact", to: "/#contact" },
@@ -57,6 +58,10 @@ export function SiteHeader() {
 
     if (to === "/compare") {
       return location.pathname === "/compare" ? "page" : undefined;
+    }
+
+    if (to === "/analytics") {
+      return location.pathname === "/analytics" ? "page" : undefined;
     }
 
     const hash = to.startsWith("/#") ? to.slice(1) : "";
@@ -187,6 +192,9 @@ export function SiteFooter() {
           </Link>
           <Link to="/compare" className="inline-flex items-center py-1.5 hover:text-foreground">
             Compare
+          </Link>
+          <Link to="/analytics" className="inline-flex items-center py-1.5 hover:text-foreground">
+            Evidence
           </Link>
           <Link to="/#about" className="inline-flex items-center py-1.5 hover:text-foreground">
             About

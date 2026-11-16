@@ -3,15 +3,16 @@ import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { PROJECT_ANALYTICS_TITLE, PROJECT_ANALYTICS_DESCRIPTION, collectionGraph } from "@/data/registry/structured-data.mjs";
-import { ResumeAnalyzer } from "@/components/portfolio/ResumeAnalyzer";
+import { SkillMatcher } from "@/components/portfolio/SkillMatcher";
 import { SkillsHeatmap } from "@/components/portfolio/SkillsHeatmap";
 import { ProjectComplexityVisualizer } from "@/components/portfolio/ProjectComplexityVisualizer";
 import { EvidenceVerificationTimeline } from "@/components/portfolio/EvidenceVerificationTimeline";
 import { CapabilityEvolutionTimeline } from "@/components/portfolio/CapabilityEvolutionTimeline";
 import { InteractivePortfolioSimulator } from "@/components/portfolio/InteractivePortfolioSimulator";
-import { ProjectRiskScorecard } from "@/components/portfolio/ProjectRiskScorecard";
-import { HiringDecisionScorecard } from "@/components/portfolio/HiringDecisionScorecard";
+import { RiskSignals } from "@/components/portfolio/RiskSignals";
+import { EvidenceReview } from "@/components/portfolio/EvidenceReview";
 import { projects, registryMeta, demonstratesOf } from "@/data/registry";
+import { stageOrder, type Stage } from "@/data/registry/schema";
 import { useState, useEffect } from "react";
 
 /**
@@ -31,7 +32,29 @@ const portfolioAnalytics = {
 };
 
 export default function PortfolioAnalytics() {
-  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator" | "risk" | "hiring">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator" | "risk" | "review">("overview");
+
+  // The overview cards link to sections of this page. A direct load on one of
+  // those hashes should open the matching section, not silently show overview.
+  useEffect(() => {
+    const syncFromHash = () => {
+      const id = window.location.hash.slice(1);
+      if (id === "resume" || id === "review" || id === "risk" ||
+          id === "skills" || id === "complexity" || id === "verification" ||
+          id === "evolution" || id === "simulator") {
+        setActiveTab(id as typeof activeTab);
+      }
+    };
+    syncFromHash();
+    window.addEventListener("hashchange", syncFromHash);
+    return () => window.removeEventListener("hashchange", syncFromHash);
+  }, []);
+
+  function openSection(link: string) {
+    if (link.startsWith("#")) {
+      setActiveTab(link.slice(1) as typeof activeTab);
+    }
+  }
   const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [lastCursorPosition, setLastCursorPosition] = useState({ x: 0, y: 0 });
@@ -73,15 +96,19 @@ export default function PortfolioAnalytics() {
   const portfolioMetrics = {
     totalProjects: projects.length,
     totalEvidence: projects.reduce((acc, p) => acc + (p.caseStudy.outcomes.filter(o => o.evidence.length > 0).length), 0),
-    verifiedClaims: projects.reduce((acc, p) => acc + p.caseStudy.metrics.filter(m => m.evidence?.length ?? 0 > 0).length, 0),
+    verifiedClaims: projects.reduce(
+      (acc, p) => acc + p.caseStudy.metrics.filter(m => (m.evidence?.length ?? 0) > 0).length,
+      0,
+    ),
     techStackSize: Array.from(new Set(projects.flatMap(p => demonstratesOf(p).technical))).length,
     avgEvidencePerProject: projects.reduce((acc, p) => acc + p.caseStudy.outcomes.filter(o => o.evidence.length > 0).length, 0) / projects.length,
-    stageDistribution: {
-      production: projects.filter(p => p.stage === "production").length,
-      beta: projects.filter(p => p.stage === "beta").length,
-      alpha: projects.filter(p => p.stage === "alpha").length,
-      historical: projects.filter(p => p.sourceState === "historical-case-study").length,
-    },
+    liveDeployments: projects.filter(p => p.liveUrl).length,
+    // Use the real stage vocabulary from the schema. The old distribution
+    // counted "production" and "alpha", which are not stages the registry has,
+    // so two of its four cards always showed zero.
+    stageDistribution: Object.fromEntries(
+      stageOrder.map((stage) => [stage, projects.filter((p) => p.stage === stage).length]),
+    ) as Record<Stage, number>,
   };
 
   return (
@@ -535,12 +562,11 @@ export default function PortfolioAnalytics() {
             })}
           </div>
         )}
-      </div>
       <SiteMetadata
         title={PROJECT_ANALYTICS_TITLE}
         description={PROJECT_ANALYTICS_DESCRIPTION}
         path="/analytics"
-        image="/og/analytics.png"
+        image="/og/default.png"
         buildStructuredData={portfolioAnalytics.buildStructuredData}
       />
       <SiteHeader />
@@ -671,8 +697,9 @@ export default function PortfolioAnalytics() {
               Portfolio Intelligence Platform
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-muted-foreground animate-[fade-in-up_0.8s_ease-out]">
-              Advanced analytics on engineering work — capability distribution, project complexity scoring,
-              evidence density metrics, and automated hiring recommendations. Everything derived from proven claims.
+              Read the engineering work from several angles — capability distribution, evidence density,
+              verification dates and stated limits. Every figure here comes from the registry; no score
+              or recommendation is invented.
             </p>
           
             
@@ -682,7 +709,7 @@ export default function PortfolioAnalytics() {
                 { label: "Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
                 { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
                 { label: "Skills Tracked", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
-                { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
+                { label: "Live Deployments", value: `${portfolioMetrics.liveDeployments}`, icon: Globe },
               ].map(({ label, value, icon: Icon }, index) => (
                 <div key={label} className="group relative overflow-hidden rounded-xl bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1s_ease-out_forwards] opacity-0" style={{ animationDelay: `${1 + index * 0.15}s` }}>
                   {/* Subtle gradient overlay on hover */}
@@ -751,13 +778,14 @@ export default function PortfolioAnalytics() {
             {/* Featured Features */}
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[
-                { title: "Resume Analysis", desc: "Instant skill compatibility scoring", link: "/analytics/resume", icon: FileText },
-                { title: "Complexity Matrix", desc: "Multi-axis architectural depth scoring", link: "/analytics/complexity", icon: TrendingUp },
-                { title: "Hiring Assessment", desc: "Data-driven candidate evaluation", link: "/analytics/hiring", icon: ShieldCheck },
+                { title: "Skill matcher", desc: "Check words from the registry against text you supply", link: "#resume", icon: FileText },
+                { title: "Complexity Matrix", desc: "Multi-axis architectural depth scoring", link: "#complexity", icon: TrendingUp },
+                { title: "Evidence review", desc: "The registry facts behind the proof summary", link: "#review", icon: ShieldCheck },
               ].map(({ title, desc, link, icon: Icon }, index) => (
                 <a
                   key={title}
                   href={link}
+                  onClick={() => openSection(link)}
                   className="group relative overflow-hidden rounded-2xl border border-border bg-white/5 p-6 backdrop-blur-sm transition-all duration-300 hover:border-purple-500/40 hover:bg-white/10 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_1.2s_ease-out_forwards] opacity-0"
                   style={{ animationDelay: `${1.2 + index * 0.2}s`, transformStyle: 'preserve-3d' }}
                 >
@@ -866,8 +894,8 @@ export default function PortfolioAnalytics() {
                 { id: "verification", label: "Evidence Timeline", icon: Calendar },
                 { id: "evolution", label: "Capability Growth", icon: GitBranch },
                 { id: "simulator", label: "Challenge Simulator", icon: LayoutTemplate },
-                { id: "risk", label: "Risk Scorecard", icon: ShieldAlert },
-                { id: "hiring", label: "Hiring Scorecard", icon: ShieldCheck },
+                { id: "risk", label: "Risk signals", icon: ShieldAlert },
+                { id: "review", label: "Evidence review", icon: ShieldCheck },
               ].map(({ id, label, icon: Icon }, index) => (
                 <button
                   key={id}
@@ -903,7 +931,7 @@ export default function PortfolioAnalytics() {
                     <Icon className={`relative z-10 size-4 transition-all duration-300 ${activeTab === id ? "scale-110 rotate-3" : "group-hover:scale-110"} ${activeTab === id ? "text-foreground drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]" : "text-muted-foreground"}`} aria-hidden="true" />
                     
                     {/* Icon sparkle burst on hover */}
-                    {!activeTab === id && (
+                    {activeTab !== id && (
                       <div className="pointer-events-none absolute inset-0 -z-10 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                         {[...Array(4)].map((_, i) => (
                           <span
@@ -981,7 +1009,7 @@ export default function PortfolioAnalytics() {
                     { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
                     { label: "Unique Skills", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
                     { label: "Avg Evidence/Project", value: portfolioMetrics.avgEvidencePerProject.toFixed(1), icon: FileText },
-                    { label: "Live Deployments", value: `${portfolioMetrics.stageDistribution.production}`, icon: Globe },
+                    { label: "Live Deployments", value: `${portfolioMetrics.liveDeployments}`, icon: Globe },
                   ].map(({ label, value, icon: Icon }, index) => (
                     <div
                       key={label}
@@ -1013,18 +1041,11 @@ export default function PortfolioAnalytics() {
                 <div className="mt-8 rounded-2xl border border-border bg-border p-6 backdrop-blur-sm animate-[fade-in-up_0.8s_ease-out_forwards] opacity-0" style={{ animationDelay: '0.7s' }}>
                   <h3 className="mb-4 text-lg font-semibold tracking-tight">Project Stages</h3>
                   <div className="flex flex-wrap gap-4">
-                    {[
-                      { label: "Production", count: portfolioMetrics.stageDistribution.production, color: "bg-emerald-500" },
-                      { label: "Beta", count: portfolioMetrics.stageDistribution.beta, color: "bg-blue-500" },
-                      { label: "Alpha", count: portfolioMetrics.stageDistribution.alpha, color: "bg-yellow-500" },
-                      { label: "Historical", count: portfolioMetrics.stageDistribution.historical, color: "bg-slate-500" },
-                    ].map(({ label, count, color }) => (
-                      <div key={label} className="group flex cursor-default items-center gap-3 rounded-xl bg-background/50 px-4 py-2.5 transition-all duration-300 hover:shadow-md hover:scale-105 animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0" style={{ animationDelay: `${0.8 + Object.keys({ Production: 0, Beta: 1, Alpha: 2, Historical: 3 }).indexOf(label) * 0.1}s` }}>
-                        <span className={`relative size-3 rounded-full ${color} transition-all duration-300 group-hover:animate-pulse`}>
-                          <span className={`absolute inline-flex size-full rounded-full opacity-75 animation-ping ${color} animate-ping`} />
-                        </span>
-                        <span className="text-sm font-medium transition-colors duration-300 group-hover:text-foreground">{label}</span>
-                        <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold transition-colors duration-300 group-hover:bg-purple-500/20 group-hover:text-purple-600 dark:group-hover:text-purple-400">{count}</span>
+                    {stageOrder.map((stage, i) => (
+                      <div key={stage} className="group flex cursor-default items-center gap-3 rounded-xl bg-background/50 px-4 py-2.5 transition-all duration-300 hover:shadow-md hover:scale-105 animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0" style={{ animationDelay: `${0.8 + i * 0.1}s` }}>
+                        <span className="relative size-3 rounded-full bg-foreground/30 transition-all duration-300 group-hover:animate-pulse" />
+                        <span className="text-sm font-medium transition-colors duration-300 group-hover:text-foreground">{stage}</span>
+                        <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-semibold transition-colors duration-300">{portfolioMetrics.stageDistribution[stage]}</span>
                       </div>
                     ))}
                   </div>
@@ -1037,57 +1058,58 @@ export default function PortfolioAnalytics() {
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {[
                     {
-                      title: "Analyze Your Resume",
-                      description: "Upload to see how your skills align with demonstrated capabilities",
-                      link: "/analytics/resume",
+                      title: "Skill matcher",
+                      description: "Check words from the registry against text you supply",
+                      link: "#resume",
                       icon: FileText,
                     },
                     {
                       title: "Skill Proficiency Map",
-                      description: "Interactive visualization of expertise levels across 14 tracked skills",
-                      link: "/analytics/skills",
+                      description: "Skill map derived from the registry's capability list",
+                      link: "#skills",
                       icon: BarChart3,
                     },
                     {
                       title: "Project Complexity Analysis",
-                      description: "Multi-dimensional scoring: architecture, innovation, evidence density",
-                      link: "/analytics/complexity",
+                      description: "Multi-dimensional view of architecture and evidence density",
+                      link: "#complexity",
                       icon: TrendingUp,
                     },
                     {
                       title: "Evidence Verification Timeline",
-                      description: "When each claim was last verified by CI - transparent proof tracking",
-                      link: "/analytics/verification",
+                      description: "When each claim was last verified - transparent proof tracking",
+                      link: "#verification",
                       icon: Calendar,
                     },
                     {
                       title: "Capability Evolution",
                       description: "How technical skills grew over time through shipped projects",
-                      link: "/analytics/evolution",
+                      link: "#evolution",
                       icon: GitBranch,
                     },
                     {
                       title: "Challenge Simulator",
                       description: "Walk through real engineering decisions made during development",
-                      link: "/analytics/simulator",
+                      link: "#simulator",
                       icon: LayoutTemplate,
                     },
                     {
-                      title: "Risk Scorecard",
-                      description: "Where projects might fail - transparency about technical debt",
-                      link: "/analytics/risk",
+                      title: "Risk signals",
+                      description: "Facts that need attention, with no invented score",
+                      link: "#risk",
                       icon: ShieldAlert,
                     },
                     {
-                      title: "Featured Projects",
-                      description: "Production-ready work with proven impact and fresh verification",
-                      link: "/projects?featured=true",
+                      title: "All projects",
+                      description: "Every project with an honest stage label",
+                      link: "/projects",
                       icon: Grid,
                     },
                   ].map(({ title, description, link, icon: Icon }) => (
                     <Link
                       key={title}
                       to={link}
+                      onClick={() => openSection(link)}
                       className="group relative overflow-hidden rounded-2xl border border-border bg-border p-6 transition-all duration-300 hover:border-purple-500/40 hover:bg-purple-500/5 hover:shadow-lg hover:scale-[1.02] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0"
                       style={{ animationDelay: `${1.0 + index * 0.1}s` }}
                     >
@@ -1179,7 +1201,7 @@ export default function PortfolioAnalytics() {
                       { step: "Study Growth Trajectory", desc: "Skill evolution through shipping pressure" },
                       { step: "Walk Challenge Simulator", desc: "Experience real engineering decision-making" },
                       { step: "Evaluate Risk Factors", desc: "Understand where projects might need maintenance" },
-                      { step: "Review Hire Recommendation", desc: "Data-driven candidate assessment scorecard" }
+                      { step: "Read the evidence review", desc: "The registry facts, with no score or verdict" }
                     ].map(({ step, desc }, i) => (
                       <li key={step} className={`group relative flex items-start gap-4 rounded-xl bg-background/50 p-4 transition-all duration-300 hover:shadow-md hover:scale-[1.02] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0 ${
                         i < 3 ? "hover:border-emerald-500/30" :
@@ -1227,13 +1249,14 @@ export default function PortfolioAnalytics() {
                   {/* Quick Action Cards with holographic effects */}
                   <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-[fade-in-up_0.8s_ease-out_forwards] opacity-0" style={{ animationDelay: '1.5s' }}>
                     {[
-                      { title: "Start Assessment", link: "/analytics/hiring", icon: ShieldCheck, color: "from-emerald-500 to-emerald-600" },
+                      { title: "Evidence review", link: "#review", icon: ShieldCheck, color: "from-emerald-500 to-emerald-600" },
                       { title: "Compare Projects", link: "/compare", icon: Grid, color: "from-blue-500 to-blue-600" },
-                      { title: "View Live Work", link: "/projects?featured=true", icon: Globe, color: "from-purple-500 to-purple-600" },
+                      { title: "View All Work", link: "/projects", icon: Globe, color: "from-purple-500 to-purple-600" },
                     ].map(({ title, link, icon: Icon, color }, index) => (
                       <a
                         key={title}
                         href={link}
+                        onClick={() => openSection(link)}
                         className="group relative overflow-hidden rounded-xl bg-gradient-to-br p-6 text-white transition-all duration-300 hover:shadow-2xl hover:scale-[1.03] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0"
                         style={{ animationDelay: `${1.6 + index * 0.15}s` }}
                       >
@@ -1269,7 +1292,7 @@ export default function PortfolioAnalytics() {
 
           {activeTab === "resume" && (
             <div className="max-w-4xl">
-              <ResumeAnalyzer />
+              <SkillMatcher />
             </div>
           )}
 
@@ -1305,13 +1328,13 @@ export default function PortfolioAnalytics() {
 
           {activeTab === "risk" && (
             <div className="max-w-6xl">
-              <ProjectRiskScorecard />
+              <RiskSignals />
             </div>
           )}
 
-          {activeTab === "hiring" && (
+          {activeTab === "review" && (
             <div className="max-w-6xl">
-              <HiringDecisionScorecard />
+              <EvidenceReview />
             </div>
           )}
         </section>
