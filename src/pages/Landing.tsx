@@ -214,7 +214,7 @@ export default function Landing() {
             <div className="grid gap-px self-start border border-border bg-border">
               {profile.principles.map((principle, index) => (
                 <div key={principle.title} className="bg-background p-7">
-                  <span className="text-[11px] font-semibold tracking-[0.16em] text-foreground/35">
+                  <span className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <h3 className="mt-4 text-xl font-semibold tracking-[-0.03em]">

@@ -157,7 +157,7 @@ export function EvidenceVerificationTimeline() {
 
       {/* Legend */}
       <div className="rounded-2xl border border-border bg-border p-6">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-foreground/40">
+        <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           Status Legend
         </h3>
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

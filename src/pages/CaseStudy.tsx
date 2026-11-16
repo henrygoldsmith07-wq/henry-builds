@@ -92,7 +92,7 @@ function Section({
   return (
     <section id={id} className="case-section">
       <div className="case-section-head">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/40">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {number}
         </span>
         <h2 className="text-xl font-semibold tracking-[-0.03em]">{title}</h2>
@@ -509,7 +509,7 @@ export default function CaseStudy() {
             {study.limitations.length > 0 && (
               <section id="limitations" className="case-section">
                 <div className="case-section-head">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/40">
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                     {nextSection()}
                   </span>
                   <h2 className="flex items-center gap-2 text-xl font-semibold tracking-[-0.03em]">
@@ -553,7 +553,7 @@ export default function CaseStudy() {
                   {study.insightLifecycle.states.map((state, i) => (
                     <div key={state.state} className="bg-background p-6">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                        <span className="text-[11px] font-semibold tracking-[0.14em] text-foreground/35">
+                        <span className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground">
                           {String(i + 1).padStart(2, "0")}
                         </span>
                         <p className="text-sm font-semibold tracking-tight">{state.state}</p>
@@ -581,7 +581,7 @@ export default function CaseStudy() {
                 <ul className="mt-4 space-y-5">
                   {study.insightLifecycle.rules.map((rule, i) => (
                     <li key={rule} className="flex gap-5">
-                      <span className="text-[11px] font-semibold tracking-[0.14em] text-foreground/35">
+                      <span className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground">
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       <p className="max-w-2xl text-sm leading-6 text-foreground/85">{rule}</p>
@@ -767,7 +767,7 @@ export default function CaseStudy() {
                 <ul className="space-y-6">
                   {study.lessons.map((lesson, i) => (
                     <li key={lesson} className="flex gap-5">
-                      <span className="text-[11px] font-semibold tracking-[0.14em] text-foreground/35">
+                      <span className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground">
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       <p className="max-w-2xl text-base leading-7 text-foreground/85">{lesson}</p>

@@ -265,7 +265,7 @@ export function InteractivePortfolioSimulator() {
       <div className="grid gap-4 lg:grid-cols-[250px_1fr]">
         {/* Project List */}
         <div className="rounded-xl border border-border bg-border p-4">
-          <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-foreground/40">
+          <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             <Search className="size-4" aria-hidden="true" /> Select Challenge
           </h3>
           <div className="space-y-1">
@@ -360,7 +360,7 @@ export function InteractivePortfolioSimulator() {
               {/* Evidence Links */}
               {showEvidence && currentStep.evidence && currentStep.evidence.length > 0 && (
                 <div className="mt-4 rounded-xl border border-border bg-foreground/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/40">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                     Evidence
                   </p>
                   <ul className="mt-3 space-y-2">

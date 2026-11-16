@@ -93,7 +93,7 @@ function getSimilarProjects(
       if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
       
       // Secondary sort by stage priority (shipped > beta > prototype > research)
-      const stagePriority = { shipped: 5, beta: 4, prototype: 3, research: 2 };
+      const stagePriority = { shipped: 5, beta: 4, prototype: 3, research: 2, archived: 1 };
       return (stagePriority[b.project.stage] ?? 0) - (stagePriority[a.project.stage] ?? 0);
     })
     .slice(0, limit);
@@ -107,7 +107,7 @@ export function SimilarCapabilities({
   currentProject,
   maxResults = 3,
 }: SimilarCapabilitiesProps) {
-  const similarMatches = getSimilarProjects(currentProject, [], maxResults);
+  const similarMatches = getSimilarProjects(currentProject, maxResults);
   
   if (similarMatches.length === 0) {
     return null;
@@ -123,7 +123,7 @@ export function SimilarCapabilities({
   return (
     <section className="case-section">
       <div className="case-section-head">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/40">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {String(Object.keys(similarMatches).length + 1).padStart(2, "0")}
         </span>
         <h2 className="flex items-center gap-2 text-xl font-semibold tracking-[-0.03em]">

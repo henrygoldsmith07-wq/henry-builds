@@ -704,7 +704,7 @@ export default function PortfolioAnalytics() {
           
             
             {/* Quick Stats */}
-            <dl className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: "Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
                 { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
@@ -726,10 +726,10 @@ export default function PortfolioAnalytics() {
                   {/* Gradient intensity pulsing on active state */}
                   <div className="absolute inset-0 -z-10 animate-[pulse-gradient_4s_ease-in-out_infinite] bg-gradient-to-br from-blue-500/3 via-purple-500/3 to-emerald-500/3 opacity-0 transition-opacity duration-500 group-hover:opacity-100" style={{ mixBlendMode: 'overlay' }} />
                   
-                  <dt className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                  <span className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
                     <Icon className="size-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" /> {label}
-                  </dt>
-                  <dd className="mt-2 text-center text-3xl font-bold tracking-tight transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{value}</dd>
+                  </span>
+                  <span className="mt-2 text-center text-3xl font-bold tracking-tight transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{value}</span>
                   
                   {/* Ripple effect on hover with decay */}
                   <div className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-500 group-hover:opacity-100">
@@ -773,7 +773,7 @@ export default function PortfolioAnalytics() {
                   </div>
                 </div>
               ))}
-            </dl>
+            </div>
             
             {/* Featured Features */}
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -1003,7 +1003,7 @@ export default function PortfolioAnalytics() {
               {/* Portfolio Summary Cards */}
               <div className="animate-[fade-in-up_0.6s_ease-out_forwards] opacity-0" style={{ animationDelay: '0.5s' }}>
                 <h2 className="mb-8 text-2xl font-semibold tracking-tight">At a Glance</h2>
-                <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                   {[
                     { label: "Total Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
                     { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
@@ -1023,10 +1023,10 @@ export default function PortfolioAnalytics() {
                       <div className="absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 bg-gradient-to-br from-transparent via-purple-500/3 to-transparent animate-[spin_4s_linear_infinite]" />
                       
                       <div className="relative z-10">
-                        <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                        <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
                           <Icon className="size-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" aria-hidden="true" /> {label}
-                        </dt>
-                        <dd className="mt-2 text-4xl font-bold tracking-tight transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{value}</dd>
+                        </span>
+                        <span className="mt-2 text-4xl font-bold tracking-tight transition-all duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">{value}</span>
                       </div>
                       
                       {/* Corner sparkle effect */}
@@ -1035,7 +1035,7 @@ export default function PortfolioAnalytics() {
                       </div>
                     </div>
                   ))}
-                </dl>
+                </div>
 
                 {/* Stage Distribution */}
                 <div className="mt-8 rounded-2xl border border-border bg-border p-6 backdrop-blur-sm animate-[fade-in-up_0.8s_ease-out_forwards] opacity-0" style={{ animationDelay: '0.7s' }}>
@@ -1105,7 +1105,7 @@ export default function PortfolioAnalytics() {
                       link: "/projects",
                       icon: Grid,
                     },
-                  ].map(({ title, description, link, icon: Icon }) => (
+                  ].map(({ title, description, link, icon: Icon }, index) => (
                     <Link
                       key={title}
                       to={link}

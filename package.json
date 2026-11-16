@@ -46,6 +46,7 @@
     "check:links:full": "node scripts/check-links.mjs --external --github",
 
     "test:e2e": "playwright test",
+    "test:analytics": "playwright test tests/analytics.spec.ts",
     "test:a11y": "playwright test tests/a11y.spec.ts",
     "test:visual": "playwright test tests/visual.spec.ts",
     "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",

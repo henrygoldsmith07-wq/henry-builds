@@ -11,6 +11,7 @@
 import { useState } from "react";
 import { Info, TrendingUp, Zap } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 interface SkillMetric {

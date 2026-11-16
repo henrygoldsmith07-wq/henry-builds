@@ -140,6 +140,29 @@ jobs:
           path: playwright-report
           retention-days: 7
 
+  behaviour:
+    name: Analytics and contact behaviour
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bunx playwright install --with-deps chromium
+
+      - name: Exercise analytics tabs and the honest contact fallback
+        run: bun run test:analytics
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: behaviour-report
+          path: playwright-report
+          retention-days: 7
+
   visual:
     name: Visual regression
     runs-on: ubuntu-latest

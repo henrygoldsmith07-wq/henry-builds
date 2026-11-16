@@ -295,6 +295,7 @@ it on every push.
 |---|---|---|
 | `SITE_URL` / `VITE_SITE_URL` | optional env | Overrides the build-time origin for sitemap URLs and OG images. Defaults to the production alias (`https://henry-builds.vercel.app`, see `PRODUCTION_ORIGIN` in `generate-sitemap.mjs`) so deploys without variables stay correct; `ALLOW_RELATIVE_SITEMAP=1` opts out locally. |
 | `REGISTRY_TOKEN` | repo secret | PAT with Contents/Actions read access to every sibling repo the portfolio cites. A classic token needs `repo` if any cited repo is private; public-only portfolios can use `public_repo`. Without it cross-repo checks degrade loudly instead of pretending stale data is current. Scheduled sync fails on an unusable token, and deploy-monitor alarms if the facts stop refreshing. Every repo this portfolio currently cites is **private** (`access: "private"` in `registry/source-status.json`), so the token needs `repo` scope and the site says so rather than implying the source is public. |
+| `VITE_CONTACT_ENDPOINT` | optional env | URL that the smart contact form POSTs to. Without it the form says plainly that direct contact is not configured and points to the GitHub link; it never pretends a message was delivered. |
 | `VITE_VLY_PARENT_ORIGIN` | optional editor env | Explicitly allow one parent origin for the Vly preview route bridge. Without it, only Vly/Freebuff parent hosts from the document referrer are accepted. |
 
 The portfolio has no application backend or account surface.

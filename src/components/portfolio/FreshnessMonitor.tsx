@@ -14,7 +14,7 @@ interface FreshnessMetrics {
   projectSlug: string;
   projectName: string;
   stage: string;
-  verifiedAgeDays: number;
+  verifiedAgeDays: number | null;
   deployAgeDays: number;
   needsRefresh: boolean;
   warnings: Array<{ type: "evidence" | "deployment" | "verification"; message: string }>;
@@ -25,7 +25,7 @@ interface FreshnessMetrics {
  */
 function calculateFreshnessMetrics(project: any): FreshnessMetrics | null {
   const verifiedAgeDays = daysSinceVerified(project);
-  const isStale = verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS;
+  const isStale = verifiedAgeDays !== null && verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS;
   
   // Get deployment snapshot age
   const deploySnapshot = project.facts?.deploy;
@@ -38,6 +38,11 @@ function calculateFreshnessMetrics(project: any): FreshnessMetrics | null {
     warnings.push({
       type: "evidence",
       message: `Case study last verified ${verifiedAgeDays} days ago (${FRESH_CLAIM_WINDOW_DAYS} day threshold)`,
+    });
+  } else if (verifiedAgeDays === null) {
+    warnings.push({
+      type: "verification",
+      message: "No verification date is recorded for this case study.",
     });
   }
   
@@ -79,13 +84,18 @@ export function ClaimFreshnessReport() {
     .map(calculateFreshnessMetrics)
     .filter((m): m is FreshnessMetrics => m !== null);
   
-  // Sort by age (oldest first)
-  metrics.sort((a, b) => b.verifiedAgeDays - a.verifiedAgeDays);
+  // Sort by age (oldest first); a project with no recorded date has unknown age.
+  metrics.sort((a, b) => (b.verifiedAgeDays ?? Infinity) - (a.verifiedAgeDays ?? Infinity));
   
-  // Calculate summary statistics
+  // Calculate summary statistics from the projects that have a known age.
   const staleProjects = metrics.filter((m) => m.needsRefresh);
   const healthyProjects = metrics.filter((m) => !m.needsRefresh);
-  const averageAge = Math.round(metrics.reduce((sum, m) => sum + m.verifiedAgeDays, 0) / metrics.length);
+  const knownAges = metrics
+    .map((m) => m.verifiedAgeDays)
+    .filter((age): age is number => age !== null);
+  const averageAge = knownAges.length > 0
+    ? Math.round(knownAges.reduce((sum, age) => sum + age, 0) / knownAges.length)
+    : null;
   
   return (
     <div className="space-y-6">
@@ -117,7 +127,9 @@ export function ClaimFreshnessReport() {
               <Clock className="size-5" />
               <span className="font-medium">Average Age</span>
             </div>
-            <p className="mt-2 text-2xl font-semibold tracking-tight">{averageAge}d</p>
+            <p className="mt-2 text-2xl font-semibold tracking-tight">
+              {averageAge === null ? "—" : `${averageAge}d`}
+            </p>
             <p className="text-xs text-muted-foreground">{FRESH_CLAIM_WINDOW_DAYS} day threshold</p>
           </div>
           
@@ -155,7 +167,9 @@ export function ClaimFreshnessReport() {
                   <div>
                     <span className="text-muted-foreground">Last verified:</span>{" "}
                     <span className="font-medium">
-                      {metric.verifiedAgeDays} days ago
+                      {metric.verifiedAgeDays === null
+                        ? "no date recorded"
+                        : `${metric.verifiedAgeDays} days ago`}
                     </span>
                   </div>
                   
@@ -240,8 +254,17 @@ export function ClaimFreshnessReport() {
  */
 export function ClaimFreshnessIndicator({ project }: { project: any }) {
   const verifiedAgeDays = daysSinceVerified(project);
-  const isStale = verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS;
-  const isApproachingStale = verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS * 0.75;
+  const isStale = verifiedAgeDays !== null && verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS;
+  const isApproachingStale = verifiedAgeDays !== null && verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS * 0.75;
+
+  if (verifiedAgeDays === null) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+        <Clock className="size-3.5" aria-hidden="true" />
+        No verification date
+      </span>
+    );
+  }
   
   if (verifiedAgeDays === 0) {
     return (

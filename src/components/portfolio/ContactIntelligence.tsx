@@ -10,16 +10,17 @@
  * The form is optional - basic contact still works via direct email links.
  */
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Check, Mail, Sparkles } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   contactFormDataSchema,
   type ContactFormData,
+  type InterestArea,
 } from "@/types/contact";
 import { projects } from "@/data/registry";
-import { SiteChrome } from "./SiteChrome";
+import { profile } from "@/data/profile";
 
 /**
  * Interest area tag component for display in form dropdown.
@@ -94,7 +95,7 @@ function ProjectInterestSelector({
                   {project.tagline}
                 </p>
                 <p className="mt-2 text-[10px] text-muted-foreground/70">
-                  {project.caseStudy.outcomes.length} evidenced outcomes •{" "}
+                  {project.caseStudy.outcomes.filter((outcome) => outcome.evidence.length > 0).length} evidenced outcomes •{" "}
                   {project.caseStudy.limitations.length} documented limitations
                 </p>
               </div>
@@ -114,18 +115,17 @@ export function ContactIntelligence() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   // Form state
-  const [selectedInterestAreas, setSelectedInterestAreas] = useState<string[]>([]);
+  const [selectedInterestAreas, setSelectedInterestAreas] = useState<InterestArea[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   
   // Initialize form with react-hook-form
   const {
     register,
-    handleSubmit,
+    getValues,
     formState: { errors },
-    watch,
-    setValue,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormDataSchema),
     defaultValues: {
@@ -144,11 +144,13 @@ export function ContactIntelligence() {
     },
   });
 
-  // Watch form values for sync
-  const formValues = watch();
-
   // Interest area definitions with descriptions mapped from registry demonstrates
-  const interestAreas = [
+  const interestAreas: Array<{
+    id: InterestArea;
+    label: string;
+    description: string;
+    examples: string[];
+  }> = [
     {
       id: "backend",
       label: "Backend Systems",
@@ -212,7 +214,7 @@ export function ContactIntelligence() {
   ];
 
   // Toggle interest area selection
-  const toggleInterestArea = (areaId: string) => {
+  const toggleInterestArea = (areaId: InterestArea) => {
     setSelectedInterestAreas((prev) =>
       prev.includes(areaId)
         ? prev.filter((id) => id !== areaId)
@@ -229,25 +231,57 @@ export function ContactIntelligence() {
     );
   };
 
-  // Sync form state with custom selectors
-  useEffect(() => {
-    setValue("interestAreas", selectedInterestAreas, { shouldValidate: true });
-  }, [selectedInterestAreas, setValue]);
+  // Handle form submission. The two custom selectors are not DOM inputs, so
+  // react-hook-form's resolver never sees them; validate the whole payload
+  // explicitly instead of silently rejecting a filled-in form.
+  const onSubmit = async () => {
+    setSubmitError(null);
 
-  useEffect(() => {
-    setValue("interestedProjects", selectedProjects.map((slug) => ({
-      slug,
-      reason: `Interested in discussing this project`,
-    })), { shouldValidate: true });
-  }, [selectedProjects, setValue]);
+    const values = getValues();
+    // Registered text inputs contribute "" when left blank. The schema treats
+    // these optional fields as absent only when they are undefined, so plain
+    // empty strings would otherwise make a valid inquiry impossible to send.
+    const blankToUndefined = (value?: string) =>
+      typeof value === "string" && value.trim() === "" ? undefined : value;
 
-  // Handle form submission
-  const onSubmit = async (data: ContactFormData) => {
+    const parsed = contactFormDataSchema.safeParse({
+      ...values,
+      name: blankToUndefined(values.name),
+      email: blankToUndefined(values.email),
+      referralSource: blankToUndefined(values.referralSource),
+      interestAreas: selectedInterestAreas,
+      interestedProjects: selectedProjects.map((slug) => ({
+        slug,
+        reason: "Interested in discussing this project",
+      })),
+      timestamp: values.timestamp || new Date().toISOString(),
+    });
+
+    if (!parsed.success) {
+      const fields = Array.from(
+        new Set(parsed.error.issues.map((issue) => issue.path.join("."))),
+      ).join(", ");
+      setSubmitError(`Please complete or check these fields: ${fields}.`);
+      return;
+    }
+
+    const data = parsed.data;
+
+    // There is no application backend on this site. Without an explicit
+    // endpoint, submitting to a hardcoded /api/contact always failed and then
+    // opened a mailto addressed to the visitor's own (optional) email. Say so
+    // plainly instead of pretending the message was received.
+    const endpoint = (import.meta.env.VITE_CONTACT_ENDPOINT as string | undefined)?.trim();
+    if (!endpoint) {
+      setSubmitError(
+        "Direct contact is not configured on this site yet. You can reach me on GitHub instead.",
+      );
+      return;
+    }
+
     setIsSubmitting(true);
-    
     try {
-      // Process contact data through formatter
-      const response = await fetch("/api/contact", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -258,25 +292,26 @@ export function ContactIntelligence() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit form");
+        throw new Error(`Contact endpoint returned ${response.status}`);
       }
 
       setSubmitSuccess(true);
-      
-      // Log anonymized analytics if consented
+
+      // Only count a submission that actually reached the endpoint, and only
+      // with the visitor's opt-in consent.
       if (data.consent.analyticsConsent) {
-        // Send to Plausible/GA4 (privacy-preserving)
         window.plausible?.("contact-submission", {
           props: {
             inquiryType: data.inquiryType,
-            areaCount: data.interestedProjects.length,
+            areaCount: data.interestAreas.length,
           },
         });
       }
     } catch (error) {
       console.error("Contact form error:", error);
-      // Fallback: open mailto
-      window.location.href = `mailto:${data.email}?subject=${encodeURIComponent(`Contact: ${data.inquiryType}`)}&body=${encodeURIComponent(data.message)}`;
+      setSubmitError(
+        "Your message could not be sent. Please try again or reach me on GitHub.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -286,10 +321,10 @@ export function ContactIntelligence() {
     return (
       <div className="rounded-xl border border-green-500/30 bg-green-500/5 p-8 text-center">
         <Mail className="mx-auto size-12 text-green-500" />
-        <h3 className="mt-4 text-xl font-semibold">Message received!</h3>
+        <h3 className="mt-4 text-xl font-semibold">Message sent</h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          Thanks for reaching out. I'll review your inquiry and respond within
-          2-3 business days.
+          Thanks for reaching out. Your inquiry was delivered to the configured
+          contact endpoint.
         </p>
         <button
           onClick={() => {
@@ -326,7 +361,13 @@ export function ContactIntelligence() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        void onSubmit();
+      }}
+      className="space-y-6"
+    >
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Let's talk about it</h3>
         <button
@@ -510,6 +551,23 @@ export function ContactIntelligence() {
           </div>
         </div>
       </div>
+
+      {submitError && (
+        <p
+          role="alert"
+          className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-foreground"
+        >
+          {submitError}{" "}
+          <a
+            href={profile.contact.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline"
+          >
+            Open GitHub
+          </a>
+        </p>
+      )}
 
       {/* Submit */}
       <button

@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Calendar, Cpu, FileCode, GitBranch, Lightbulb, Users } from "lucide-react";
+import { ArrowRight, BookOpen, Calendar, Cpu, FileCode, GitBranch, Lightbulb, TrendingUp, Users } from "lucide-react";
 import { projects, registryMeta, demonstratesOf } from "@/data/registry";
 
 /**

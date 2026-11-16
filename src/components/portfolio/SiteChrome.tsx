@@ -95,7 +95,10 @@ export function SiteHeader() {
         Skip to main content
       </a>
       <div className="mx-auto flex max-w-[1380px] items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
-        <Link to="/" className="group flex items-center gap-3" aria-label={`${profile.name} — home`}>
+        {/* No aria-label: an override that adds words the link does not show
+            fails axe's label-content-name-mismatch. The visible monogram and
+            name are the accessible name. */}
+        <Link to="/" className="group flex items-center gap-3" title="Home">
           <span className="monogram">{profile.monogram}</span>
           <span className="hidden text-sm font-semibold tracking-tight sm:block">
             {profile.name}
