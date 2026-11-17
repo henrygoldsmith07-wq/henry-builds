@@ -778,7 +778,7 @@ export default function CaseStudy() {
             )}
             
             {/* ---- similar projects --------------------------------------- */}
-            <SimilarCapabilities currentProject={project} maxResults={3} />
+            <SimilarCapabilities currentProject={project} maxResults={3} number={nextSection()} />
           </div>
         </article>
         </EvidenceProjectContext.Provider>

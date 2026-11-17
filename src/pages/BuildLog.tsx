@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type KeyboardEvent } from "react";
 import { Link } from "react-router";
 import { ArrowUpRight } from "lucide-react";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { EvidenceRow, EvidenceProjectContext, SourceAccessContext } from "@/components/portfolio/Evidence";
-import { BuildTimeline } from "@/components/portfolio/BuildTimeline";
 import { ClaimFreshnessReport } from "@/components/portfolio/FreshnessMonitor";
 import { projects } from "@/data/registry";
 import buildLog from "../../registry/build-log.json";
@@ -80,7 +79,7 @@ const KINDS: { key: Kind; label: string; blurb: string }[] = [
 export default function BuildLog() {
   const entries = buildLog.entries as LogEntry[];
   const [active, setActive] = useState<Kind>("dead-end");
-  const [viewMode, setViewMode] = useState<"tabular" | "timeline" | "freshness">("tabular");
+  const [viewMode, setViewMode] = useState<"tabular" | "freshness">("tabular");
 
   const byKind = useMemo(() => {
     const grouped = new Map<Kind, LogEntry[]>();
@@ -112,6 +111,31 @@ export default function BuildLog() {
     // identity within a session, so the map never needs recomputing.
     [],
   );
+
+  // The entry-kind control is a real tablist: arrow/Home/End move focus and
+  // select the tab (automatic activation), with a roving tabindex so only the
+  // selected tab is in the tab order.
+  const handleKindTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const { key } = event;
+    if (key !== "ArrowRight" && key !== "ArrowLeft" && key !== "Home" && key !== "End") {
+      return;
+    }
+    const tabs = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'),
+    );
+    const current = tabs.indexOf(document.activeElement as HTMLButtonElement);
+    if (current === -1) return;
+    let next: number;
+    if (key === "ArrowRight") next = (current + 1) % tabs.length;
+    else if (key === "ArrowLeft") next = (current - 1 + tabs.length) % tabs.length;
+    else if (key === "Home") next = 0;
+    else next = tabs.length - 1;
+    event.preventDefault();
+    const nextTab = tabs[next];
+    nextTab?.focus();
+    const nextKind = nextTab?.dataset.kind as Kind | undefined;
+    if (nextKind) setActive(nextKind);
+  };
 
   return (
     <div className="portfolio-shell">
@@ -147,7 +171,12 @@ export default function BuildLog() {
         </section>
 
         <section className="mx-auto max-w-[1380px] px-5 pb-24 sm:px-8 lg:px-12">
-          <div className="mb-8 flex flex-wrap gap-2" role="tablist" aria-label="Entry kind">
+          <div
+            className="mb-8 flex flex-wrap gap-2"
+            role="tablist"
+            aria-label="Entry kind"
+            onKeyDown={handleKindTabKeyDown}
+          >
             {KINDS.map((kind) => {
               const count = byKind.get(kind.key)?.length ?? 0;
               if (count === 0) return null;
@@ -155,9 +184,13 @@ export default function BuildLog() {
               return (
                 <button
                   key={kind.key}
+                  id={`kind-tab-${kind.key}`}
+                  data-kind={kind.key}
                   type="button"
                   role="tab"
                   aria-selected={selected}
+                  aria-controls="kind-panel"
+                  tabIndex={selected ? 0 : -1}
                   className={`${selected ? "button-primary" : "button-secondary"} min-h-11 px-4`}
                   onClick={() => setActive(kind.key)}
                 >
@@ -167,10 +200,12 @@ export default function BuildLog() {
             })}
           </div>
           
-          {/* View mode toggles */}
+          {/* View mode toggles — a toggle group, not a second tablist. */}
           <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
             <span className="text-muted-foreground">View:</span>
             <button
+              type="button"
+              aria-pressed={viewMode === "tabular"}
               onClick={() => setViewMode("tabular")}
               className={`rounded-lg px-3 py-1.5 ${
                 viewMode === "tabular"
@@ -181,16 +216,8 @@ export default function BuildLog() {
               Entries
             </button>
             <button
-              onClick={() => setViewMode("timeline")}
-              className={`rounded-lg px-3 py-1.5 ${
-                viewMode === "timeline"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-            >
-              Timeline
-            </button>
-            <button
+              type="button"
+              aria-pressed={viewMode === "freshness"}
               onClick={() => setViewMode("freshness")}
               className={`rounded-lg px-3 py-1.5 ${
                 viewMode === "freshness"
@@ -202,10 +229,19 @@ export default function BuildLog() {
             </button>
           </div>
 
-          <p className="mb-10 max-w-2xl text-sm leading-6 text-muted-foreground">{currentBlurb}</p>
-
           {viewMode === "tabular" && (
-            <>
+            <p className="mb-10 max-w-2xl text-sm leading-6 text-muted-foreground">
+              {currentBlurb}
+            </p>
+          )}
+
+          <div
+            role="tabpanel"
+            id="kind-panel"
+            aria-labelledby={`kind-tab-${active}`}
+            tabIndex={0}
+          >
+            {viewMode === "tabular" ? (
               <ol className="max-w-3xl space-y-px overflow-hidden border border-border bg-border">
                 {current.map((entry) => (
                   <li key={`${entry.slug}-${entry.kind}-${entry.body.slice(0, 24)}`} className="bg-background p-5 sm:p-6">
@@ -238,36 +274,10 @@ export default function BuildLog() {
                   </li>
                 ))}
               </ol>
-            </>
-          )}
-          
-          {viewMode === "timeline" && (
-            <div className="space-y-6">
-              <div className="rounded-xl border border-border bg-muted p-6 text-center">
-                <h3 className="text-lg font-semibold">Interactive Build Timeline</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Viewing CI events, deployments, and verification history across all projects.
-                  This view is powered by automated event generation from registry data.
-                </p>
-                <p className="mt-4 text-xs text-muted-foreground">
-                  Note: Full timeline integration requires build-log.json population with historical events.
-                  For now, see the tabular view for decision/lesson entries or the freshness report for evidence validation status.
-                </p>
-              </div>
-              
-              {/* Placeholder for future timeline implementation */}
-              <div className="rounded-xl border border-dashed border-border bg-background p-12 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Interactive timeline visualization coming in next iteration. 
-                  The <strong>Freshness Report</strong> view above shows current evidence age and expiration risks.
-                </p>
-              </div>
-            </div>
-          )}
-          
-          {viewMode === "freshness" && (
-            <ClaimFreshnessReport />
-          )}
+            ) : (
+              <ClaimFreshnessReport />
+            )}
+          </div>
         </section>
       </main>
       <SiteFooter />

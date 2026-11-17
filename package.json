@@ -47,6 +47,7 @@
 
     "test:e2e": "playwright test",
     "test:analytics": "playwright test tests/analytics.spec.ts",
+    "test:contact": "playwright test --config=playwright.contact.config.ts",
     "test:a11y": "playwright test tests/a11y.spec.ts",
     "test:visual": "playwright test tests/visual.spec.ts",
     "test:visual:update": "playwright test tests/visual.spec.ts --update-snapshots",

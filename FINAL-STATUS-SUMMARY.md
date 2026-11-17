@@ -3,7 +3,8 @@
 > **Historical agent report, 19 Oct 2026.** Kept for provenance only. The
 > README is the current description of the site's routes and rules. The
 > "Production-ready" wording below predates the claim audit and is not a claim
-> the site makes today.
+> the site makes today. `scripts/audit-media.mjs`, described below, was removed
+> in Nov 2026 because it did not parse and was not wired into a package script.
 
 ## ✅ Implementation Complete
 

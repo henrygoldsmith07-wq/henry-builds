@@ -1,5 +1,5 @@
 import { ArrowRight, CheckCircle, Code, GitPullRequest, LayoutTemplate, Lightbulb, Search, ShieldCheck, Terminal } from "lucide-react";
-import { projects, demonstratesOf } from "@/data/registry";
+import { projects } from "@/data/registry";
 import { useState } from "react";
 
 /**
@@ -33,33 +33,6 @@ interface ProjectChallenge {
 
 const PROJECT_CHALLENGES: ProjectChallenge[] = [
   {
-    projectId: "pulse",
-    title: "Statistical Significance Without False Positives",
-    challengeType: "innovation",
-    context: "Personal analytics finds patterns in noise at scale—20 metrics generate hundreds of correlations, and at p < 0.05, most will be false positives.",
-    steps: [
-      {
-        type: "context",
-        title: "The Core Problem",
-        description: "Every correlation-finding tool has this issue. The honest solution isn't finding MORE correlations—it's only showing the ones that survived replication."
-      },
-      {
-        type: "decision",
-        title: "Replication Ledger System",
-        description: "Implemented a state machine where claims move through: new → replicated → proposed → testing → supported/refuted. A finding must survive independent re-detection to advance.",
-        evidence: [
-          { label: "Pulse Case Study", href: "/projects/pulse" },
-          { label: "Insight Lifecycle Design", href: "/projects/pulse#insight-lifecycle" }
-        ]
-      },
-      {
-        type: "outcome",
-        title: "Honest Findings Only",
-        description: "Only correlations that persisted across data splits reach 'supported' status. Effect sizes deliberately absent from replication signature—a weaker effect is still valid if it replicated."
-      }
-    ]
-  },
-  {
     projectId: "arise",
     title: "Fitness Progress Tracking Without Labels",
     challengeType: "reliability",
@@ -83,33 +56,6 @@ const PROJECT_CHALLENGES: ProjectChallenge[] = [
         type: "outcome",
         title: "Earned Progression Only",
         description: "Level ups happen when volume and load history justify them. No level gained without physical evidence. Offline-first ensures no cloud dependency required."
-      }
-    ]
-  },
-  {
-    projectId: "habit-tracker",
-    title: "Calendar Integration Without API Keys",
-    challengeType: "architecture",
-    context: "Calendar apps typically require OAuth tokens, backend proxy servers, and perpetual web server uptime for webhook delivery.",
-    steps: [
-      {
-        type: "context",
-        title: "The Infrastructure Burden",
-        description: "OAuth flows, token refresh logic, webhook endpoints—all require running infrastructure and third-party credential management."
-      },
-      {
-        type: "decision",
-        title: "iCalendar iFrame Embedding",
-        description: "Used public iCal feeds embedded via iframe as primary source of truth. Added bidirectional sync button for manual import/export. Zero backend requirements.",
-        evidence: [
-          { label: "Habit Tracker Architecture", href: "/projects/habit-tracker#architecture" },
-          { label: "Offline-First Design", href: "/projects/habit-tracker#approach" }
-        ]
-      },
-      {
-        type: "outcome",
-        title: "Zero-Latency Sync Architecture",
-        description: "Instant calendar view without backend polling. Manual sync preserves control. App works entirely offline using local storage persistence."
       }
     ]
   },
@@ -198,15 +144,29 @@ const PROJECT_CHALLENGES: ProjectChallenge[] = [
 ];
 
 export function InteractivePortfolioSimulator() {
-  const [activeProject, setActiveProject] = useState<string>("pulse");
+  // Only challenges whose project actually publishes a case study can offer
+  // working evidence links. `projects` is already the published-only registry,
+  // so intersecting against it keeps gated projects out of the selector.
+  const publishedProjectSlugs = new Set(projects.map((project) => project.slug));
+  const publishedChallenges = PROJECT_CHALLENGES.filter((challenge) =>
+    publishedProjectSlugs.has(challenge.projectId),
+  );
+  // Seed from the first published challenge, falling back safely to "" when
+  // nothing is published rather than pointing at a gated/unpublished project.
+  const defaultChallengeId = publishedChallenges[0]?.projectId ?? "";
+
+  const [activeProject, setActiveProject] = useState<string>(defaultChallengeId);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [completedSimulations, setCompletedSimulations] = useState<Set<string>>(new Set());
   const [showEvidence, setShowEvidence] = useState<boolean>(false);
 
-  const currentChallenge = PROJECT_CHALLENGES.find(c => c.projectId === activeProject)!;
-  const currentStep = currentChallenge.steps[currentStepIndex];
+  const currentChallenge = publishedChallenges.find(
+    (challenge) => challenge.projectId === activeProject,
+  );
+  const currentStep = currentChallenge?.steps[currentStepIndex];
 
   const handleNext = () => {
+    if (!currentChallenge) return;
     if (currentStepIndex < currentChallenge.steps.length - 1) {
       setCurrentStepIndex(prev => prev + 1);
     } else {
@@ -242,11 +202,23 @@ export function InteractivePortfolioSimulator() {
     innovation: { icon: GitPullRequest, label: "Innovation", color: "bg-purple-500" },
   };
 
-  const projectWithChallenges = projects.filter(p =>
-    PROJECT_CHALLENGES.some(c => c.projectId === p.slug)
+  const projectWithChallenges = projects.filter((project) =>
+    publishedChallenges.some((challenge) => challenge.projectId === project.slug),
   );
 
-  const activeChallengeData = PROJECT_CHALLENGES.find(c => c.projectId === activeProject);
+  // No published challenge to show — render an honest empty state instead of
+  // dead links to case studies that do not exist.
+  if (!currentChallenge || !currentStep) {
+    return (
+      <div className="rounded-2xl border border-border bg-gradient-to-r from-foreground/5 to-foreground/10 p-8">
+        <h2 className="text-2xl font-bold tracking-tight">Interactive Challenge Simulator</h2>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          No published case studies are available to simulate yet. Check back once a
+          case study has been published.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -270,7 +242,8 @@ export function InteractivePortfolioSimulator() {
           </h3>
           <div className="space-y-1">
             {projectWithChallenges.map(project => {
-              const challenge = PROJECT_CHALLENGES.find(c => c.projectId === project.slug)!;
+              const challenge = publishedChallenges.find((c) => c.projectId === project.slug);
+              if (!challenge) return null;
               const challengeInfo = challengeTypes[challenge.challengeType];
               const Icon = challengeInfo.icon;
               const isActive = activeProject === project.slug;
@@ -308,14 +281,14 @@ export function InteractivePortfolioSimulator() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold tracking-tight">
-                  {activeChallengeData?.title}
+                  {currentChallenge.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {activeChallengeData?.context}
+                  {currentChallenge.context}
                 </p>
               </div>
-              <div className={`rounded-full px-3 py-1 text-xs font-semibold ${challengeTypes[activeChallengeData!.challengeType].color}`}>
-                {challengeTypes[activeChallengeData!.challengeType].label}
+              <div className={`rounded-full px-3 py-1 text-xs font-semibold ${challengeTypes[currentChallenge.challengeType].color}`}>
+                {challengeTypes[currentChallenge.challengeType].label}
               </div>
             </div>
           </div>

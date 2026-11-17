@@ -5,7 +5,6 @@
  * - Tracking which capabilities/projects interest visitors
  * - Categorizing inquiries by type and priority
  * - Maintaining proof-first principles (no unverified claims)
- * - Privacy-preserving analytics at opt-in
  * 
  * The form is optional - basic contact still works via direct email links.
  */
@@ -23,29 +22,6 @@ import { projects } from "@/data/registry";
 import { profile } from "@/data/profile";
 
 /**
- * Interest area tag component for display in form dropdown.
- */
-function InterestAreaTag({
-  label,
-  icon,
-  description,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  description: string;
-}) {
-  return (
-    <div className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-      <div className="mt-0.5 text-muted-foreground">{icon}</div>
-      <div>
-        <p className="font-semibold">{label}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
-      </div>
-    </div>
-  );
-}
-
-/**
  * Project interest selector showing featured projects with evidence indicators.
  */
 function ProjectInterestSelector({
@@ -59,9 +35,11 @@ function ProjectInterestSelector({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm font-medium">Which projects caught your attention?</p>
+      <p className="text-sm font-medium">
+        Which projects caught your attention? <span className="text-destructive">*</span>
+      </p>
       <p className="text-xs text-muted-foreground">
-        Select all that are relevant to your inquiry
+        Select at least one — required
       </p>
       
       <div className="grid gap-3 sm:grid-cols-2">
@@ -71,6 +49,7 @@ function ProjectInterestSelector({
           return (
             <button
               key={project.slug}
+              type="button"
               onClick={() => onToggleProject(project.slug)}
               className={`group flex items-start gap-3 rounded-lg border p-4 text-left transition-all ${
                 isSelected
@@ -125,6 +104,7 @@ export function ContactIntelligence() {
   const {
     register,
     getValues,
+    watch,
     formState: { errors },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormDataSchema),
@@ -138,11 +118,23 @@ export function ContactIntelligence() {
       consent: {
         emailConsent: false,
         analyticsConsent: false,
-        retentionPeriod: "90days",
       },
       timestamp: new Date().toISOString(),
     },
   });
+
+  // Submission requires the visitor's explicit email consent. Watch the
+  // checkbox so the submit button stays disabled until it is actually checked.
+  // react-hook-form's `watch` is intentionally outside React Compiler's
+  // memoisation model; this component is not memoised and the value is read
+  // only to gate a button, so the warning does not apply here.
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const emailConsentGiven = watch("consent.emailConsent") === true;
+  const submitDisabled =
+    isSubmitting ||
+    selectedProjects.length === 0 ||
+    selectedInterestAreas.length === 0 ||
+    !emailConsentGiven;
 
   // Interest area definitions with descriptions mapped from registry demonstrates
   const interestAreas: Array<{
@@ -279,6 +271,24 @@ export function ContactIntelligence() {
       return;
     }
 
+    // The deployed CSP is `connect-src 'self'`, so a cross-origin endpoint can
+    // never be reached from the browser. Resolve the configured value against
+    // this page and require a same-origin result before making any request.
+    // Anything else fails visibly (via submitError) and sends nothing.
+    let requestUrl: URL;
+    try {
+      requestUrl = new URL(endpoint, window.location.href);
+    } catch {
+      setSubmitError("The configured contact endpoint is not a valid URL. No request was sent.");
+      return;
+    }
+    if (requestUrl.origin !== window.location.origin) {
+      setSubmitError(
+        "The configured contact endpoint is not on this site's origin, so no request was sent.",
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await fetch(endpoint, {
@@ -296,17 +306,6 @@ export function ContactIntelligence() {
       }
 
       setSubmitSuccess(true);
-
-      // Only count a submission that actually reached the endpoint, and only
-      // with the visitor's opt-in consent.
-      if (data.consent.analyticsConsent) {
-        window.plausible?.("contact-submission", {
-          props: {
-            inquiryType: data.inquiryType,
-            areaCount: data.interestAreas.length,
-          },
-        });
-      }
     } catch (error) {
       console.error("Contact form error:", error);
       setSubmitError(
@@ -511,7 +510,7 @@ export function ContactIntelligence() {
       {/* Consent */}
       <div className="rounded-lg border border-border bg-muted p-4 text-sm">
         <p className="font-medium mb-3">Privacy & Consent *</p>
-        
+
         <div className="space-y-3">
           <label className="flex items-start gap-2">
             <input
@@ -520,35 +519,11 @@ export function ContactIntelligence() {
               className="mt-0.5 size-4"
             />
             <span>
-              I agree to receive a response via email. Your information will not be shared.
+              I agree to receive a response via email. Your details are sent only to this site's
+              configured contact endpoint when you submit with this consent.
               <span className="text-destructive">*</span>
             </span>
           </label>
-          
-          <label className="flex items-start gap-2">
-            <input
-              type="checkbox"
-              {...register("consent.analyticsConsent")}
-              className="mt-0.5 size-4"
-            />
-            <span>
-              Allow anonymous usage statistics to help improve this site. Never stores personal data.
-            </span>
-          </label>
-          
-          <div className="flex items-center gap-2">
-            <label htmlFor="retentionPeriod" className="text-xs">Keep my inquiry for:</label>
-            <select
-              id="retentionPeriod"
-              {...register("consent.retentionPeriod")}
-              className="rounded border border-border bg-background px-2 py-1 text-xs"
-            >
-              <option value="30days">30 days</option>
-              <option value="90days">90 days</option>
-              <option value="1year">1 year</option>
-              <option value="never">Never store</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -572,9 +547,9 @@ export function ContactIntelligence() {
       {/* Submit */}
       <button
         type="submit"
-        disabled={isSubmitting || selectedProjects.length === 0 || selectedInterestAreas.length === 0}
+        disabled={submitDisabled}
         className={`w-full rounded-lg py-3 text-sm font-medium transition-all ${
-          isSubmitting || selectedProjects.length === 0 || selectedInterestAreas.length === 0
+          submitDisabled
             ? "cursor-not-allowed bg-muted text-muted-foreground"
             : "button-primary"
         }`}

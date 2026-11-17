@@ -19,6 +19,8 @@ import {
 interface SimilarCapabilitiesProps {
   currentProject: typeof projects[0];
   maxResults?: number;
+  /** Section number in the case study's render-order sequence. */
+  number: string;
 }
 
 interface CapabilityMatch {
@@ -106,6 +108,7 @@ function getSimilarProjects(
 export function SimilarCapabilities({
   currentProject,
   maxResults = 3,
+  number,
 }: SimilarCapabilitiesProps) {
   const similarMatches = getSimilarProjects(currentProject, maxResults);
   
@@ -113,18 +116,11 @@ export function SimilarCapabilities({
     return null;
   }
   
-  const hasTechnical = similarMatches.some((m) => 
-    m.matchType === "technical" || m.matchType === "both"
-  );
-  const hasProduct = similarMatches.some((m) => 
-    m.matchType === "product" || m.matchType === "both"
-  );
-  
   return (
     <section className="case-section">
       <div className="case-section-head">
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-          {String(Object.keys(similarMatches).length + 1).padStart(2, "0")}
+          {number}
         </span>
         <h2 className="flex items-center gap-2 text-xl font-semibold tracking-[-0.03em]">
           <ArrowRight className="size-4" aria-hidden="true" />
@@ -228,30 +224,4 @@ export function SimilarCapabilities({
       </div>
     </section>
   );
-}
-
-/**
- * Utility hook to get similar projects programmatically.
- */
-export function useSimilarProjects(
-  projectSlug: string,
-  maxResults: number = 3
-) {
-  const currentProject = projects.find((p) => p.slug === projectSlug);
-  
-  if (!currentProject) {
-    return {
-      similar: [] as CapabilityMatch[],
-      isLoading: false,
-      error: null as Error | null,
-    };
-  }
-  
-  const similarMatches = getSimilarProjects(currentProject, maxResults);
-  
-  return {
-    similar: similarMatches,
-    isLoading: false,
-    error: null,
-  };
 }

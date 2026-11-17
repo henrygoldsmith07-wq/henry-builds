@@ -272,7 +272,9 @@ test("validate-registry rejects a historical study verified after its source was
 
 test("validate-registry accepts a historical study verified before its source was removed", async () => {
   const dir = tempDir("evm-historical-ok");
-  const studies = minimalRegistry();
+  // One study is historical and cannot be featured; use six rows so the
+  // rendered-page featured gate still sees five current featured studies.
+  const studies = minimalRegistry(6);
   studies[0].sourceState = "historical-case-study";
   studies[0].sourceRemoved = {
     detectedAt: "2026-01-01",
@@ -283,6 +285,44 @@ test("validate-registry accepts a historical study verified before its source wa
   const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
   if (result.code !== 0) {
     throw new Error(`expected exit 0, got ${result.code}\n${result.stderr}`);
+  }
+});
+
+test("validate-registry fails when fewer than five current studies are featured", async () => {
+  const dir = tempDir("evm-featured-few");
+  writeRegistry(dir, minimalRegistry(4));
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/feature at least 5/.test(result.stderr)) {
+    throw new Error(`missing minimum-featured failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry fails when more than six studies are featured", async () => {
+  const dir = tempDir("evm-featured-many");
+  writeRegistry(dir, minimalRegistry(7));
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/at most 6/.test(result.stderr)) {
+    throw new Error(`missing maximum-featured failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry does not count a featured historical study toward the minimum", async () => {
+  const dir = tempDir("evm-featured-historical");
+  const studies = minimalRegistry(5);
+  // Four current featured studies plus one authored-featured study whose source
+  // was removed, verified before that removal. The runtime drops it from the
+  // featured row, so the gate must still see only four and fail rather than be
+  // propped up by a project the landing page will not present as featured work.
+  studies[4].sourceState = "historical-case-study";
+  studies[4].sourceRemoved = { detectedAt: "2026-01-01", note: "removed upstream" };
+  studies[4].caseStudy.lastVerifiedAt = "2025-12-01";
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/feature at least 5/.test(result.stderr)) {
+    throw new Error(`missing minimum-featured failure:\n${result.stderr}`);
   }
 });
 
@@ -576,6 +616,69 @@ test("validate-registry only warns when no CI evidence is cited", async () => {
   }
 });
 
+// --- generated URL schemes --------------------------------------------------
+
+test("validate-registry rejects a javascript: URL in generated CI facts", async () => {
+  const dir = tempDir("evm-bad-ci-url");
+  const studies = minimalRegistry();
+  writeRegistry(dir, studies);
+  const file = path.join(dir, "registry", "ci-facts.json");
+  const facts = JSON.parse(fs.readFileSync(file, "utf8"));
+  facts.facts[studies[0].upstreamId] = {
+    ...(facts.facts[studies[0].upstreamId] ?? {}),
+    runUrl: "javascript:alert(1)",
+  };
+  fs.writeFileSync(file, JSON.stringify(facts));
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/generated URL must be https/.test(result.stderr)) {
+    throw new Error(`missing scheme failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects an http URL in generated deployment facts", async () => {
+  const dir = tempDir("evm-bad-deploy-url");
+  const studies = minimalRegistry();
+  writeRegistry(dir, studies);
+  writeJson(path.join(dir, "registry", "facts-history.json"), {
+    _generated: true,
+    generatedAt: new Date().toISOString(),
+    latest: {
+      [studies[0].upstreamId]: { deploy: { url: "http://example.com/deploy" } },
+    },
+    history: {},
+  });
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/deploy\.url: generated URL must be https/.test(result.stderr)) {
+    throw new Error(`missing deployment URL failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects an insecure authored evidence href", async () => {
+  const dir = tempDir("evm-bad-evidence-url");
+  const studies = minimalRegistry();
+  studies[0].caseStudy.outcomes[0].evidence[0].href = "http://example.com/evidence";
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/href must be an absolute https URL/.test(result.stderr)) {
+    throw new Error(`missing evidence URL failure:\n${result.stderr}`);
+  }
+});
+
+test("validate-registry rejects an insecure liveUrl", async () => {
+  const dir = tempDir("evm-bad-live-url");
+  const studies = minimalRegistry();
+  studies[0].liveUrl = "http://example.com/live";
+  writeRegistry(dir, studies);
+  const result = await runNode(dir, script("scripts", "validate-registry.mjs"));
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/liveUrl must be an absolute https URL/.test(result.stderr)) {
+    throw new Error(`missing liveUrl failure:\n${result.stderr}`);
+  }
+});
+
 // --- audit-claims -----------------------------------------------------------
 
 test("audit-claims fails banned superlatives in user-facing copy", async () => {
@@ -586,7 +689,9 @@ test("audit-claims fails banned superlatives in user-facing copy", async () => {
     path.join(dir, "src", "pages", "Landing.tsx"),
     'export default function Landing() {\n  return <p>World-class engineering, obviously.</p>;\n}\n',
   );
-  const result = await runNode(dir, script("scripts", "audit-claims.mjs"));
+  // Offline: the classifier assist is advisory and must not make a behaviour
+  // test depend on a network round trip.
+  const result = await runNode(dir, script("scripts", "audit-claims.mjs"), {}, ["--offline"]);
   if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
   if (!/unfalsifiable superlative/.test(result.stderr)) {
     throw new Error(`missing superlative violation:\n${result.stderr}`);
@@ -601,7 +706,7 @@ test("audit-claims passes copy that quotes a banned phrase to reject it", async 
     path.join(dir, "src", "pages", "Landing.tsx"),
     '// never a "world-class" claim appears here\nexport default function Landing() {\n  return null;\n}\n',
   );
-  const result = await runNode(dir, script("scripts", "audit-claims.mjs"));
+  const result = await runNode(dir, script("scripts", "audit-claims.mjs"), {}, ["--offline"]);
   if (result.code !== 0) {
     throw new Error(`quoting exemption failed - exit ${result.code}\n${result.stderr}`);
   }
@@ -744,6 +849,143 @@ test("registry:freshness rejects an anonymous CI import", async () => {
   if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
   if (!/anonymous/.test(result.stderr)) {
     throw new Error(`missing anonymous-mode failure:\n${result.stderr}`);
+  }
+});
+
+/**
+ * A self-contained set of generated layers for freshness-gate tests.
+ *
+ * `freshnessCase` above clones the real registry, which is right for checking
+ * the gate against real data but awkward for the antitamper cases: those need to
+ * rewrite a *nested* per-entry observation while leaving the layer's own stamp
+ * fresh. Here every layer is written from scratch with one known, recent stamp,
+ * so a failure can only come from the file `mutate` changes. The ci-facts layer
+ * is authenticated and carries no observations, so it adds no unrelated
+ * failures; the single source-status observation is fresh unless a test ages it.
+ */
+function freshnessFixture(label, { linkHealthDays, mutate } = {}) {
+  const dir = tempDir(label);
+  const fresh = daysAgoIso(1);
+  writeJson(path.join(dir, "registry", "upstream.json"), {
+    _generated: "fixture",
+    importedAt: fresh,
+    lifecycleStates: {},
+    entries: [],
+  });
+  writeJson(path.join(dir, "registry", "evidence-ledger.json"), {
+    _generated: "fixture",
+    importedAt: fresh,
+    statusValues: {},
+    claims: [],
+  });
+  writeJson(path.join(dir, "registry", "source-status.json"), {
+    _generated: "fixture",
+    checkedAt: fresh,
+    projects: {
+      "proj-0": { derived: "current", reason: "fixture", checkedAt: fresh },
+    },
+  });
+  writeJson(path.join(dir, "registry", "ci-facts.json"), {
+    _generated: "fixture",
+    importedAt: fresh,
+    mode: "authenticated",
+    facts: {},
+  });
+  writeJson(path.join(dir, "registry", "facts-history.json"), {
+    _generated: "fixture",
+    generatedAt: fresh,
+    days: [],
+  });
+  writeJson(path.join(dir, "registry", "bundle-history.json"), {
+    _generated: "fixture",
+    generatedAt: fresh,
+    days: [],
+  });
+  if (linkHealthDays !== undefined) {
+    // The optional layer is aged against its own seven-day window, not the
+    // general generated-layer allowance.
+    writeJson(path.join(dir, "registry", "link-health.json"), {
+      _generated: "fixture",
+      checkedAt: daysAgoIso(linkHealthDays),
+      totalChecked: 1,
+      totalBroken: 0,
+      projects: { "proj-0": { checked: 1, broken: 0, unverifiable: 0 } },
+    });
+  }
+  if (mutate) mutate(dir);
+  return runNode(dir, script("scripts", "check-registry-freshness.mjs"));
+}
+
+/** Read-modify-write one generated layer inside a freshness fixture. */
+function rewriteLayer(dir, file, fn) {
+  const target = path.join(dir, "registry", file);
+  const data = JSON.parse(fs.readFileSync(target, "utf8"));
+  fn(data);
+  writeJson(target, data);
+}
+
+test("registry:freshness rejects a source-status stamp with an old entry", async () => {
+  // A freshly stamped layer whose only observation is two months old is the
+  // `sed` bypass in reverse: the stamp says "checked today" but its contents
+  // cannot have come from today. The gate must call that out, not just compare
+  // a single string against the clock.
+  const result = await freshnessFixture("evm-stamp-old-entry", {
+    mutate: (dir) =>
+      rewriteLayer(dir, "source-status.json", (data) => {
+        data.projects["proj-0"].checkedAt = daysAgoIso(60);
+      }),
+  });
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/stamp is not substantiated/.test(result.stderr)) {
+    throw new Error(`missing unsubstantiated-stamp failure:\n${result.stderr}`);
+  }
+});
+
+test("registry:freshness rejects a source-status entry dated after the layer's own stamp", async () => {
+  // The layer is a day old; its entry claims to have been checked a day in the
+  // future. An observation cannot postdate the file that records it.
+  const result = await freshnessFixture("evm-stamp-future-entry", {
+    mutate: (dir) =>
+      rewriteLayer(dir, "source-status.json", (data) => {
+        data.checkedAt = daysAgoIso(1);
+        data.projects["proj-0"].checkedAt = daysAgoIso(-1);
+      }),
+  });
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/dated after the layer's own/.test(result.stderr)) {
+    throw new Error(`missing future-dated observation failure:\n${result.stderr}`);
+  }
+});
+
+test("registry:freshness rejects facts history that predates source status", async () => {
+  const result = await freshnessFixture("evm-facts-predates-status", {
+    mutate: (dir) =>
+      rewriteLayer(dir, "facts-history.json", (data) => {
+        data.generatedAt = daysAgoIso(3);
+      }),
+  });
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/predates registry\/source-status.json/.test(result.stderr)) {
+    throw new Error(`missing derived-layer ordering failure:\n${result.stderr}`);
+  }
+});
+
+test("registry:freshness fails when link health is older than its window", async () => {
+  const result = await freshnessFixture("evm-linkhealth-stale", {
+    linkHealthDays: 8,
+  });
+  if (result.code !== 1) throw new Error(`expected exit 1, got ${result.code}`);
+  if (!/link-health.json is 8/.test(result.stderr)) {
+    throw new Error(`missing stale link-health failure:\n${result.stderr}`);
+  }
+});
+
+test("registry:freshness accepts link health inside its window", async () => {
+  const result = await freshnessFixture("evm-linkhealth-fresh", {
+    linkHealthDays: 1,
+  });
+  if (result.code !== 0) {
+    throw new Error(`expected exit 0, got ${result.code}\n${result.stderr}`);
   }
 });
 
@@ -933,6 +1175,66 @@ test("check-links --external records link health in the registry", async () => {
     }
   } finally {
     if (fs.existsSync(target)) fs.unlinkSync(target);
+  }
+});
+
+test("check-links --external attributes one evidence link from each of the six groups", async () => {
+  // The external collector must draw from exactly the six groups the UI counts:
+  // outcomes, metrics, architecture, insight lifecycle, benchmark chart and
+  // failed approaches. One unique href in each group must register as six
+  // checked links for the project. A group dropped from the collector — the bug
+  // that used to make `--external` under-report the link population — registers
+  // fewer, so the count is the assertion rather than the HTTP verdict.
+  const dir = tempDir("clg-six-groups");
+  const studies = minimalRegistry(1);
+  const study = studies[0];
+  const hrefs = [
+    "https://example.com/evidence/outcomes",
+    "https://example.com/evidence/metrics",
+    "https://example.com/evidence/architecture",
+    "https://example.com/evidence/insight-lifecycle",
+    "https://example.com/evidence/benchmark-chart",
+    "https://example.com/evidence/failed-approaches",
+  ];
+  const doc = (href) => ({ kind: "doc", label: href, href });
+  study.caseStudy.outcomes = [
+    { statement: "an evidenced outcome", evidence: [doc(hrefs[0])] },
+  ];
+  study.caseStudy.metrics = [
+    {
+      label: "Automated checks",
+      value: "1",
+      method: "counted by hand against this very fixture file",
+      evidence: [doc(hrefs[1])],
+    },
+  ];
+  study.caseStudy.architecture = { evidence: [doc(hrefs[2])] };
+  study.caseStudy.insightLifecycle = { evidence: [doc(hrefs[3])] };
+  study.caseStudy.benchmarkChart = { evidence: [doc(hrefs[4])] };
+  study.caseStudy.failedApproaches = [
+    {
+      approach: "A failed approach with a citation",
+      whyItFailed: "It did not work.",
+      whatItChanged: "It was abandoned.",
+      evidence: [doc(hrefs[5])],
+    },
+  ];
+  writeRegistry(dir, studies);
+
+  const target = path.join(dir, "registry", "link-health.json");
+  const { stdout, stderr } = await runNode(
+    dir,
+    script("scripts", "check-links.mjs"),
+    { GITHUB_TOKEN: "", GH_TOKEN: "" },
+    ["--external"],
+  );
+  if (!fs.existsSync(target)) {
+    throw new Error(`check-links --external wrote no link-health.json:\n${stdout}\n${stderr}`);
+  }
+  const health = JSON.parse(fs.readFileSync(target, "utf8"));
+  const checked = health.projects?.["proj-0"]?.checked;
+  if (checked !== 6) {
+    throw new Error(`expected proj-0.checked === 6, got ${checked}\n${stdout}\n${stderr}`);
   }
 });
 

@@ -7,15 +7,21 @@
  */
 
 import { AlertTriangle, CheckCircle2, Clock, TriangleAlert } from "lucide-react";
-import { projects } from "@/data/registry";
-import { daysSinceVerified, FRESH_CLAIM_WINDOW_DAYS } from "@/data/registry";
+import {
+  daysSinceVerified,
+  DEPLOY_SNAPSHOT_WINDOW_DAYS,
+  deploySnapshotAgeDays,
+  FRESH_CLAIM_WINDOW_DAYS,
+  projects,
+  type HydratedProject,
+} from "@/data/registry";
 
 interface FreshnessMetrics {
   projectSlug: string;
   projectName: string;
   stage: string;
   verifiedAgeDays: number | null;
-  deployAgeDays: number;
+  deployAgeDays: number | null;
   needsRefresh: boolean;
   warnings: Array<{ type: "evidence" | "deployment" | "verification"; message: string }>;
 }
@@ -23,13 +29,14 @@ interface FreshnessMetrics {
 /**
  * Calculate freshness metrics for a project.
  */
-function calculateFreshnessMetrics(project: any): FreshnessMetrics | null {
+function calculateFreshnessMetrics(project: HydratedProject): FreshnessMetrics | null {
   const verifiedAgeDays = daysSinceVerified(project);
   const isStale = verifiedAgeDays !== null && verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS;
   
-  // Get deployment snapshot age
-  const deploySnapshot = project.facts?.deploy;
-  const deployAgeDays = deploySnapshot ? Math.floor((Date.now() - new Date(deploySnapshot.date).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+  // A deployment snapshot nobody has re-checked recently must not be restated
+  // as current fact. Both the age and the window come from the registry so this
+  // report cannot disagree with the verification strip on the case-study page.
+  const deployAgeDays = deploySnapshotAgeDays(project);
   
   // Generate warnings
   const warnings: Array<{ type: "evidence" | "deployment" | "verification"; message: string }> = [];
@@ -46,7 +53,7 @@ function calculateFreshnessMetrics(project: any): FreshnessMetrics | null {
     });
   }
   
-  if (deployAgeDays > 30) {
+  if (deployAgeDays !== null && deployAgeDays > DEPLOY_SNAPSHOT_WINDOW_DAYS) {
     warnings.push({
       type: "deployment",
       message: `Production deployment not updated in ${deployAgeDays} days`,
@@ -55,7 +62,7 @@ function calculateFreshnessMetrics(project: any): FreshnessMetrics | null {
   
   // Count unverified outcomes
   const unverifiedOutcomes = project.caseStudy.outcomes.filter(
-    (outcome: any) => outcome.evidence.length === 0
+    (outcome) => outcome.evidence.length === 0,
   ).length;
   
   if (unverifiedOutcomes > 0) {
@@ -173,7 +180,7 @@ export function ClaimFreshnessReport() {
                     </span>
                   </div>
                   
-                  {metric.deployAgeDays > 0 && (
+                  {metric.deployAgeDays !== null && metric.deployAgeDays > 0 && (
                     <div>
                       <span className="text-muted-foreground">Deploy age:</span>{" "}
                       <span className="font-medium">
@@ -246,57 +253,5 @@ export function ClaimFreshnessReport() {
         </p>
       </div>
     </div>
-  );
-}
-
-/**
- * Individual freshness indicator component for use on project pages.
- */
-export function ClaimFreshnessIndicator({ project }: { project: any }) {
-  const verifiedAgeDays = daysSinceVerified(project);
-  const isStale = verifiedAgeDays !== null && verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS;
-  const isApproachingStale = verifiedAgeDays !== null && verifiedAgeDays > FRESH_CLAIM_WINDOW_DAYS * 0.75;
-
-  if (verifiedAgeDays === null) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-        <Clock className="size-3.5" aria-hidden="true" />
-        No verification date
-      </span>
-    );
-  }
-  
-  if (verifiedAgeDays === 0) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-500">
-        <CheckCircle2 className="size-3.5" />
-        Just verified
-      </span>
-    );
-  }
-  
-  if (isStale) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-500">
-        <TriangleAlert className="size-3.5" />
-        Stale ({verifiedAgeDays}d)
-      </span>
-    );
-  }
-  
-  if (isApproachingStale) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-yellow-500/10 px-2.5 py-1 text-xs font-medium text-yellow-500">
-        <Clock className="size-3.5" />
-        Approaching stale ({verifiedAgeDays}/{FRESH_CLAIM_WINDOW_DAYS}d)
-      </span>
-    );
-  }
-  
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-500">
-      <CheckCircle2 className="size-3.5" />
-      Verified ({verifiedAgeDays}d)
-    </span>
   );
 }

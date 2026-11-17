@@ -69,13 +69,20 @@ export type ProjectInterest = z.infer<typeof projectInterestSchema>;
 
 /**
  * Consent flags for privacy compliance.
- * Required before any personal data processing.
+ * Email consent must be explicitly given before any personal data is sent;
+ * analytics consent is optional and currently unused (no analytics are loaded).
+ * There is no retention control because this static site cannot honour a
+ * storage guarantee — data goes only to the configured contact endpoint.
  */
-export const consentFlagsSchema = z.object({
-  emailConsent: z.boolean(),
-  analyticsConsent: z.boolean(),
-  retentionPeriod: z.enum(["30days", "90days", "1year", "never"]),
-});
+export const consentFlagsSchema = z
+  .object({
+    emailConsent: z.boolean(),
+    analyticsConsent: z.boolean().optional(),
+  })
+  .refine((flags) => flags.emailConsent === true, {
+    message: "Email consent is required to submit an inquiry",
+    path: ["emailConsent"],
+  });
 
 export type ConsentFlags = z.infer<typeof consentFlagsSchema>;
 

@@ -12,7 +12,14 @@
       "jsKb": 541,
       "totalGzipKb": 191,
       "jsGzipKb": 169
+    },
+    {
+      "date": "2026-11-17",
+      "totalKb": 1082,
+      "jsKb": 879,
+      "totalGzipKb": 305,
+      "jsGzipKb": 276
     }
   ],
-  "generatedAt": "2026-10-09T20:54:27.441Z"
+  "generatedAt": "2026-11-17T14:47:47.682Z"
 }

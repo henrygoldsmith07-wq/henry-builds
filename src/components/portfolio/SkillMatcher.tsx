@@ -170,7 +170,8 @@ export function SkillMatcher() {
           </div>
 
           <p className="text-sm text-muted-foreground">
-            See the registry list on the <Link to="/compare" className="underline">compare page</Link>.
+            See the capability coverage recorded in published case studies on the{" "}
+            <Link to="#skills" className="underline">capability map</Link>.
           </p>
         </div>
       )}

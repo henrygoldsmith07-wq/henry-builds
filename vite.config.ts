@@ -83,14 +83,14 @@ export default defineConfig({
           // Vendor chunks for large libraries
           "react-vendor": ["react", "react-dom", "react-router"],
         },
-        // Optimize chunk size
         chunkFileNames: "assets/[name]-[hash].js",
         entryFileNames: "assets/[name]-[hash].js",
         assetFileNames: "assets/[name]-[hash].[ext]",
       },
     },
-    // Increase chunk size warning limit for better chunking
-    chunkSizeWarningLimit: 1000,
+    // A warning must be able to fire: the largest emitted chunk is ~220 kB,
+    // so a 1000 kB limit could never report growth.
+    chunkSizeWarningLimit: 250,
     // Keep the public portfolio compatible with Vite's widely-available browser
     // baseline instead of shipping unchecked esnext syntax to every visitor.
     target: "baseline-widely-available",

@@ -40,12 +40,43 @@ async function reportErrorToVly(errorData: {
     return;
   }
 
+  const endpoint = import.meta.env.VITE_VLY_MONITORING_URL as string | undefined;
+  if (!endpoint) return;
+
+  let monitoringUrl: URL;
+  let pageUrl: URL;
   try {
-    await fetch(import.meta.env.VITE_VLY_MONITORING_URL, {
+    monitoringUrl = new URL(endpoint);
+    pageUrl = new URL(window.location.href);
+  } catch {
+    return;
+  }
+
+  // Never send a stack trace or URL to an unvalidated host, and never include
+  // query strings, which can carry tokens.
+  const trustedHost =
+    monitoringUrl.hostname === "vly.sh" ||
+    monitoringUrl.hostname.endsWith(".vly.sh") ||
+    monitoringUrl.hostname === "freebuff.com" ||
+    monitoringUrl.hostname.endsWith(".freebuff.com");
+  if (monitoringUrl.protocol !== "https:" || !trustedHost) return;
+  pageUrl.search = "";
+  pageUrl.hash = "";
+
+  // Stack frames and event.filename can themselves be script URLs with signed
+  // query strings. Strip those too, otherwise the payload contradicts the
+  // no-query policy above.
+  const stripQuery = (value: string): string =>
+    value.replace(/\?[^\s)]*/g, "").replace(/#\S*/g, "");
+
+  try {
+    await fetch(monitoringUrl.href, {
       method: "POST",
       body: JSON.stringify({
         ...errorData,
-        url: window.location.href,
+        filename: errorData.filename ? stripQuery(errorData.filename) : undefined,
+        stackTrace: errorData.stackTrace ? stripQuery(errorData.stackTrace) : undefined,
+        url: pageUrl.href,
         projectSemanticIdentifier: import.meta.env.VITE_VLY_APP_ID,
       }),
     });
@@ -92,6 +123,7 @@ function ErrorDialog({
           <a
             href={`https://freebuff.com/project/${import.meta.env.VITE_VLY_APP_ID}`}
             target="_blank"
+            rel="noopener noreferrer"
           >
             <Button>
               <ExternalLink /> Open editor

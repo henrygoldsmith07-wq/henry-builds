@@ -229,8 +229,16 @@ async function deriveSourceStatuses(entries) {
     };
   }
 
+  // Stamp the layer once and give every generated entry the same stamp. The
+  // freshness gate substantiates a layer's `checkedAt` against its per-entry
+  // observations; entries without their own `checkedAt` collected zero of those
+  // and made that antitamper check a no-op. This mirrors the ci-facts pattern.
+  const checkedAt = new Date().toISOString();
+  for (const slug of Object.keys(projects)) {
+    projects[slug] = { checkedAt, ...projects[slug] };
+  }
   return {
-    checkedAt: new Date().toISOString(),
+    checkedAt,
     projects,
   };
 }

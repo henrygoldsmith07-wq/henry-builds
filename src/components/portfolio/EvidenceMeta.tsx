@@ -6,6 +6,7 @@ import type {
   SourceState,
 } from "@/data/registry/schema";
 import { sourceStateCopy } from "@/data/registry/schema";
+import { safeHref } from "@/data/registry";
 import {
   DEPLOY_SNAPSHOT_WINDOW_DAYS,
   LINK_CHECK_MAX_AGE_DAYS,
@@ -189,6 +190,14 @@ export function SourceVerificationRow({
   const claimsStale =
     typeof claimsAgeDays === "number" && claimsAgeDays > freshWithinDays;
 
+  // These values come from generated JSON, so they are only rendered as links
+  // when they are genuinely https. Otherwise the label still appears, as plain
+  // text — the row is never hidden on account of a bad URL.
+  const safeShaUrl = safeHref(shaUrl);
+  const safeDeployUrl = safeHref(deploy?.url);
+  const safeGreenRunUrl = safeHref(ci?.greenRunUrl);
+  const safeReleaseUrl = safeHref(release?.url);
+
   // A link check is only worth quoting while it is recent; a months-old
   // "verified" badge is the quiet overstatement this file exists to prevent, so
   // an expired one is described as such rather than dropped.
@@ -207,8 +216,8 @@ export function SourceVerificationRow({
           {sha && (
             <>
               {" @ "}
-              {shaUrl ? (
-                <a href={shaUrl} target="_blank" rel="noopener noreferrer" className="inline-link">
+              {safeShaUrl ? (
+                <a href={safeShaUrl} target="_blank" rel="noopener noreferrer" className="inline-link">
                   <GitCommitHorizontal className="inline size-3" aria-hidden="true" />
                   {sha.slice(0, 7)}
                 </a>
@@ -239,8 +248,8 @@ export function SourceVerificationRow({
                 {deploy.sha && (
                   <>
                     {" @ "}
-                    {deploy.url ? (
-                      <a href={deploy.url} target="_blank" rel="noopener noreferrer" className="inline-link">
+                    {safeDeployUrl ? (
+                      <a href={safeDeployUrl} target="_blank" rel="noopener noreferrer" className="inline-link">
                         {deploy.sha}
                       </a>
                     ) : (
@@ -275,8 +284,8 @@ export function SourceVerificationRow({
         <dt>Last green CI</dt>
         <dd>
           {ci?.lastSuccessAt ? (
-            ci.greenRunUrl ? (
-              <a href={ci.greenRunUrl} target="_blank" rel="noopener noreferrer" className="inline-link">
+            safeGreenRunUrl ? (
+              <a href={safeGreenRunUrl} target="_blank" rel="noopener noreferrer" className="inline-link">
                 {formatDate(ci.lastSuccessAt)}
               </a>
             ) : (
@@ -383,8 +392,8 @@ export function SourceVerificationRow({
         <div>
           <dt>Release</dt>
           <dd>
-            {release.url ? (
-              <a href={release.url} target="_blank" rel="noopener noreferrer" className="inline-link">
+            {safeReleaseUrl ? (
+              <a href={safeReleaseUrl} target="_blank" rel="noopener noreferrer" className="inline-link">
                 {release.tag}
               </a>
             ) : (

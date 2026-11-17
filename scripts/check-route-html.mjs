@@ -9,6 +9,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadCaseStudies } from "./lib/published-projects.mjs";
+import { PROJECT_ANALYTICS_TITLE } from "../src/data/registry/structured-data.mjs";
 
 const root = process.cwd();
 const distDir = path.join(root, "dist");
@@ -181,6 +182,17 @@ verifyRoute({
   image: "/og/build-log.png",
   structuredType: "CollectionPage",
   minBodyParagraphs: 40,
+});
+
+// /analytics is in CORE_ROUTES and generate-route-html.mjs writes analytics.html,
+// but this checker never verified it — a missing or wrong card for the route
+// passed the suite. The title comes from the same constant the generator uses,
+// so the head metadata cannot drift between the two renderers.
+verifyRoute({
+  route: "/analytics",
+  title: PROJECT_ANALYTICS_TITLE,
+  image: "/og/default.png",
+  structuredType: "CollectionPage",
 });
 
 for (const { data: project } of published) {

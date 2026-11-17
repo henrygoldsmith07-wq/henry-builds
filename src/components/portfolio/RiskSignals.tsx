@@ -70,6 +70,7 @@ export function RiskSignals() {
               <button
                 key={project.slug}
                 type="button"
+                aria-pressed={selected?.project.slug === project.slug}
                 onClick={() => setSlug(project.slug)}
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors ${
                   selected?.project.slug === project.slug

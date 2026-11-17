@@ -35,6 +35,7 @@ import {
   DEPLOY_ALARM_AGE_DAYS,
   GENERATED_LAYER_MAX_AGE_DAYS,
   GENERATED_LAYER_STRICT_AGE_DAYS,
+  LINK_CHECK_MAX_AGE_DAYS,
   isWithinWindow,
 } from "../src/data/registry/freshness.mjs";
 
@@ -44,7 +45,15 @@ const now = Date.now();
 const DAY = 86_400_000;
 const maxAgeDays = strict ? GENERATED_LAYER_STRICT_AGE_DAYS : GENERATED_LAYER_MAX_AGE_DAYS;
 
-/** [file, timestamp field, window] */
+/**
+ * [file, timestamp field, window, required?]
+ *
+ * The link-health layer is optional: `check-links.mjs --external` only writes it
+ * on the scheduled probe, so a fresh clone or an offline run legitimately has no
+ * file. When it exists it is aged against its own short window rather than the
+ * general generated-layer allowance — a weeks-old "all links resolved" claim
+ * must stop presenting itself as current.
+ */
 const checks = [
   ["registry/upstream.json", "importedAt", maxAgeDays],
   ["registry/evidence-ledger.json", "importedAt", maxAgeDays],
@@ -52,6 +61,7 @@ const checks = [
   ["registry/ci-facts.json", "importedAt", maxAgeDays],
   ["registry/facts-history.json", "generatedAt", maxAgeDays],
   ["registry/bundle-history.json", "generatedAt", maxAgeDays],
+  ["registry/link-health.json", "checkedAt", LINK_CHECK_MAX_AGE_DAYS, false],
 ];
 
 /**
@@ -91,7 +101,10 @@ const load = (relative) => {
 
 const stamps = new Map();
 
-for (const [relative, field, allowedDays] of checks) {
+for (const [relative, field, allowedDays, required = true] of checks) {
+  // An optional layer that has never been generated is not a failure. Skip it
+  // before load(), which would otherwise report every absent file as missing.
+  if (!required && !fs.existsSync(path.join(root, relative))) continue;
   const data = load(relative);
   if (!data) continue;
 
@@ -217,11 +230,20 @@ if (ciFacts) {
 
 const sourceStatus = load("registry/source-status.json");
 if (sourceStatus) {
-  checkObservations("registry/source-status.json", sourceStatus, Date.parse(sourceStatus.checkedAt), (data) =>
+  const stamp = Date.parse(sourceStatus.checkedAt);
+  const observations = [];
+  checkObservations("registry/source-status.json", sourceStatus, stamp, (data) =>
     Object.entries(data.projects ?? data.entries ?? {}).flatMap(([slug, entry]) =>
       entry?.checkedAt ? [{ label: `projects.${slug}.checkedAt`, value: entry.checkedAt }] : [],
-    ),
+    ).map((trail) => {
+      observations.push(trail.value);
+      return trail;
+    }),
   );
+  // Generated entries now carry their own `checkedAt`, so this layer's stamp can
+  // be corroborated by its contents exactly like ci-facts. Without per-entry
+  // stamps this collected zero observations and the antitamper check was a no-op.
+  checkStampIsSubstantiated("registry/source-status.json", stamp, observations);
 }
 
 // --- the layers that derive from one another must agree -------------------

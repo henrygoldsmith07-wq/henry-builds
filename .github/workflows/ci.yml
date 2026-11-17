@@ -13,6 +13,10 @@ env:
   SITE_URL: ${{ vars.SITE_URL }}
   VITE_SITE_URL: ${{ vars.SITE_URL }}
 
+# No CI job needs write access; keep the default token read-only.
+permissions:
+  contents: read
+
 jobs:
   verify:
     name: Types, lint, registry, claims, evidence tests, build, links
@@ -155,6 +159,9 @@ jobs:
 
       - name: Exercise analytics tabs and the honest contact fallback
         run: bun run test:analytics
+
+      - name: Exercise configured contact endpoint success and rejection
+        run: bun run test:contact
 
       - uses: actions/upload-artifact@v4
         if: failure()

@@ -1,10 +1,10 @@
 import { Calendar, CheckCircle, Clock, TrendingUp, TriangleAlert } from "lucide-react";
-import { projects, registryMeta, FRESH_CLAIM_WINDOW_DAYS, hasRedCi, hasCarriedCi } from "@/data/registry";
+import { projects, FRESH_CLAIM_WINDOW_DAYS, hasRedCi, hasCarriedCi, daysSinceVerified } from "@/data/registry";
 
 /**
  * Evidence Verification Timeline
  * 
- * Shows when each project's claims were last verified by CI, with visual indicators for:
+ * Shows when each project's claims were last verified, with visual indicators for:
  * - Fresh verifications (within window)
  * - Stale verifications (expired)
  * - Carried CI (no fresh check possible)
@@ -13,11 +13,12 @@ import { projects, registryMeta, FRESH_CLAIM_WINDOW_DAYS, hasRedCi, hasCarriedCi
  * Demonstrates commitment to proof-first approach through temporal transparency.
  */
 export function EvidenceVerificationTimeline() {
-  const today = new Date();
-  
   const timelineData = projects.map(project => {
-    const verifiedAt = project.sourceCheckedAt;
-    const daysSinceVerified = verifiedAt ? Math.floor((today.getTime() - new Date(verifiedAt).getTime()) / (1000 * 60 * 60 * 24)) : null;
+    // The canonical helper reads caseStudy.lastVerifiedAt — the date a human
+    // last checked the claims — not the repo-check stamp. Using it here keeps
+    // the "Last verified" label and the freshness window on one source of truth.
+    const verifiedAt = project.caseStudy.lastVerifiedAt;
+    const ageDays = daysSinceVerified(project);
     
     let status: "fresh" | "stale" | "carried" | "failed" | "unknown" = "unknown";
     let statusLabel = "Unknown";
@@ -31,14 +32,14 @@ export function EvidenceVerificationTimeline() {
       status = "carried";
       statusLabel = "Carried Forward";
       statusColor = "bg-yellow-500";
-    } else if (daysSinceVerified !== null) {
-      if (daysSinceVerified <= FRESH_CLAIM_WINDOW_DAYS) {
+    } else if (ageDays !== null) {
+      if (ageDays <= FRESH_CLAIM_WINDOW_DAYS) {
         status = "fresh";
-        statusLabel = `${daysSinceVerified}d ago`;
+        statusLabel = `${ageDays}d ago`;
         statusColor = "bg-emerald-500";
       } else {
         status = "stale";
-        statusLabel = `${daysSinceVerified}d ago`;
+        statusLabel = `${ageDays}d ago`;
         statusColor = "bg-orange-500";
       }
     }
@@ -46,7 +47,7 @@ export function EvidenceVerificationTimeline() {
     return {
       ...project,
       verifiedAt,
-      daysSinceVerified,
+      daysSinceVerified: ageDays,
       status,
       statusLabel,
       statusColor,
@@ -63,9 +64,11 @@ export function EvidenceVerificationTimeline() {
     stale: timelineData.filter(p => p.status === "stale").length,
     carried: timelineData.filter(p => p.status === "carried").length,
     failed: timelineData.filter(p => p.status === "failed").length,
-    avgDaysSinceVerified: Math.round(
-      timelineData.reduce((sum, p) => sum + (p.daysSinceVerified ?? 0), 0) / timelineData.length
-    ),
+    avgDaysSinceVerified: timelineData.length === 0
+      ? 0
+      : Math.round(
+          timelineData.reduce((sum, p) => sum + (p.daysSinceVerified ?? 0), 0) / timelineData.length
+        ),
   };
 
   const getStatusIcon = (status: string) => {
@@ -162,8 +165,8 @@ export function EvidenceVerificationTimeline() {
         </h3>
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: "Fresh", desc: "Verified within last 90 days", color: "bg-emerald-500" },
-            { label: "Stale", desc: "No verification in 90+ days", color: "bg-orange-500" },
+            { label: "Fresh", desc: `Verified within last ${FRESH_CLAIM_WINDOW_DAYS} days`, color: "bg-emerald-500" },
+            { label: "Stale", desc: `No verification in ${FRESH_CLAIM_WINDOW_DAYS}+ days`, color: "bg-orange-500" },
             { label: "Carried", desc: "CI data unavailable; using latest import", color: "bg-yellow-500" },
             { label: "Failed", desc: "Latest CI run did not pass", color: "bg-red-500" },
           ].map(({ label, desc, color }) => (
@@ -187,7 +190,7 @@ export function EvidenceVerificationTimeline() {
         <p className="mt-3 text-sm leading-6 text-foreground/85">
           Static portfolios can claim things once and never verify them again. The evidence-first approach
           requires <strong>ongoing verification</strong>. This timeline shows exactly when each project's
-          claims were last validated by CI — transparently exposing what's current vs. what may have changed.
+          claims were last checked — transparently exposing what's current vs. what may have changed.
           Fresh verifications demonstrate living code; stale ones warrant closer inspection before making hiring decisions.
         </p>
       </div>

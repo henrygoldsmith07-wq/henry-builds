@@ -187,6 +187,8 @@ bun run check:links:external   # also HEAD every external evidence link
 bun run check:links:github     # also verify GitHub blob/tree paths exist in their repos
 bun run check:csp              # assert vercel.json's CSP still allows index.html's inline script
 
+bun run test:analytics         # tab rendering, keyboard, hash sync, consent gating
+bun run test:contact           # configured same-origin/cross-origin contact endpoints
 bun run test:a11y              # axe over every published route, light and dark
 bun run test:visual            # visual regression
 bun run test:visual:update     # accept new baselines
@@ -259,9 +261,20 @@ budget, reading the thresholds from `lighthouserc.json` rather than restating
 them. Note its figure sums every chunk including lazily-loaded routes, so it is
 an upper bound on any single page; the Lighthouse job is the gate.
 
-The first entry to carry gzip figures is the next `record:bundle` run, so the
-history will mix raw-only and raw+gzip points until then. The growth warning
-keeps comparing raw to raw, so the existing series stays valid.
+`bundle-history.json` already carries both raw and gzip figures; compare like
+with like. The growth warning uses raw-to-raw so the older points stay valid.
+
+**2026-11-17 growth note.** `record:bundle` reports 1082 KB raw / 305 KB gzip
+(879 KB / 276 KB JS) after the analytics and contact flows were added. The
+2026-10-09 point (681 KB / 191 KB gzip) predates those routes; the 2026-08-23
+point was 920 KB raw, so the current build is +17.6% against the earliest
+measurement. The raw-only warning is expected from summing every lazy chunk;
+what visitors transfer is the gzip figure, and it is comfortably within the
+Lighthouse budgets (276/684 KB script, 305/1367 KB total). All seven audited
+routes score ≥0.90 performance and ≥0.98 accessibility in Lighthouse with the
+project's 3-run configuration. The main raw contributors are two shared async
+chunks (~364 KB) and the design-system CSS (~203 KB); the per-route entry
+chunks are 3–40 KB each, so no single page loads the whole total.
 
 `registry-sync.yml` refreshes the generated evidence layer daily at 06:20 UTC
 and can be dispatched manually. Generated-only refreshes land directly; anything
@@ -294,8 +307,10 @@ it on every push.
 | Variable | Where | Purpose |
 |---|---|---|
 | `SITE_URL` / `VITE_SITE_URL` | optional env | Overrides the build-time origin for sitemap URLs and OG images. Defaults to the production alias (`https://henry-builds.vercel.app`, see `PRODUCTION_ORIGIN` in `generate-sitemap.mjs`) so deploys without variables stay correct; `ALLOW_RELATIVE_SITEMAP=1` opts out locally. |
-| `REGISTRY_TOKEN` | repo secret | PAT with Contents/Actions read access to every sibling repo the portfolio cites. A classic token needs `repo` if any cited repo is private; public-only portfolios can use `public_repo`. Without it cross-repo checks degrade loudly instead of pretending stale data is current. Scheduled sync fails on an unusable token, and deploy-monitor alarms if the facts stop refreshing. Every repo this portfolio currently cites is **private** (`access: "private"` in `registry/source-status.json`), so the token needs `repo` scope and the site says so rather than implying the source is public. |
-| `VITE_CONTACT_ENDPOINT` | optional env | URL that the smart contact form POSTs to. Without it the form says plainly that direct contact is not configured and points to the GitHub link; it never pretends a message was delivered. |
+| `REGISTRY_TOKEN` | repo secret | Fine-grained PAT with **Contents: read** and **Actions: read** only, scoped to the sibling repos the portfolio cites. Every consumer here performs GET/HEAD only, so a classic `repo` token (read **and write** on every private repo the owner can access) is unnecessarily broad. Without a token cross-repo checks degrade loudly instead of pretending stale data is current. Scheduled sync fails on an unusable token, and deploy-monitor alarms if the facts stop refreshing. Every repo currently cited is **private** (`access: "private"` in `registry/source-status.json`); the site says so rather than implying the source is public. |
+| `VITE_CONTACT_ENDPOINT` | optional env | Same-origin path that the smart contact form POSTs to. The deployed CSP allows `connect-src 'self'`, so a cross-origin URL is rejected by the form before any request (and would be blocked by CSP anyway). Without it the form says plainly that direct contact is not configured and points to the GitHub link; it never pretends a message was delivered. |
+| `VITE_VLY_APP_ID` | optional editor env | Public identifier that opts into the Vly toolbar and error reporter. The reporter is inert without it and is stripped from a normal build. |
+| `VITE_VLY_MONITORING_URL` | optional editor env | Error-report endpoint. Accepted only over https on `vly.sh`, its subdomains, `freebuff.com` or its subdomains; page URLs, script names and stack frames are stripped of query strings before sending. |
 | `VITE_VLY_PARENT_ORIGIN` | optional editor env | Explicitly allow one parent origin for the Vly preview route bridge. Without it, only Vly/Freebuff parent hosts from the document referrer are accepted. |
 
 The portfolio has no application backend or account surface.

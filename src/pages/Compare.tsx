@@ -291,7 +291,7 @@ function LensRankings({ rows }: { rows: HydratedProject[] }) {
                           </span>
                         ))}
                         {tied && (
-                          <span className="ml-1 text-muted-foreground/70">tied at top</span>
+                          <span className="ml-1 text-muted-foreground">tied at top</span>
                         )}
                       </p>
                     </li>
@@ -543,14 +543,14 @@ export default function Compare() {
                         </p>
                         <ul className="mt-2.5 space-y-1">
                           {shows.technical.slice(0, 3).map((item) => (
-                            <li key={item} className="text-[11px] leading-4 text-muted-foreground/90">
-                              <span className="font-medium text-foreground/60">tech · </span>
+                            <li key={item} className="text-[11px] leading-4 text-muted-foreground">
+                              <span className="font-medium text-foreground">tech · </span>
                               {item}
                             </li>
                           ))}
                           {shows.product.slice(0, 2).map((item) => (
-                            <li key={item} className="text-[11px] leading-4 text-muted-foreground/90">
-                              <span className="font-medium text-foreground/60">product · </span>
+                            <li key={item} className="text-[11px] leading-4 text-muted-foreground">
+                              <span className="font-medium text-foreground">product · </span>
                               {item}
                             </li>
                           ))}

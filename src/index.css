@@ -344,7 +344,7 @@
 
 .arch-stack { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); }
 .arch-layer { display: flex; gap: 18px; background: var(--background); padding: 18px 22px; }
-.arch-layer-index { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: color-mix(in oklab, var(--foreground) 35%, transparent); padding-top: 3px; }
+.arch-layer-index { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; color: var(--muted-foreground); padding-top: 3px; }
 /* A standalone link to a source path, not inline prose, so it has to clear the
    24px SC 2.5.8 floor. `inline-flex` + vertical padding raises the hit area
    without changing the monospace 10px type. */

@@ -1,5 +1,6 @@
 import { Archive, BookOpen, FlaskConical, GitBranch } from "lucide-react";
 import { sourceStateCopy, type SourceState } from "@/data/registry/schema";
+import { safeHref } from "@/data/registry";
 
 const stateIcon: Record<SourceState, typeof GitBranch> = {
   "current-source": GitBranch,
@@ -66,6 +67,9 @@ export function VerificationLine({
   const verified = ci?.lastVerifiedAt ? new Date(ci.lastVerifiedAt).toISOString().slice(0, 10) : null;
   const ran = ci?.lastRunAt ? new Date(ci.lastRunAt).toISOString().slice(0, 10) : null;
   const imported = importedAt ? new Date(importedAt).toISOString().slice(0, 10) : null;
+  // The CI run URL is generated, so only an https value is safe to link to. A
+  // rejected value still shows the verification date, just not as a link.
+  const safeRunUrl = safeHref(ci?.runUrl);
 
   return (
     <p className="text-xs leading-5 text-muted-foreground">
@@ -73,14 +77,18 @@ export function VerificationLine({
         <>
           Last code verification (green CI):{" "}
           {verified ? (
-            <a
-              className="underline underline-offset-2 hover:text-foreground"
-              href={ci.runUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {verified}
-            </a>
+            safeRunUrl ? (
+              <a
+                className="underline underline-offset-2 hover:text-foreground"
+                href={safeRunUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {verified}
+              </a>
+            ) : (
+              <span>{verified}</span>
+            )
           ) : (
             <span>none recorded</span>
           )}

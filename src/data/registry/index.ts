@@ -20,7 +20,7 @@ import type {
   UpstreamSnapshot,
 } from "./schema";
 import { isPublishedCaseStudy, needsHistoricalDisclosure } from "./publication.mjs";
-import { MAX_CLAIM_AGE_DAYS } from "./freshness.mjs";
+import { DEPLOY_SNAPSHOT_WINDOW_DAYS, MAX_CLAIM_AGE_DAYS } from "./freshness.mjs";
 import upstreamRaw from "../../../registry/upstream.json";
 import ciFactsRaw from "../../../registry/ci-facts.json";
 import evidenceLedgerRaw from "../../../registry/evidence-ledger.json";
@@ -119,7 +119,7 @@ function withCiMetrics(project: Project, facts: CiFacts[string] | undefined): Me
       {
         kind: "ci",
         label: facts.runUrl ? "Workflow run" : basename(facts.workflow),
-        href: facts.lastSuccessRunUrl ?? facts.runUrl ?? facts.workflowUrl,
+        href: safeHref(facts.lastSuccessRunUrl ?? facts.runUrl ?? facts.workflowUrl),
         path: facts.workflow,
       },
     ],
@@ -210,7 +210,8 @@ function hydrate(project: Project): HydratedProject {
         }
       : undefined,
     ledgerClaims: claimsByProduct.get(project.upstreamId) ?? [],
-    ledgerImportedAt: evidenceLedger.importedAt,    facts: factsFile.latest?.[project.upstreamId],
+    ledgerImportedAt: evidenceLedger.importedAt,
+    facts: factsFile.latest?.[project.upstreamId],
     factsHistory: factsFile.history?.[project.upstreamId] ?? [],
     factsGeneratedAt: factsFile.generatedAt,
     registryImportedAt: upstream.importedAt,
@@ -318,6 +319,25 @@ export function repoTreeHrefFor(project: HydratedProject, path: string): string 
 }
 
 /**
+ * Return a value only when it is an absolute https URL, otherwise undefined.
+ *
+ * Generated fields (deployment, release and CI URLs) arrive from external APIs
+ * and are rendered straight into `href` attributes. Requiring the parsed
+ * protocol to be exactly `https:` keeps every other scheme — `javascript:`,
+ * `data:`, `file:` and plain `http:` — from ever reaching an anchor. A missing
+ * or malformed value becomes undefined so the caller can render plain text
+ * rather than a link.
+ */
+export function safeHref(value?: string): string | undefined {
+  if (!value) return undefined;
+  try {
+    return new URL(value).protocol === "https:" ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Turn one evidence item into the URL a reader should actually follow. An
  * explicit `href` always wins — it was authored against a known repository.
  * A bare `path` is resolved against the project that owns it today.
@@ -409,18 +429,29 @@ export function daysSinceVerified(project: HydratedProject): number | null {
 export function deploySnapshotAgeDays(project: HydratedProject): number | null {
   const deploy = project.facts?.deploy;
   if (!deploy || deploy.state === "none" || !deploy.url) return null;
-  // The snapshot as a whole is timestamped once; fall back to the deployment's
-  // own creation date when the file-level stamp is absent.
+  // Prefer this project's own snapshot date over the file-level stamp: a project
+  // dropped from a later refresh keeps its old snapshot, and the new file's
+  // generatedAt would make that stale record look freshly checked. The
+  // deployment's own creation date is the next best record of when this state
+  // was actually observed; the file-level stamp is the last resort.
   const stamped =
-    factsFile.generatedAt ?? factsFile.latest?.[project.upstreamId]?.deploy?.createdAt;
+    project.facts?.date ??
+    project.facts?.deploy?.createdAt ??
+    factsFile.generatedAt;
   if (!stamped) return null;
   const then = new Date(stamped).getTime();
   if (!Number.isFinite(then)) return null;
   return Math.floor((Date.now() - then) / 86_400_000);
 }
 
-/** Deploy records older than this are shown as an unchecked snapshot. */
-export const DEPLOY_SNAPSHOT_WINDOW_DAYS = 14;
+/**
+ * Deploy records older than this are shown as an unchecked snapshot.
+ *
+ * Re-exported from the canonical freshness module so the UI, the validator and
+ * the freshness gate all read one number. `CaseStudy.tsx` and `EvidenceMeta.tsx`
+ * keep importing it from this path, but the value now has a single owner.
+ */
+export { DEPLOY_SNAPSHOT_WINDOW_DAYS };
 
 const stageRank: Record<Stage, number> = {
   shipped: 0,
@@ -567,17 +598,5 @@ export function buildProofSummary(list: HydratedProject[] = allProjects): ProofS
 
 /** The portfolio's own arithmetic, computed once. */
 export const proofSummary = buildProofSummary();
-
-/**
- * Whether every cited repository is private. The landing page once asserted the
- * source was public; this is the generated truth that has to agree with any
- * claim the copy makes about access.
- */
-export const allSourcesPrivate =
-  allProjects.length > 0 &&
-  allProjects.every((p) => p.sourceRepo && p.sourceAccess === "private");
-
-/** Whether at least one cited repository is publicly readable. */
-export const anySourcePublic = allProjects.some((p) => p.sourceAccess === "public");
 
 export * from "./schema";

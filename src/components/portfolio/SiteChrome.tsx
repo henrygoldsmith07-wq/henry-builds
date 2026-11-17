@@ -19,6 +19,18 @@ export function useTheme() {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
+
+    // index.html's media-keyed metas describe the OS preference, not the
+    // visitor's persisted choice. Keep the browser chrome in sync with the
+    // theme actually in use without touching the inline bootstrap script
+    // (its hash is pinned in the CSP).
+    const colour = isDark ? "#0e100f" : "#171817";
+    document
+      .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+      .forEach((meta) => {
+        meta.content = colour;
+      });
+
     try {
       window.localStorage.setItem(STORAGE_KEY, isDark ? "dark" : "light");
     } catch {

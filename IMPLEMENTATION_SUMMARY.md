@@ -1,5 +1,10 @@
 # Henry Builds Portfolio - Implementation Summary
 
+> **Historical agent report, 19 Oct 2026.** Kept for provenance only. The
+> README is the current description of the site. `scripts/generate-build-events.mjs`
+> and `scripts/audit-media.mjs`, mentioned below, were removed in Nov 2026:
+> neither parsed as JavaScript and neither was wired into a package script.
+
 ## Overview
 This document summarizes the transformative improvements implemented on the henry-builds portfolio repository during this autonomous audit and implementation session.
 

@@ -3,17 +3,19 @@ import { Link } from "react-router";
 import { SiteFooter, SiteHeader } from "@/components/portfolio/SiteChrome";
 import { SiteMetadata } from "@/components/portfolio/SiteMetadata";
 import { PROJECT_ANALYTICS_TITLE, PROJECT_ANALYTICS_DESCRIPTION, collectionGraph } from "@/data/registry/structured-data.mjs";
-import { SkillMatcher } from "@/components/portfolio/SkillMatcher";
-import { SkillsHeatmap } from "@/components/portfolio/SkillsHeatmap";
-import { ProjectComplexityVisualizer } from "@/components/portfolio/ProjectComplexityVisualizer";
-import { EvidenceVerificationTimeline } from "@/components/portfolio/EvidenceVerificationTimeline";
-import { CapabilityEvolutionTimeline } from "@/components/portfolio/CapabilityEvolutionTimeline";
-import { InteractivePortfolioSimulator } from "@/components/portfolio/InteractivePortfolioSimulator";
-import { RiskSignals } from "@/components/portfolio/RiskSignals";
-import { EvidenceReview } from "@/components/portfolio/EvidenceReview";
-import { projects, registryMeta, demonstratesOf } from "@/data/registry";
+// Only the overview renders on first visit. Loading the other eight views on
+// demand keeps them out of the route's initial chunk.
+const SkillMatcher = lazy(() => import("@/components/portfolio/SkillMatcher").then((m) => ({ default: m.SkillMatcher })));
+const SkillsHeatmap = lazy(() => import("@/components/portfolio/SkillsHeatmap").then((m) => ({ default: m.SkillsHeatmap })));
+const ProjectComplexityVisualizer = lazy(() => import("@/components/portfolio/ProjectComplexityVisualizer").then((m) => ({ default: m.ProjectComplexityVisualizer })));
+const EvidenceVerificationTimeline = lazy(() => import("@/components/portfolio/EvidenceVerificationTimeline").then((m) => ({ default: m.EvidenceVerificationTimeline })));
+const CapabilityEvolutionTimeline = lazy(() => import("@/components/portfolio/CapabilityEvolutionTimeline").then((m) => ({ default: m.CapabilityEvolutionTimeline })));
+const InteractivePortfolioSimulator = lazy(() => import("@/components/portfolio/InteractivePortfolioSimulator").then((m) => ({ default: m.InteractivePortfolioSimulator })));
+const RiskSignals = lazy(() => import("@/components/portfolio/RiskSignals").then((m) => ({ default: m.RiskSignals })));
+const EvidenceReview = lazy(() => import("@/components/portfolio/EvidenceReview").then((m) => ({ default: m.EvidenceReview })));
+import { projects, demonstratesOf } from "@/data/registry";
 import { stageOrder, type Stage } from "@/data/registry/schema";
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect, type KeyboardEvent } from "react";
 
 /**
  * Portfolio Intelligence Hub - Advanced analytics and insights
@@ -31,73 +33,114 @@ const portfolioAnalytics = {
     }),
 };
 
-export default function PortfolioAnalytics() {
-  const [activeTab, setActiveTab] = useState<"overview" | "resume" | "skills" | "complexity" | "verification" | "evolution" | "simulator" | "risk" | "review">("overview");
+type AnalyticsTab =
+  | "overview"
+  | "resume"
+  | "skills"
+  | "complexity"
+  | "verification"
+  | "evolution"
+  | "simulator"
+  | "risk"
+  | "review";
 
-  // The overview cards link to sections of this page. A direct load on one of
-  // those hashes should open the matching section, not silently show overview.
+// Tab order drives both the roving tabindex and arrow-key navigation.
+const tabIds: AnalyticsTab[] = [
+  "overview",
+  "resume",
+  "skills",
+  "complexity",
+  "verification",
+  "evolution",
+  "simulator",
+  "risk",
+  "review",
+];
+
+function isAnalyticsTab(id: string): id is AnalyticsTab {
+  return (tabIds as string[]).includes(id);
+}
+
+export default function PortfolioAnalytics() {
+  // A direct load on /analytics#risk should open that tab, not overview.
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>(() => {
+    const id = typeof window === "undefined" ? "" : window.location.hash.slice(1);
+    return isAnalyticsTab(id) ? id : "overview";
+  });
+
+  // Back/forward navigation changes the hash without a React click handler.
   useEffect(() => {
     const syncFromHash = () => {
       const id = window.location.hash.slice(1);
-      if (id === "resume" || id === "review" || id === "risk" ||
-          id === "skills" || id === "complexity" || id === "verification" ||
-          id === "evolution" || id === "simulator") {
-        setActiveTab(id as typeof activeTab);
-      }
+      if (isAnalyticsTab(id)) setActiveTab(id);
     };
-    syncFromHash();
     window.addEventListener("hashchange", syncFromHash);
     return () => window.removeEventListener("hashchange", syncFromHash);
   }, []);
+
+  // Mutating the URL from an event handler is a React Compiler violation;
+  // effects are the correct place for this side effect. pushState (rather than
+  // replaceState) keeps browser Back working for tab changes.
+  useEffect(() => {
+    const target = `#${activeTab}`;
+    if (window.location.hash !== target) {
+      window.history.pushState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}${target}`,
+      );
+    }
+  }, [activeTab]);
 
   function openSection(link: string) {
     if (link.startsWith("#")) {
       setActiveTab(link.slice(1) as typeof activeTab);
     }
   }
-  const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [lastCursorPosition, setLastCursorPosition] = useState({ x: 0, y: 0 });
-  const [velocity, setVelocity] = useState(0);
-  const [highSpeedMode, setHighSpeedMode] = useState(false);
-  const [singularityActive, setSingularityActive] = useState(false);
 
-  // Track cursor position with velocity calculation
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const deltaX = e.clientX - lastCursorPosition.x;
-      const deltaY = e.clientY - lastCursorPosition.y;
-      const dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const vel = dist / 0.016; // Normalize to per-second
-      
-      setVelocity(vel);
-      setHighSpeedMode(vel > 500);
-      setSingularityActive(vel > 1500);
-      
-      setCursorPosition({ x: e.clientX, y: e.clientY });
-      setLastCursorPosition({ x: e.clientX, y: e.clientY });
-    };
+  function selectTab(id: AnalyticsTab) {
+    setActiveTab(id);
+  }
 
-    const handleMouseDown = () => setIsMouseDown(true);
-    const handleMouseUp = () => setIsMouseDown(false);
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [lastCursorPosition]);
+  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, id: typeof activeTab) {
+    const currentIndex = tabIds.indexOf(id);
+    let nextId: typeof activeTab | undefined;
+    switch (event.key) {
+      case "ArrowRight":
+        nextId = tabIds[(currentIndex + 1) % tabIds.length];
+        break;
+      case "ArrowLeft":
+        nextId = tabIds[(currentIndex - 1 + tabIds.length) % tabIds.length];
+        break;
+      case "Home":
+        nextId = tabIds[0];
+        break;
+      case "End":
+        nextId = tabIds[tabIds.length - 1];
+        break;
+    }
+    if (nextId) {
+      event.preventDefault();
+      selectTab(nextId);
+      document.getElementById(`tab-${nextId}`)?.focus();
+    }
+  }
 
   // Calculate portfolio-wide metrics
   const portfolioMetrics = {
     totalProjects: projects.length,
     totalEvidence: projects.reduce((acc, p) => acc + (p.caseStudy.outcomes.filter(o => o.evidence.length > 0).length), 0),
+    // An evidenced claim is an outcome that carries at least one piece of
+    // evidence. This is the same definition proofSummary.evidencedClaims uses;
+    // counting metrics here quietly reported a different, smaller number.
     verifiedClaims: projects.reduce(
-      (acc, p) => acc + p.caseStudy.metrics.filter(m => (m.evidence?.length ?? 0) > 0).length,
+      (acc, p) => acc + p.caseStudy.outcomes.filter(o => o.evidence.length > 0).length,
+      0,
+    ),
+    // Measured numbers are a separate, genuine metric count (also counted on
+    // the landing page as proofSummary.measuredMetrics).
+    measuredMetrics: projects.reduce(
+      (acc, p) => acc + p.caseStudy.metrics.length,
       0,
     ),
     techStackSize: Array.from(new Set(projects.flatMap(p => demonstratesOf(p).technical))).length,
@@ -113,455 +156,6 @@ export default function PortfolioAnalytics() {
 
   return (
     <div className="portfolio-shell">
-      {/* Cursor follower */}
-      <div 
-        className="pointer-events-none fixed inset-0 -z-50"
-        style={{ zIndex: -1 }}
-      >
-        {/* Chromatic aberration layers */}
-        {[...Array(3)].map((_, layer) => {
-          const offset = (layer - 1) * 2;
-          const color = ['#ff0000', '#00ff00', '#0000ff'][layer];
-          return (
-            <div
-              key={`ab-${layer}`}
-              className="absolute rounded-full transition-all duration-75 ease-out"
-              style={{
-                width: `${96 - layer * 32}px`,
-                height: `${96 - layer * 32}px`,
-                left: cursorPosition.x - 48 + layer * 16 + offset * (highSpeedMode ? 4 : 0),
-                top: cursorPosition.y - 48 + layer * 16 + offset * (highSpeedMode ? 4 : 0),
-                transform: `translate(-50%, -50%) scale(${isMouseDown ? 1.8 : 1}) rotate(${cursorPosition.x * (0.05 - layer * 0.01)}deg)`,
-                background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-                filter: `blur(${36 - layer * 8}px)`,
-                opacity: isMouseDown ? 0.6 : 0.4,
-                mixBlendMode: 'screen' as const,
-                boxShadow: highSpeedMode ? `0 0 ${20 + layer * 10}px ${color}` : 'none',
-              }}
-            />
-          );
-        })}
-        
-        {/* Core cursor marker */}
-        <div
-          className="fixed pointer-events-none z-[9999]"
-          style={{
-            left: cursorPosition.x,
-            top: cursorPosition.y,
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          {/* Inner core dot with pulse intensity based on velocity */}
-          <div
-            className="h-2 w-2 rounded-full bg-white animate-pulse shadow-[0_0_20px_rgba(255,255,255,0.8)]"
-            style={{
-              opacity: 0.5 + (velocity / 2000),
-              transform: `scale(${1 + velocity / 1000})`,
-            }}
-          />
-          
-          {/* Outer ring expanding based on velocity */}
-          <div
-            className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border border-purple-500/50"
-            style={{
-              animation: velocity > 300 ? 'ring-expand-fast_0.3s_ease-out_infinite' : 'ring-expand_1.5s_ease-out_infinite',
-              borderColor: highSpeedMode ? '#fff' : '#a855f7',
-            }}
-          />
-          
-          {/* Secondary rotating ring with dual colors */}
-          <div
-            className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-transparent border-t-purple-500/70 border-b-blue-500/70"
-            style={{
-              animation: `ring-spin_${highSpeedMode ? 'fast' : 'normal'}_2s_linear_infinite`,
-              borderWidth: `${2 + velocity * 0.002}px`,
-            }}
-          />
-          
-          {/* Velocity-based glow halo */}
-          <div
-            className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              background: `radial-gradient(circle, rgba(168,85,247,${0.3 + velocity / 1000}) 0%, transparent 70%)`,
-              animation: 'halo-pulse_2s_ease-in-out_infinite',
-              opacity: Math.min(velocity / 500, 0.8),
-            }}
-          />
-        </div>
-        
-        {/* Extended particle trail system */}
-        {[...Array(20)].map((_, i) => {
-          const angle = (i / 20) * Math.PI * 4;
-          const distance = 20 + i * 8;
-          return (
-            <div
-              key={`trail-${i}`}
-              className="fixed pointer-events-none"
-              style={{
-                left: cursorPosition.x + Math.cos(angle) * distance,
-                top: cursorPosition.y + Math.sin(angle) * distance,
-                width: `${3 - i * 0.1}px`,
-                height: `${3 - i * 0.1}px`,
-                backgroundColor: ['rgba(59,130,246,0.5)', 'rgba(168,85,247,0.5)', 'rgba(16,185,129,0.5)'][i % 3],
-                borderRadius: i % 3 === 0 ? '50%' : i % 3 === 1 ? '3px' : 'clip-path-polygon(50% 0%, 0% 100%, 100% 100%)',
-                opacity: 1 - i * 0.05,
-                transform: `scale(${1 - i * 0.04})`,
-                filter: 'blur(1px)',
-                animationDelay: `${i * 0.05}s`,
-                transition: 'all 0.1s ease-out',
-              }}
-            />
-          );
-        })}
-        
-        {/* Chaotic orbiting particles */}
-        {[...Array(8)].map((_, i) => {
-          const orbitRadius = 60 + i * 20;
-          const speed = 0.5 + i * 0.1;
-          const offset = Date.now() * speed * 0.001;
-          return (
-            <div
-              key={`orbit-${i}`}
-              className="fixed pointer-events-none"
-              style={{
-                left: cursorPosition.x + Math.cos(offset + i * (Math.PI * 2 / 8)) * orbitRadius,
-                top: cursorPosition.y + Math.sin(offset + i * (Math.PI * 2 / 8)) * orbitRadius,
-                width: `${8 + (i % 3) * 4}px`,
-                height: `${8 + (i % 3) * 4}px`,
-                backgroundColor: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#8b5cf6', '#06b6d4'][i],
-                borderRadius: '50%',
-                boxShadow: `0 0 ${10 + i * 3}px rgba(168,85,247,${0.4 - i * 0.04})`,
-                opacity: 0.7 + (i % 2) * 0.3,
-                filter: `blur(${2 - i * 0.2}px)`,
-                transition: 'all 0.08s ease-out',
-              }}
-            />
-          );
-        })}
-        
-        {/* Echo trail system */}
-        {[...Array(10)].map((_, i) => {
-          const echoOffset = i * 3;
-          const timeDelay = i * 0.1;
-          return (
-            <div
-              key={`echo-${i}`}
-              className="fixed pointer-events-none"
-              style={{
-                left: cursorPosition.x + Math.sin(Date.now() * 0.001 + i) * echoOffset * 2,
-                top: cursorPosition.y + Math.cos(Date.now() * 0.002 + i * 0.5) * echoOffset * 1.5,
-                width: `${6 - i * 0.5}px`,
-                height: `${6 - i * 0.5}px`,
-                borderRadius: i % 2 === 0 ? '50%' : '2px',
-                backgroundColor: i % 3 === 0 ? 'rgba(59,130,246,0.3)' : i % 3 === 1 ? 'rgba(168,85,247,0.3)' : 'rgba(16,185,129,0.3)',
-                opacity: 0.4 - i * 0.035,
-                transform: `scale(${0.8 - i * 0.05}) rotate(${Date.now() * 0.05 + i * 36}deg)`,
-                filter: 'blur(2px)',
-                transition: 'all 0.15s ease-out',
-              }}
-            />
-          );
-        })}
-        
-        {/* Magnetic attraction field lines */}
-        {[...Array(8)].map((_, i) => (
-          <div
-            key={`field-${i}`}
-            className="fixed pointer-events-none"
-            style={{
-              left: cursorPosition.x,
-              top: cursorPosition.y,
-              width: `${100 + i * 25}px`,
-              height: `${2}px`,
-              transform: `translate(-50%, -50%) rotate(${i * 22.5}deg)`,
-              backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(168,85,247,0.3) 50%, transparent 100%)',
-              opacity: isMouseDown ? 0.5 : 0.3,
-              animation: 'field-wobble_2s_ease-in-out_infinite',
-              animationDelay: `${i * 0.25}s`,
-            }}
-          />
-        ))}
-        
-        {/* Ripple effect on clicks */}
-        {isMouseDown && (
-          <div
-            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
-            style={{
-              animation: `ripple-click_0.8s_ease-out_forwards`,
-            }}
-          >
-            {[...Array(3)].map((_, r) => (
-              <div
-                key={r}
-                className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-                style={{
-                  borderColor: ['rgba(59,130,246,0.6)', 'rgba(168,85,247,0.6)', 'rgba(16,185,129,0.6)'][r],
-                  animation: `ripple-expand_${r}_0.8s_ease-out_forwards`,
-                  width: `${64 + r * 32}px`,
-                  height: `${64 + r * 32}px`,
-                  boxShadow: velocity > 300 ? `0 0 ${30 + r * 10}px currentColor` : 'none',
-                  borderWidth: `${2 + velocity * 0.001}px`,
-                }}
-              />
-            ))}
-            
-            {/* Shockwave burst on click */}
-            {velocity > 300 && (
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)',
-                  transform: 'scale(2)',
-                  opacity: 0,
-                  animation: 'shockwave_0.4s_ease-out_forwards',
-                }}
-              />
-            )}
-          </div>
-        )}
-        
-        {/* Screen shake on high velocity */}
-        {highSpeedMode && (
-          <div className="fixed inset-0 -z-50 overflow-hidden">
-            {[...Array(5)].map((_, i) => (
-              <div
-                key={`shake-${i}`}
-                className="absolute inset-0"
-                style={{
-                  animation: `screen-shake_${0.1 + i * 0.05}_0.2s_cubic-bezier(0.36, 0, 0.66, -0.54)_infinite`,
-                  opacity: 0.3 - i * 0.05,
-                  filter: `blur(${i}px)`,
-                  backgroundImage: i === 0 
-                    ? 'linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.5) 50%, transparent 52%)'
-                    : i === 1
-                    ? 'linear-gradient(-45deg, transparent 48%, rgba(255,255,255,0.5) 50%, transparent 52%)'
-                    : i === 2
-                    ? 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(168,85,247,0.3) 4px)'
-                    : i === 3
-                    ? 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(59,130,246,0.3) 4px)'
-                    : 'radial-gradient(circle at center, transparent 60%, rgba(16,185,129,0.3))',
-                }}
-              />
-            ))}
-          </div>
-        )}
-        
-        {/* Photon bursts on very high speed */}
-        {velocity > 800 && (
-          <div
-            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
-          >
-            {[...Array(24)].map((_, b) => (
-              <div
-                key={`photon-${b}`}
-                className="absolute h-1 bg-white"
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  width: `${20 + Math.random() * 60}px`,
-                  backgroundColor: ['#ffffff', '#3b82f6', '#a855f7', '#10b981'][b % 4],
-                  transformOrigin: 'center',
-                  transform: `rotate(${b * 15}deg) translateY(-${40 + Math.random() * 60}px)`,
-                  borderRadius: '50%',
-                  opacity: 0.6 + Math.random() * 0.4,
-                  boxShadow: `0 0 ${10 + Math.random() * 20}px currentColor`,
-                  animationDelay: `${Math.random() * 0.2}s`,
-                  animation: 'photon-explode_0.4s_cubic-bezier(0, 0, 0.2, 1)_forwards',
-                }}
-              />
-            ))}
-            
-            {/* Tachyon ring expansion on extreme speed */}
-            {velocity > 1000 && (
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  animation: 'tachyon-ring_0.6s_ease-out_infinite',
-                }}
-              >
-                {[...Array(5)].map((_, r) => (
-                  <div
-                    key={`tachyon-${r}`}
-                    className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-                    style={{
-                      borderColor: ['rgba(255,255,255,0.8)', 'rgba(59,130,246,0.6)', 'rgba(168,85,247,0.6)', 'rgba(16,185,129,0.6)', 'rgba(255,255,255,0.8)'][r],
-                      borderWidth: `${2 + r * 1.5}px`,
-                      width: `${80 + r * 40}px`,
-                      height: `${80 + r * 40}px`,
-                      animation: `tachyon-expand_${r}_0.6s_ease-out_forwards`,
-                      boxShadow: `0 0 ${20 + r * 10}px rgba(255,255,255,${0.5 - r * 0.1})`,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-        
-        {/* Quantum entanglement particles on hover interactions */}
-        {isMouseDown && velocity > 200 && (
-          <div
-            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
-          >
-            {[...Array(16)].map((_, q) => {
-              const entangleOffset = Date.now() * 0.002 * (q % 2 === 0 ? 1 : -1);
-              return (
-                <div
-                  key={`quantum-${q}`}
-                  className="absolute h-2 w-2"
-                  style={{
-                    left: '50%',
-                    top: '50%',
-                    backgroundColor: ['#ffffff', '#3b82f6', '#a855f7', '#10b981', '#f59e0b'][q % 5],
-                    transformOrigin: 'center',
-                    transform: `rotate(${entangleOffset}rad) translateX(${60 + Math.random() * 40}px) rotate(${-entangleOffset}rad)`,
-                    borderRadius: q % 3 === 0 ? '50%' : '3px',
-                    opacity: 0.7 - q * 0.03,
-                    boxShadow: `0 0 ${15 + q * 2}px rgba(255,255,255,0.6)`,
-                    animation: `quantum-entangle_${q * 0.04}_0.8s_cubic-bezier(0.68, -0.55, 0.265, 1.55)_forwards`,
-                  }}
-                />
-              );
-            })}
-          </div>
-        )}
-        
-        {/* Dimensional rift effect at maximum velocity */}
-        {velocity > 1200 && (
-          <div
-            className="fixed inset-0 pointer-events-none -z-50 overflow-hidden"
-          >
-            {[...Array(8)].map((_, d) => (
-              <div
-                key={`rift-${d}`}
-                className="absolute inset-0"
-                style={{
-                  transform: `rotate(${d * 45}deg) scale(${0.8 + Math.sin(Date.now() * 0.003 + d) * 0.2})`,
-                  backgroundImage: 'linear-gradient(90deg, transparent 45%, rgba(255,255,255,0.6) 50%, transparent 55%)',
-                  backgroundSize: '200% 100%',
-                  animation: `dimensional-rift_${d}_0.3s_linear_infinite`,
-                  opacity: 0.4 - d * 0.04,
-                  filter: `blur(${d}px)`,
-                }}
-              />
-            ))}
-          </div>
-        )}
-        
-        {/* Fractal ripple cascade on click */}
-        {isMouseDown && (
-          <div
-            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
-          >
-            {[...Array(7)].map((_, f) => (
-              <div
-                key={`fractal-${f}`}
-                className="absolute left-1/2 top-1/2"
-                style={{
-                  width: `${40 + f * 30}px`,
-                  height: `${40 + f * 30}px`,
-                  transform: `translate(-50%, -50%) scale(${1 + f * 0.3})`,
-                  border: `${1 + f * 0.5}px solid`,
-                  borderColor: ['rgba(255,255,255,0.9)', 'rgba(59,130,246,0.7)', 'rgba(168,85,247,0.7)', 'rgba(16,185,129,0.7)', 'rgba(255,255,255,0.7)', 'rgba(59,130,246,0.5)', 'rgba(168,85,247,0.5)'][f],
-                  borderRadius: f % 2 === 0 ? '50%' : '8px',
-                  opacity: 1 - f * 0.12,
-                  animation: `fractal-ripple_${f}_0.7s_ease-out_forwards`,
-                  boxShadow: `0 0 ${10 + f * 5}px currentColor`,
-                }}
-              >
-                {/* Nested fractal details */}
-                {[...Array(4)].map((_, nested) => (
-                  <div
-                    key={`fractal-nested-${nested}`}
-                    className="absolute inset-0"
-                    style={{
-                      transform: `rotate(${nested * 90}deg) translateX(${15 + f * 5}px)`,
-                      border: `1px dashed`,
-                      borderColor: ['rgba(255,255,255,0.4)', 'rgba(59,130,246,0.3)', 'rgba(168,85,247,0.3)', 'rgba(16,185,129,0.3)'][nested],
-                      borderRadius: f % 2 === 0 ? '50%' : '4px',
-                      animation: `fractal-spin_${nested}_0.5s_linear_infinite`,
-                    }}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {/* Singularity black hole at extreme velocity */}
-        {singularityActive && (
-          <div
-            className="fixed pointer-events-none left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]"
-          >
-            {/* Event horizon glow */}
-            <div
-              className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black"
-              style={{
-                boxShadow: '0 0 60px 20px rgba(255,255,255,0.8)',
-                animation: 'event-horizon-pulse_0.3s_ease-in-out_infinite',
-              }}
-            />
-            
-            {/* Accretion disk matter spiral */}
-            {[...Array(32)].map((_, m) => {
-              const angle = (Date.now() * 0.003 * (m % 2 === 0 ? 1 : -1)) + (m * (Math.PI * 2 / 32));
-              const radius = 80 + Math.sin(angle * 4) * 20 + m * 3;
-              return (
-                <div
-                  key={`matter-${m}`}
-                  className="absolute h-1.5 w-1.5"
-                  style={{
-                    left: '50%',
-                    top: '50%',
-                    backgroundColor: ['#ffffff', '#3b82f6', '#a855f7', '#10b981', '#f59e0b'][m % 5],
-                    transformOrigin: 'center',
-                    transform: `rotate(${angle}rad) translateX(${radius}px) rotate(${-angle * 2}rad)`,
-                    borderRadius: '50%',
-                    opacity: 0.8 - (m % 8) * 0.08,
-                    filter: `blur(${(m % 4)}px)`,
-                    boxShadow: `0 0 ${10 + (m % 5) * 5}px currentColor`,
-                    animation: `accretion-spin_${m % 8}_0.8s_linear_infinite`,
-                    animationDelay: `${-(m * 0.025)}s`,
-                  }}
-                />
-              );
-            })}
-            
-            {/* Gravitational lensing effect */}
-            <div
-              className="absolute inset-0 -z-10 rounded-full"
-              style={{
-                background: 'radial-gradient(circle, transparent 40%, rgba(255,255,255,0.2) 60%, transparent 80%)',
-                backdropFilter: 'blur(20px)',
-                animation: 'lens-distortion_0.4s_ease-in-out_infinite',
-              }}
-            />
-            
-            {/* Time dilation particle slow-motion */}
-            {[...Array(20)].map((_, t) => {
-              const timeOffset = Date.now() * 0.0005 * (-1);
-              return (
-                <div
-                  key={`time-${t}`}
-                  className="absolute h-1 w-8"
-                  style={{
-                    left: '50%',
-                    top: '50%',
-                    backgroundColor: 'rgba(255,255,255,0.6)',
-                    transformOrigin: 'center',
-                    transform: `rotate(${timeOffset + t * 18}deg) translateY(-120px)`,
-                    borderRadius: '50%',
-                    opacity: 0.5 - t * 0.02,
-                    filter: 'blur(1px)',
-                    animation: 'time-dilation_1.2s_linear_infinite',
-                    animationDelay: `${t * 0.05}s`,
-                  }}
-                />
-              );
-            })}
-          </div>
-        )}
       <SiteMetadata
         title={PROJECT_ANALYTICS_TITLE}
         description={PROJECT_ANALYTICS_DESCRIPTION}
@@ -572,7 +166,7 @@ export default function PortfolioAnalytics() {
       <SiteHeader />
       <main id="main">
         {/* Hero Section */}
-        <section className="mx-auto max-w-[1380px] px-5 pb-24 pt-36 sm:px-8 lg:px-12">
+        <section className="relative isolate mx-auto max-w-[1380px] px-5 pb-24 pt-36 sm:px-8 lg:px-12">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-emerald-600/5 p-10 sm:p-14 lg:p-16 backdrop-blur-sm ring-1 ring-white/10 shadow-xl">
             {/* Animated Gradient Orbs with Enhanced Motion */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -605,7 +199,7 @@ export default function PortfolioAnalytics() {
                     style={{
                       left: `${[15, 45, 70, 25, 85][parseInt(id.split('-')[1])]}%`,
                       top: `${[20, 55, 35, 75, 60][parseInt(id.split('-')[1])]}%`,
-                      opacity: Math.random() * 0.5 + 0.3,
+                      opacity: 0.3 + (parseInt(id.split('-')[1]) % 5) * 0.1,
                     }}
                   />
                 ))}
@@ -642,14 +236,14 @@ export default function PortfolioAnalytics() {
                     key={i}
                     className="absolute rounded-lg bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md transition-opacity duration-500 hover:opacity-100"
                     style={{
-                      width: `${8 + Math.random() * 12}px`,
-                      height: `${8 + Math.random() * 12}px`,
-                      left: `${Math.random() * 100}%`,
-                      top: `${Math.random() * 100}%`,
-                      animation: `float-orb ${4 + Math.random() * 5}s ease-in-out infinite`,
-                      animationDelay: `${Math.random() * 4}s`,
-                      filter: `blur(${Math.random() * 2}px)`,
-                      transform: `translateZ(${Math.random() * 50 - 25}px)`,
+                      width: `${8 + (i * 7) % 12}px`,
+                      height: `${8 + (i * 5) % 12}px`,
+                      left: `${(i * 31) % 100}%`,
+                      top: `${(i * 47) % 100}%`,
+                      animation: `float-orb ${4 + (i % 5)}s ease-in-out infinite`,
+                      animationDelay: `${i % 4}s`,
+                      filter: `blur(${i % 3}px)`,
+                      transform: `translateZ(${(i % 5) * 10 - 25}px)`,
                     }}
                   />
                 ))}
@@ -707,7 +301,7 @@ export default function PortfolioAnalytics() {
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: "Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
-                { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
+                { label: "Evidenced Outcomes", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
                 { label: "Skills Tracked", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
                 { label: "Live Deployments", value: `${portfolioMetrics.liveDeployments}`, icon: Globe },
               ].map(({ label, value, icon: Icon }, index) => (
@@ -779,7 +373,7 @@ export default function PortfolioAnalytics() {
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[
                 { title: "Skill matcher", desc: "Check words from the registry against text you supply", link: "#resume", icon: FileText },
-                { title: "Complexity Matrix", desc: "Multi-axis architectural depth scoring", link: "#complexity", icon: TrendingUp },
+                { title: "Case-study shape", desc: "Counts of outcomes, limits, trade-offs, layers and evidence pointers", link: "#complexity", icon: TrendingUp },
                 { title: "Evidence review", desc: "The registry facts behind the proof summary", link: "#review", icon: ShieldCheck },
               ].map(({ title, desc, link, icon: Icon }, index) => (
                 <a
@@ -883,23 +477,33 @@ export default function PortfolioAnalytics() {
         </section>
 
         {/* Tabs */}
-        <section className="border-b border-border bg-background/50 backdrop-blur-sm">
+        <section className="relative z-20 border-b border-border bg-background/50 backdrop-blur-sm">
           <div className="mx-auto max-w-[1380px] px-5 sm:px-8 lg:px-12">
-            <nav className="-mb-px flex gap-6" aria-label="Analytics sections">
+            <nav
+              role="tablist"
+              aria-label="Analytics sections"
+              className="-mb-px flex gap-6 overflow-x-auto whitespace-nowrap"
+            >
               {[
                 { id: "overview", label: "Overview", icon: Grid },
                 { id: "resume", label: "Resume Matcher", icon: FileText },
                 { id: "skills", label: "Skills Heatmap", icon: BarChart3 },
-                { id: "complexity", label: "Complexity Matrix", icon: TrendingUp },
+                { id: "complexity", label: "Case-study shape", icon: TrendingUp },
                 { id: "verification", label: "Evidence Timeline", icon: Calendar },
-                { id: "evolution", label: "Capability Growth", icon: GitBranch },
+                { id: "evolution", label: "Capability Coverage", icon: GitBranch },
                 { id: "simulator", label: "Challenge Simulator", icon: LayoutTemplate },
                 { id: "risk", label: "Risk signals", icon: ShieldAlert },
                 { id: "review", label: "Evidence review", icon: ShieldCheck },
               ].map(({ id, label, icon: Icon }, index) => (
                 <button
                   key={id}
-                  onClick={() => setActiveTab(id as typeof activeTab)}
+                  id={`tab-${id}`}
+                  role="tab"
+                  aria-selected={activeTab === id}
+                  aria-controls={activeTab}
+                  tabIndex={activeTab === id ? 0 : -1}
+                  onClick={() => selectTab(id as typeof activeTab)}
+                  onKeyDown={(event) => handleTabKeyDown(event, id as typeof activeTab)}
                   className={`group relative flex items-center gap-2 border-b-2 px-3 py-4 text-sm font-semibold transition-all duration-300 animate-[fade-in_0.5s_ease-out_forwards] opacity-0`}
                   style={{ animationDelay: `${0.3 + index * 0.1}s` }}
                 >
@@ -996,8 +600,14 @@ export default function PortfolioAnalytics() {
           </div>
         </section>
 
-        {/* Tab Content */}
-        <section className="mx-auto max-w-[1380px] px-5 pb-24 sm:px-8 lg:px-12">
+        {/* Tab Content — one panel whose id tracks the active tab so #resume,
+            #skills, etc. deep links land on the matching section. */}
+        <section
+          role="tabpanel"
+          id={activeTab}
+          aria-labelledby={`tab-${activeTab}`}
+          className="mx-auto max-w-[1380px] px-5 pb-24 sm:px-8 lg:px-12"
+        >
           {activeTab === "overview" && (
             <div className="space-y-16 animate-[fade-in_0.5s_ease-out]">
               {/* Portfolio Summary Cards */}
@@ -1006,9 +616,9 @@ export default function PortfolioAnalytics() {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                   {[
                     { label: "Total Projects", value: portfolioMetrics.totalProjects.toString(), icon: Hash },
-                    { label: "Verified Claims", value: portfolioMetrics.verifiedClaims.toString(), icon: CheckCircle2 },
+                    { label: "Measured Metrics", value: portfolioMetrics.measuredMetrics.toString(), icon: CheckCircle2 },
                     { label: "Unique Skills", value: portfolioMetrics.techStackSize.toString(), icon: Briefcase },
-                    { label: "Avg Evidence/Project", value: portfolioMetrics.avgEvidencePerProject.toFixed(1), icon: FileText },
+                    { label: "Avg evidenced outcomes / project", value: portfolioMetrics.avgEvidencePerProject.toFixed(1), icon: FileText },
                     { label: "Live Deployments", value: `${portfolioMetrics.liveDeployments}`, icon: Globe },
                   ].map(({ label, value, icon: Icon }, index) => (
                     <div
@@ -1064,14 +674,14 @@ export default function PortfolioAnalytics() {
                       icon: FileText,
                     },
                     {
-                      title: "Skill Proficiency Map",
-                      description: "Skill map derived from the registry's capability list",
+                      title: "Capability map",
+                      description: "Coverage counts from published case studies, not skill ratings",
                       link: "#skills",
                       icon: BarChart3,
                     },
                     {
-                      title: "Project Complexity Analysis",
-                      description: "Multi-dimensional view of architecture and evidence density",
+                      title: "Case-study shape",
+                      description: "Counts of outcomes, limits, trade-offs, layers and evidence pointers",
                       link: "#complexity",
                       icon: TrendingUp,
                     },
@@ -1082,8 +692,8 @@ export default function PortfolioAnalytics() {
                       icon: Calendar,
                     },
                     {
-                      title: "Capability Evolution",
-                      description: "How technical skills grew over time through shipped projects",
+                      title: "Capability Coverage",
+                      description: "Which capabilities published case studies record, not a learning timeline",
                       link: "#evolution",
                       icon: GitBranch,
                     },
@@ -1176,13 +786,13 @@ export default function PortfolioAnalytics() {
                           key={`geo-${i}`}
                           className={`absolute ${shape === 'circle' ? 'rounded-full' : shape === 'square' ? 'rounded-none' : 'clip-path-polygon'}`}
                           style={{
-                            width: `${4 + Math.random() * 8}px`,
-                            height: `${4 + Math.random() * 8}px`,
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
+                            width: `${4 + (i % 3) * 4}px`,
+                            height: `${4 + ((i + 1) % 3) * 4}px`,
+                            left: `${(i * 23) % 100}%`,
+                            top: `${(i * 41) % 100}%`,
                             backgroundColor: ['rgba(59,130,246,0.1)', 'rgba(168,85,247,0.1)', 'rgba(16,185,129,0.1)'][i % 3],
-                            animation: `float-shape ${5 + Math.random() * 5}s ease-in-out infinite`,
-                            animationDelay: `${Math.random() * 3}s`,
+                            animation: `float-shape ${5 + (i % 5)}s ease-in-out infinite`,
+                            animationDelay: `${i % 3}s`,
                             clipPath: shape === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : undefined,
                           }}
                         />
@@ -1195,10 +805,10 @@ export default function PortfolioAnalytics() {
                   </p>
                   <ol className="space-y-4 relative z-10">
                     {[
-                      { step: "Review Skills Heatmap", desc: "Proficiency levels backed by shipped projects" },
-                      { step: "Check Complexity Scores", desc: "Architectural depth across all deliverables" },
+                      { step: "Review capability map", desc: "Coverage counts from published case studies" },
+                      { step: "Check case-study shape", desc: "Counts of outcomes, limits, trade-offs, layers and evidence pointers" },
                       { step: "Analyze Evidence Timeline", desc: "Verify what's current vs. stale claims" },
-                      { step: "Study Growth Trajectory", desc: "Skill evolution through shipping pressure" },
+                      { step: "Review capability coverage", desc: "Which capabilities published case studies record" },
                       { step: "Walk Challenge Simulator", desc: "Experience real engineering decision-making" },
                       { step: "Evaluate Risk Factors", desc: "Understand where projects might need maintenance" },
                       { step: "Read the evidence review", desc: "The registry facts, with no score or verdict" }
@@ -1252,91 +862,106 @@ export default function PortfolioAnalytics() {
                       { title: "Evidence review", link: "#review", icon: ShieldCheck, color: "from-emerald-500 to-emerald-600" },
                       { title: "Compare Projects", link: "/compare", icon: Grid, color: "from-blue-500 to-blue-600" },
                       { title: "View All Work", link: "/projects", icon: Globe, color: "from-purple-500 to-purple-600" },
-                    ].map(({ title, link, icon: Icon, color }, index) => (
-                      <a
-                        key={title}
-                        href={link}
-                        onClick={() => openSection(link)}
-                        className="group relative overflow-hidden rounded-xl bg-gradient-to-br p-6 text-white transition-all duration-300 hover:shadow-2xl hover:scale-[1.03] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0"
-                        style={{ animationDelay: `${1.6 + index * 0.15}s` }}
-                      >
-                        {/* Holographic foil effect */}
-                        <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 bg-[linear-gradient(125deg,transparent_0%,rgba(255,255,255,0.3)_25%,rgba(255,255,255,0.5)_50%,rgba(255,255,255,0.3)_75%,transparent_100%)] animate-[foil-sweep_3s_linear_infinite]" />
-                        
-                        {/* Gradient border glow on hover */}
-                        <div className={`absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 blur-md bg-gradient-to-br ${color.replace('to-', '-to-')}`} />
-                        
-                        {/* Glossy sheen effect */}
-                        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                        
-                        {/* Inner glow on hover */}
-                        <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 blur-xl bg-white/20 shadow-[0_0_30px_rgba(255,255,255,0.3)]" />
-                        
-                        {/* Corner sparkle */}
-                        <div className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                          <span className="inline-block h-2 w-2 rotate-45 border-t border-r border-white/50 drop-shadow-[0_0_4px_white]" />
-                        </div>
-                        
-                        <div className="relative z-10">
-                          <Icon className={`size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]`} aria-hidden="true" />
-                          <h4 className="mt-3 text-lg font-semibold transition-transform duration-300 group-hover:-translate-y-0.5">{title}</h4>
-                          <p className="mt-1 text-sm opacity-90 transition-opacity duration-300 group-hover:opacity-100">Open in new tab →</p>
-                        </div>
-                      </a>
-                    ))}
+                    ].map(({ title, link, icon: Icon, color }, index) => {
+                      const isHash = link.startsWith("#");
+                      const caption = isHash ? "Navigate on this page →" : "Open page →";
+                      const className = "group relative overflow-hidden rounded-xl bg-gradient-to-br p-6 text-white transition-all duration-300 hover:shadow-2xl hover:scale-[1.03] animate-[fade-in-up_0.4s_ease-out_forwards] opacity-0";
+                      const style = { animationDelay: `${1.6 + index * 0.15}s` };
+                      const cardBody = (
+                        <>
+                          {/* Holographic foil effect */}
+                          <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 bg-[linear-gradient(125deg,transparent_0%,rgba(255,255,255,0.3)_25%,rgba(255,255,255,0.5)_50%,rgba(255,255,255,0.3)_75%,transparent_100%)] animate-[foil-sweep_3s_linear_infinite]" />
+                          
+                          {/* Gradient border glow on hover */}
+                          <div className={`absolute inset-0 -z-10 scale-95 opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100 blur-md bg-gradient-to-br ${color.replace('to-', '-to-')}`} />
+                          
+                          {/* Glossy sheen effect */}
+                          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                          
+                          {/* Inner glow on hover */}
+                          <div className="absolute inset-0 -z-10 opacity-0 transition-all duration-500 group-hover:opacity-100 blur-xl bg-white/20 shadow-[0_0_30px_rgba(255,255,255,0.3)]" />
+                          
+                          {/* Corner sparkle */}
+                          <div className="absolute right-4 top-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                            <span className="inline-block h-2 w-2 rotate-45 border-t border-r border-white/50 drop-shadow-[0_0_4px_white]" />
+                          </div>
+                          
+                          <div className="relative z-10">
+                            <Icon className="size-6 transition-all duration-300 group-hover:rotate-12 group-hover:scale-125 drop-shadow-[0_0_6px_rgba(255,255,255,0.5)]" aria-hidden="true" />
+                            <h4 className="mt-3 text-lg font-semibold transition-transform duration-300 group-hover:-translate-y-0.5">{title}</h4>
+                            <p className="mt-1 text-sm opacity-90 transition-opacity duration-300 group-hover:opacity-100">{caption}</p>
+                          </div>
+                        </>
+                      );
+                      return isHash ? (
+                        <a key={title} href={link} onClick={() => openSection(link)} className={className} style={style}>
+                          {cardBody}
+                        </a>
+                      ) : (
+                        <Link key={title} to={link} onClick={() => openSection(link)} className={className} style={style}>
+                          {cardBody}
+                        </Link>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {activeTab === "resume" && (
-            <div className="max-w-4xl">
-              <SkillMatcher />
-            </div>
-          )}
+          <Suspense
+            fallback={
+              <p className="p-8 text-sm text-muted-foreground">Loading section…</p>
+            }
+          >
+            {activeTab === "resume" && (
+              <div className="max-w-4xl">
+                <SkillMatcher />
+              </div>
+            )}
 
-          {activeTab === "skills" && (
-            <div className="max-w-6xl">
-              <SkillsHeatmap />
-            </div>
-          )}
+            {activeTab === "skills" && (
+              <div className="max-w-6xl">
+                <SkillsHeatmap />
+              </div>
+            )}
 
-          {activeTab === "complexity" && (
-            <div className="max-w-6xl">
-              <ProjectComplexityVisualizer />
-            </div>
-          )}
+            {activeTab === "complexity" && (
+              <div className="max-w-6xl">
+                <ProjectComplexityVisualizer />
+              </div>
+            )}
 
-          {activeTab === "verification" && (
-            <div className="max-w-6xl">
-              <EvidenceVerificationTimeline />
-            </div>
-          )}
+            {activeTab === "verification" && (
+              <div className="max-w-6xl">
+                <EvidenceVerificationTimeline />
+              </div>
+            )}
 
-          {activeTab === "evolution" && (
-            <div className="max-w-6xl">
-              <CapabilityEvolutionTimeline />
-            </div>
-          )}
+            {activeTab === "evolution" && (
+              <div className="max-w-6xl">
+                <CapabilityEvolutionTimeline />
+              </div>
+            )}
 
-          {activeTab === "simulator" && (
-            <div className="max-w-6xl">
-              <InteractivePortfolioSimulator />
-            </div>
-          )}
+            {activeTab === "simulator" && (
+              <div className="max-w-6xl">
+                <InteractivePortfolioSimulator />
+              </div>
+            )}
 
-          {activeTab === "risk" && (
-            <div className="max-w-6xl">
-              <RiskSignals />
-            </div>
-          )}
+            {activeTab === "risk" && (
+              <div className="max-w-6xl">
+                <RiskSignals />
+              </div>
+            )}
 
-          {activeTab === "review" && (
-            <div className="max-w-6xl">
-              <EvidenceReview />
-            </div>
-          )}
+            {activeTab === "review" && (
+              <div className="max-w-6xl">
+                <EvidenceReview />
+              </div>
+            )}
+          </Suspense>
         </section>
       </main>
       <SiteFooter />

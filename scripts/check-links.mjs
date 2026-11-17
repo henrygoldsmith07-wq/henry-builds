@@ -163,28 +163,45 @@ if (fs.existsSync(distDir)) {
 }
 
 // --- 5. external evidence links -------------------------------------------
+/**
+ * The single source of truth for "which evidence does a case study carry".
+ *
+ * These are exactly the six groups the UI counts through `allEvidenceOf` in
+ * `src/data/registry/index.ts`: outcomes, metrics, architecture, insight
+ * lifecycle, benchmark chart and failed approaches. Both the external HTTP
+ * probe and the GitHub path check below use this collector, so the population
+ * behind "All N links resolved" is the same population the site displays.
+ *
+ * It used to be two collectors: the HTTP probe read only architecture, metrics
+ * and outcomes, while this one also covered lifecycle/benchmark but omitted
+ * failed approaches. The two disagreed with each other and with the UI.
+ *
+ * Each entry is an array of evidence objects, gathered with `?? []` so a
+ * missing group is simply empty. These must NOT be spread into the outer
+ * array: `...flatMap((m) => m.evidence ?? [])` pushes each *evidence object*
+ * as a top-level element, and the loop below then tries to iterate that
+ * object — `TypeError: list is not iterable`. That is what happened here:
+ * `--github` threw on the first project whose evidence lived under
+ * `metrics`/`outcomes` rather than `architecture`, so upstream path
+ * verification never actually ran in the scheduled link check.
+ */
 function collectEvidenceItems() {
   const items = [];
   for (const { file, data } of projects) {
     const study = data.caseStudy ?? {};
-    // Each entry is an array of evidence objects, gathered with `?? []` so a
-    // missing group is simply empty. These must NOT be spread into the outer
-    // array: `...flatMap((m) => m.evidence ?? [])` pushes each *evidence
-    // object* as a top-level element, and the loop below then tries to iterate
-    // that object — `TypeError: list is not iterable`. That is what happened
-    // here: `--github` threw on the first project whose evidence lived under
-    // `metrics`/`outcomes` rather than `architecture`, so upstream path
-    // verification never actually ran in the scheduled link check.
     const groups = [
-      study.architecture?.evidence ?? [],
-      (study.metrics ?? []).flatMap((m) => m.evidence ?? []),
       (study.outcomes ?? []).flatMap((o) => o.evidence ?? []),
-      study.benchmarkChart?.evidence ?? [],
+      (study.metrics ?? []).flatMap((m) => m.evidence ?? []),
+      study.architecture?.evidence ?? [],
       study.insightLifecycle?.evidence ?? [],
+      study.benchmarkChart?.evidence ?? [],
+      (study.failedApproaches ?? []).flatMap((f) => f.evidence ?? []),
     ];
     for (const group of groups) {
       for (const item of group) {
-        if (item?.kind || item?.href || item?.path || item?.src) items.push({ file, item });
+        if (item?.kind || item?.href || item?.path || item?.src) {
+          items.push({ file, data, item });
+        }
       }
     }
   }
@@ -282,23 +299,27 @@ async function checkExternalLinks() {
   // case study. A URL shared by two studies is recorded against both.
   const slugsByUrl = new Map();
 
+  // External probes now draw from the same six-group collector as the GitHub
+  // path check, grouped back by project so every href is attributed to its case
+  // study. Previously this loop read only architecture, metrics and outcomes,
+  // so "All N links resolved" claimed fewer links than the UI displays.
+  const evidenceByProject = new Map();
+  for (const { data, item } of collectEvidenceItems()) {
+    if (!item.href) continue;
+    const hrefs = evidenceByProject.get(data) ?? [];
+    hrefs.push(item.href);
+    evidenceByProject.set(data, hrefs);
+  }
+
   for (const { data } of projects) {
-    const study = data.caseStudy ?? {};
-    const evidence = [
-      ...(study.architecture?.evidence ?? []),
-      ...(study.metrics ?? []).flatMap((m) => m.evidence ?? []),
-      ...(study.outcomes ?? []).flatMap((o) => o.evidence ?? []),
-    ];
     const removed = data.sourceState === "historical-case-study";
-    const evidenceUrls = [];
-    for (const item of evidence) {
-      if (!item.href) continue;
-      urls.add(item.href);
-      evidenceUrls.push(item.href);
-      const owners = slugsByUrl.get(item.href) ?? new Set();
+    const evidenceUrls = evidenceByProject.get(data) ?? [];
+    for (const href of evidenceUrls) {
+      urls.add(href);
+      const owners = slugsByUrl.get(href) ?? new Set();
       owners.add(data.slug);
-      slugsByUrl.set(item.href, owners);
-      if (removed) removedSourceUrls.add(item.href);
+      slugsByUrl.set(href, owners);
+      if (removed) removedSourceUrls.add(href);
     }
     projectsWithEvidence.push({ data, evidenceUrls });
     for (const url of [data.repo?.href, data.liveUrl]) {
